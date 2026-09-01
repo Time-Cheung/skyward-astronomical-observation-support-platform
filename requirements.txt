@@ -1,0 +1,12 @@
+fastapi==0.128.8
+uvicorn==0.39.0
+pydantic==2.13.4
+starlette==0.49.3
+astropy==6.0.1
+numpy==1.26.4
+scipy==1.13.1
+Jinja2==3.1.6
+python-multipart==0.0.20
+httpx==0.28.1
+matplotlib==3.9.4
+pytest==8.4.2

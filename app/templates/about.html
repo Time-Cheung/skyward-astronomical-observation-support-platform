@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Skyward | Data & Method Notes{% endblock %}
+{% block content %}
+<section class="page-heading narrow-heading">
+  <div>
+    <p class="section-label" data-i18n="methodAndBoundary">METHOD & BOUNDARY</p>
+    <h1 data-i18n="aboutTitle">Data, coordinates and geometry.</h1>
+    <p data-i18n="aboutLead">Fixed parameters, catalogue provenance and the conditions intentionally excluded from this first release.</p>
+  </div>
+</section>
+
+<section class="about-grid">
+  <article>
+    <h2 data-i18n="lactSite">LACT site</h2>
+    <dl class="definition-list">
+      <div><dt data-i18n="longitude">Longitude</dt><dd>{{ site.longitude_deg }}° E</dd></div>
+      <div><dt data-i18n="latitude">Latitude</dt><dd>{{ site.latitude_deg }}° N</dd></div>
+      <div><dt data-i18n="altitude">Altitude</dt><dd>{{ site.altitude_m }} m</dd></div>
+      <div><dt data-i18n="timezone">Time zone</dt><dd>{{ site.timezone }}</dd></div>
+      <div><dt data-i18n="source">Source</dt><dd>{{ site.source }}</dd></div>
+    </dl>
+  </article>
+  <article>
+    <h2>LACT FoV</h2>
+    <dl class="definition-list">
+      <div><dt data-i18n="diameter">Diameter</dt><dd>{{ fov_diameter }}°</dd></div>
+      <div><dt data-i18n="radius">Radius</dt><dd>{{ fov_radius }}°</dd></div>
+      <div><dt data-i18n="model">Model</dt><dd data-i18n="hardCircle">Ideal circular hard boundary</dd></div>
+      <div><dt data-i18n="notModelled">Not modelled</dt><dd data-i18n="fovNotModelled">Off-axis response, PSF, obstruction or sensitivity falloff</dd></div>
+    </dl>
+  </article>
+  <article>
+    <h2 data-i18n="catalogueTitle">2LHAASO catalogue</h2>
+    <dl class="definition-list">
+      <div><dt data-i18n="records">Records</dt><dd>{{ catalog_count }}</dd></div>
+      <div><dt data-i18n="coordinates">Coordinates</dt><dd>{{ frame_label }}</dd></div>
+      <div><dt>Extension</dt><dd data-i18n="extensionMeaning">Degrees, used as a nominal circular radius</dd></div>
+      <div><dt>SHA-256</dt><dd class="hash-value">{{ catalog_hash }}</dd></div>
+    </dl>
+  </article>
+  <article>
+    <h2 data-i18n="iersOffline">Offline IERS data</h2>
+    <dl class="definition-list">
+      <div><dt data-i18n="currentCoverage">Current coverage</dt><dd>{{ 'Yes' if iers.covers_current_time else 'No' }}</dd></div>
+      <div><dt>MJD range</dt><dd>{{ iers.first_mjd }} - {{ iers.last_mjd }}</dd></div>
+      <div><dt data-i18n="autoDownload">Automatic download</dt><dd data-i18n="disabled">Disabled</dd></div>
+      <div><dt data-i18n="file">File</dt><dd class="path-value">{{ iers.source }}</dd></div>
+    </dl>
+  </article>
+</section>
+
+<section class="method-section">
+  <h2 data-i18n="statusDefinition">Green, yellow and red</h2>
+  <div class="method-table">
+    <div class="method-row"><span class="status-chip green">GREEN</span><p data-i18n="greenDefinition">The source centre and nominal extension both pass horizon, enabled constraints and the 8.3° hard FoV.</p></div>
+    <div class="method-row"><span class="status-chip yellow">YELLOW</span><p data-i18n="yellowDefinition">The centre passes, but an extension edge cannot fully meet FoV, horizon, zenith-angle or Moon-separation requirements.</p></div>
+    <div class="method-row"><span class="status-chip red">RED</span><p data-i18n="redDefinition">The centre itself fails the baseline horizon, solar or enabled centre constraints.</p></div>
+  </div>
+</section>
+
+<section class="method-section">
+  <h2 data-i18n="notEvaluated">Not evaluated</h2>
+  <div class="capability-grid">
+    {% for name, enabled in capabilities.items() %}
+    <div><span>{{ name }}</span><strong data-i18n="{{ 'implemented' if enabled else 'notImplemented' }}">{{ 'Implemented' if enabled else 'Not implemented' }}</strong></div>
+    {% endfor %}
+  </div>
+  <p class="disclaimer" data-i18n="aboutDisclaimer">This is not a formal observing approval. Weather, device state, mechanical limits, tracking error and joint-observation conditions are excluded.</p>
+</section>
+{% endblock %}

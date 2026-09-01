@@ -1,0 +1,21 @@
+[Unit]
+Description=LACT geometry observation window planner
+After=network.target
+
+[Service]
+Type=simple
+User=lact
+Group=lact
+WorkingDirectory=/home/lact/wz/lact-window-planner
+Environment=MPLCONFIGDIR=/var/cache/lact-window-planner/matplotlib
+ExecStart=/home/lact/wz/lact-window-planner/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/var/cache/lact-window-planner
+
+[Install]
+WantedBy=multi-user.target
