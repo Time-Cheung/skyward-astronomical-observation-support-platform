@@ -45,7 +45,7 @@ from .windows import calculate_catalogue_windows, calculate_windows
 app = FastAPI(
     title="Skyward Astronomical Observation Support Platform",
     version="0.1.0",
-    description="LAN-only geometry planning prototype with a LACT adapter and extensible telescope support.",
+    description="LAN-only geometry planning prototype with a current LACT adapter; future releases will integrate additional telescope status, celestial-position and site-weather services.",
     docs_url=None,
     redoc_url=None,
 )
