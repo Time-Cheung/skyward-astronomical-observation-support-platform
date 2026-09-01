@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Skyward is a LAN-only geometry planner for LACT observing. It loads the 190-source `2LHAASO` catalogue, computes horizon coordinates for targets, the Sun and the Moon at the LHAASO/LACT site, and reports candidate observing windows.
+Skyward is a LAN-only geometry observation-support platform. It loads the 190-source `2LHAASO` catalogue, computes horizon coordinates for targets, the Sun and the Moon using the selected telescope configuration, and reports candidate observing windows. The current release includes a complete LACT adapter; additional telescope adapters can be connected later.
 
 **This release is geometry only.** It does not evaluate weather, clouds, aerosols, live LACT telemetry, current mechanical pointing, mechanical limits, tracking error, off-axis response, real sensitivity, or LHAASO joint-observation acceptance. A result is not a formal observing approval.
 
@@ -22,7 +22,7 @@ The browser stores these choices in `localStorage`. When a calculation or result
 
 The all-sky map is a local horizon-coordinate projection:
 
-- the centre is zenith and the LACT site marker; the current-version real-time FoV circle is fixed at zenith until pointing telemetry is connected;
+- the centre is zenith and the selected telescope site marker; the current-version real-time FoV circle is fixed at zenith until pointing telemetry is connected;
 - the outer ring is the horizon, with its label placed outside the north-west side to avoid compass overlap;
 - visible sources are stars; below-horizon sources are omitted from the disc;
 - the Sun and Moon use small orange `☀︎` and `☾` symbols;

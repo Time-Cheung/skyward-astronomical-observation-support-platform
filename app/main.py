@@ -43,9 +43,9 @@ from .targets import normalise_temporary_target_name
 from .windows import calculate_catalogue_windows, calculate_windows
 
 app = FastAPI(
-    title="LACT Geometry Window Planner",
+    title="Skyward Astronomical Observation Support Platform",
     version="0.1.0",
-    description="LAN-only geometry planning prototype for LACT and 2LHAASO sources.",
+    description="LAN-only geometry planning prototype with a LACT adapter and extensible telescope support.",
     docs_url=None,
     redoc_url=None,
 )
