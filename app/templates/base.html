@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Skyward | LACT Observation Planner{% endblock %}</title>
+  <!-- All visual and interaction assets are local so the LAN deployment stays offline. -->
+  <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  <script defer src="{{ url_for('static', path='/app.js') }}"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Skyward home" data-i18n-aria-label="brandHome">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-copy"><strong>SKYWARD</strong><small data-i18n="brandDescriptor">ASTRONOMICAL OBSERVATION SUPPORT PLATFORM</small></span>
+    </a>
+    <div class="header-actions">
+      <nav aria-label="Primary navigation" data-i18n-aria-label="primaryNavigation">
+        <a href="/" data-i18n="navPlanner">Sky map & planner</a>
+        <a href="/about" data-i18n="navData">Data notes</a>
+        <a href="/api/v1">API</a>
+      </nav>
+      <!-- These controls are intentionally placed on the main header so all views share
+           the operator's local display and language preferences. -->
+      <div class="display-settings" aria-label="Display settings" data-i18n-aria-label="displaySettings">
+        <label class="setting-control" for="language-select">
+          <span class="sr-only" data-i18n="language">Language</span>
+          <select id="language-select" aria-label="Language" data-i18n-aria-label="language">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label class="setting-control" for="timezone-select">
+          <span class="sr-only" data-i18n="timezone">Time zone</span>
+          <select id="timezone-select" aria-label="Time zone" data-i18n-aria-label="timezone">
+            <option value="local" data-i18n="timezoneLocal">Beijing: UTC+8</option>
+            <option value="utc">UTC</option>
+          </select>
+        </label>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme" data-i18n-aria-label="switchTheme" title="Switch theme" data-i18n-title="switchTheme">
+          <span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label" data-i18n="themeAuto">Auto</span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main class="page-shell">
+    <section class="context-strip" aria-label="Calculation context" data-i18n-aria-label="calculationContext">
+      <span id="context-site" data-site-label="{{ telescope.name }}"><b data-i18n="site">Site</b> {{ '%.6f'|format(site.latitude_deg) }}° N, {{ '%.6f'|format(site.longitude_deg) }}° E</span>
+      <span id="context-altitude"><b data-i18n="altitude">Altitude</b> {{ site.altitude_m|int }} m</span>
+      <span id="context-fov">FoV {{ fov_diameter }}°</span>
+      <span>{{ frame_label }}</span>
+      <strong data-i18n="geometryOnly">GEOMETRY ONLY</strong>
+      <button id="refresh-realtime" class="secondary-button realtime-refresh-button" type="button" data-i18n="refreshRealtime">Refresh live all-sky / FoV maps</button>
+      <aside class="header-live-panel" aria-live="polite">
+        <span><b data-i18n="localDateTime">Local date and time</b> <strong id="sky-clock">—</strong></span>
+        <span><b data-i18n="sunHorizonCoordinates">Sun Alt / Az</b> <strong id="sun-coordinates">—</strong></span>
+        <span><b data-i18n="moonHorizonCoordinates">Moon Alt / Az</b> <strong id="moon-coordinates">—</strong></span>
+      </aside>
+    </section>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <p data-i18n="footerDisclaimer">LAN prototype. Weather, device state, mechanical safety and LHAASO joint observation are not evaluated.</p>
+  </footer>
+
+  <dialog id="source-dialog" class="source-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-head">
+      <div>
+        <p class="dialog-kicker" data-i18n="sourceDetails">2LHAASO source details</p>
+        <h2 id="dialog-title" data-i18n="loading">Loading</h2>
+      </div>
+      <div class="dialog-head-actions">
+        <button id="dialog-add-zenith" class="secondary-button" type="button" hidden data-i18n="addZenithOverlay">Add Zenith-Time curve</button>
+        <button id="dialog-use-source" class="secondary-button dialog-head-planner-button" type="button" hidden data-i18n="useForPlanner">Use for planning</button>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Close details" data-i18n-aria-label="closeDetails">×</button>
+      </div>
+    </div>
+    <div id="dialog-body" class="dialog-body" aria-live="polite"></div>
+  </dialog>
+
+  <!-- The plan editor stores nothing on the server. Its TXT record is generated
+       only in the operator's browser, keeping the current LAN-only, no-account
+       boundary intact. -->
+  <dialog id="observation-plan-dialog" class="source-dialog plan-dialog" aria-labelledby="plan-dialog-title">
+    <form id="observation-plan-form" method="dialog">
+      <div class="dialog-head">
+        <div><p class="dialog-kicker" data-i18n="observationPlan">Observing plan</p><h2 id="plan-dialog-title" data-i18n="observationPlan">Observing plan</h2></div>
+        <button class="icon-button" type="button" data-close-plan-dialog aria-label="Close plan" data-i18n-aria-label="closeDetails">×</button>
+      </div>
+      <div class="dialog-body">
+        <dl class="detail-grid plan-summary">
+          <div><dt data-i18n="targetSource">Target source</dt><dd id="plan-source-name"></dd></div>
+          <div><dt data-i18n="constraints">Constraints</dt><dd id="plan-constraints"></dd></div>
+        </dl>
+        <p class="plan-range-hint" data-i18n="planRangeHint">The current full-footprint window is prefilled. Planned times must stay within the valid full-footprint interval.</p>
+        <div class="plan-form-grid">
+          <div class="form-field"><label for="plan-start" data-i18n="plannedStart">Planned start</label><input id="plan-start" type="datetime-local" step="1" required></div>
+          <div class="form-field"><label for="plan-end" data-i18n="plannedEnd">Planned end</label><input id="plan-end" type="datetime-local" step="1" required></div>
+          <div class="form-field field-wide"><label for="plan-notes" data-i18n="notes">Notes</label><textarea id="plan-notes" rows="4" maxlength="2000"></textarea></div>
+          <label class="plan-image-option field-wide"><input id="plan-save-plot" type="checkbox"> <span data-i18n="savePlot">Save geometry and full-footprint plot (SVG)</span></label>
+        </div>
+        <p id="plan-range-error" class="form-error" role="alert" hidden></p>
+        <div class="dialog-actions"><button class="primary-button dialog-planner-button" id="plan-confirm" type="submit" data-i18n="confirmAddPlan">Confirm addition</button></div>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="duplicate-plan-dialog" class="source-dialog choice-dialog" aria-labelledby="duplicate-plan-title">
+    <div class="dialog-head"><div><p class="dialog-kicker" data-i18n="duplicatePlanKicker">Duplicate plan</p><h2 id="duplicate-plan-title" data-i18n="duplicatePlanTitle">This source already has a saved plan</h2></div></div>
+    <div class="dialog-body">
+      <p data-i18n="duplicatePlanPrompt">Choose whether to overwrite the previous entry or add another entry.</p>
+      <div class="dialog-actions duplicate-plan-actions">
+        <button class="secondary-button" type="button" data-duplicate-choice="cancel" data-i18n="cancelAddition">Cancel addition</button>
+        <button class="secondary-button" type="button" data-duplicate-choice="append" data-i18n="addAsNewEntry">Add as new entry</button>
+        <button class="primary-button compact-primary-button" type="button" data-duplicate-choice="overwrite" data-i18n="overwritePrevious">Overwrite</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Skyward | API Reference{% endblock %}
+{% block content %}
+<section class="page-heading narrow-heading">
+  <div>
+    <p class="section-label" data-i18n="jsonApi">JSON API</p>
+    <h1 data-i18n="apiTitle">LAN API reference.</h1>
+    <p data-i18n="apiLead">All endpoints are unauthenticated and must remain inside the controlled LAN. Interactive Swagger is disabled so a browser never tries to load a public CDN. The machine-readable schema remains at <code>/openapi.json</code>.</p>
+  </div>
+</section>
+
+<section class="method-section">
+  <h2 data-i18n="endpoints">Endpoints</h2>
+  <div class="api-list">
+    {% for method, path, description in endpoints %}
+    <article>
+      <strong>{{ method }}</strong>
+      <code>{{ path }}</code>
+      <span data-i18n="apiDescription{{ loop.index }}">{{ description }}</span>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="method-section">
+  <h2 data-i18n="windowRequestExample">Window request example</h2>
+  <pre class="code-sample"><code>{
+  "source_index": 11,
+  "start_time": "2026-12-15T10:00:00Z",
+  "end_time": "2026-12-16T10:00:00Z",
+  "constraints": {
+    "sun_max_altitude_deg": -18,
+    "moon_min_separation_deg": 30,
+    "target_min_zenith_deg": null,
+    "target_max_zenith_deg": 50,
+    "minimum_window_seconds": 1800
+  }
+}</code></pre>
+  <p class="disclaimer"><span data-i18n="apiDisclaimer">A response with</span> <code>geometry_only=true</code> <span data-i18n="apiDisclaimerEnd">does not evaluate weather, telemetry, mechanical safety or joint-observation conditions.</span></p>
+</section>
+{% endblock %}

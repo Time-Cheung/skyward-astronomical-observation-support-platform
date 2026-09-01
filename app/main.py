@@ -1,0 +1,1168 @@
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+import json
+import re
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from zoneinfo import ZoneInfo
+
+import numpy as np
+from astropy.coordinates import AltAz, SkyCoord, get_body, get_sun
+from astropy.time import Time
+import astropy.units as u
+
+from fastapi import Depends, File, FastAPI, Form, HTTPException, Query, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
+
+from .astronomy import compute_catalog_geometry, compute_geometry, format_ra_dec, iers_status
+from .catalog import CatalogError, Source, TemporaryCatalog, catalog, enrichment_store, temporary_catalogues
+from .config import (
+    BASE_DIR,
+    CAPABILITIES,
+    COORDINATE_FRAME_LABEL,
+    DEFAULT_PLANNER_CONSTRAINT_VALUES,
+    FOV_DIAMETER_DEG,
+    FOV_RADIUS_DEG,
+    GEOMETRY_ONLY,
+    LACT_TELESCOPE,
+    SITE_METADATA,
+    TelescopeConfig,
+    custom_telescope,
+    SITE_TIMEZONE,
+    SITE_TIMEZONE_NAME,
+)
+from .plotting import render_window_plot
+from .schemas import ConstraintSet, SkyRequest, WindowRequest
+from .sky_map import render_all_sky_svg, render_local_fov_svg
+from .status import source_status
+from .targets import normalise_temporary_target_name
+from .windows import calculate_catalogue_windows, calculate_windows
+
+app = FastAPI(
+    title="LACT Geometry Window Planner",
+    version="0.1.0",
+    description="LAN-only geometry planning prototype for LACT and 2LHAASO sources.",
+    docs_url=None,
+    redoc_url=None,
+)
+app.mount("/static", StaticFiles(directory=BASE_DIR / "app" / "static"), name="static")
+templates = Jinja2Templates(directory=BASE_DIR / "app" / "templates")
+
+
+def _resolve_catalogue(catalog_token: Optional[str] = None):
+    """Return the reviewed catalogue or a short-lived in-memory CSV upload."""
+    if not catalog_token:
+        return catalog
+    try:
+        return temporary_catalogues.get(catalog_token)
+    except KeyError as exc:
+        raise ValueError(str(exc)) from exc
+
+
+def _catalogue_metadata(selected) -> dict:
+    """Expose selected-table provenance without exposing operator upload bytes."""
+    return {
+        "token": getattr(selected, "token", ""),
+        "identifier": getattr(selected, "identifier", "upload"),
+        "label": selected.label,
+        "sha256": selected.sha256,
+        "count": len(selected.sources),
+        "temporary": isinstance(selected, TemporaryCatalog),
+    }
+
+
+def _now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _parse_optional_float(value: Optional[str]) -> Optional[float]:
+    if value is None or not value.strip():
+        return None
+    return float(value)
+
+
+def _parse_optional_int(value: Optional[str]) -> Optional[int]:
+    if value is None or not value.strip():
+        return None
+    return int(value)
+
+
+def _human_reason_text(reasons: list[str] | str) -> str:
+    """Format stable reason codes for server-rendered, no-JavaScript fallback.
+
+    JSON responses retain machine-readable codes. HTML must remain readable
+    before the local client applies its bilingual translations, so this helper
+    deliberately replaces underscore codes with concise human wording.
+    """
+    if isinstance(reasons, str):
+        values = [reasons]
+    else:
+        values = list(reasons)
+    conditions = {
+        "target_above_horizon": "target above horizon",
+        "target_inside_current_fov": "target inside current FoV",
+        "sun_altitude": "Sun altitude",
+        "moon_separation": "Moon separation",
+        "target_min_zenith": "minimum target zenith angle",
+        "target_max_zenith": "maximum target zenith angle",
+        "extension_inside_fov": "extension inside FoV",
+        "extension_inside_current_fov": "extension inside current FoV",
+        "extension_above_horizon": "extension above horizon",
+        "extension_max_zenith": "extension within horizon limit",
+        "minimum_window": "minimum continuous window",
+    }
+
+    def condition(value: str) -> str:
+        return conditions.get(value, value.replace("_", " "))
+
+    def one(value: str) -> str:
+        if value == "all_enabled_geometry_conditions_pass":
+            return "All enabled geometry conditions pass"
+        if value == "range_start":
+            return "Requested-range start"
+        if value == "range_end":
+            return "Requested-range end"
+        if value == "constraint_boundary":
+            return "Constraint boundary"
+        if value.startswith("became_valid_after: "):
+            return "Became valid after: " + ", ".join(
+                condition(item) for item in value[20:].split(", ")
+            )
+        if value.startswith("became_invalid_after: "):
+            return "Became invalid after: " + ", ".join(
+                condition(item) for item in value[22:].split(", ")
+            )
+        if value == "center_cannot_hold_for_minimum_window":
+            return "Target centre: minimum continuous window"
+        if value == "extension_cannot_hold_for_minimum_window":
+            return "Source edge: minimum continuous window"
+        if value.startswith("center_"):
+            return "Target centre: " + condition(value[7:])
+        aliases = {
+            "extension_edge_exceeds_fov": "extension_inside_fov",
+            "extension_edge_exceeds_current_fov": "extension_inside_current_fov",
+            "extension_edge_below_horizon": "extension_above_horizon",
+            "extension_edge_exceeds_horizon_limit": "extension_max_zenith",
+        }
+        if value in aliases:
+            return "Source edge: " + condition(aliases[value])
+        if value.startswith("extension_edge_"):
+            return "Source edge: " + condition(value[15:])
+        return condition(value)
+
+    return " · ".join(one(value) for value in values if value) or "—"
+
+
+templates.env.globals["human_reason_text"] = _human_reason_text
+
+
+def _parse_form_datetime(
+    value: str,
+    display_timezone: Optional[str],
+    observer_timezone=SITE_TIMEZONE,
+) -> datetime:
+    """Interpret a browser ``datetime-local`` value in its selected display zone.
+
+    HTML datetime-local values deliberately have no offset.  The LAN site uses
+    Beijing time by default, while the header also permits an explicit UTC view.
+    Keeping this conversion at the HTTP boundary prevents a UTC screen from
+    being silently reinterpreted as Asia/Shanghai by the domain model.
+    """
+    # Python 3.9's datetime.fromisoformat does not accept the trailing ``Z``
+    # emitted by the API/window serializer.  Normalise it before parsing so a
+    # result-page theme/timezone refresh preserves the exact UTC instant.
+    normalized = value[:-1] + "+00:00" if value.endswith(("Z", "z")) else value
+    parsed = datetime.fromisoformat(normalized)
+    if parsed.tzinfo is not None:
+        return parsed
+    return parsed.replace(
+        tzinfo=timezone.utc if display_timezone == "utc" else observer_timezone
+    )
+
+
+def _observer_timezone(telescope: TelescopeConfig):
+    """Use the selected observatory offset for local planner wall-clock input."""
+    return timezone(timedelta(hours=telescope.timezone_offset_hours))
+
+
+def _local_input(value: datetime, observer_timezone=SITE_TIMEZONE) -> str:
+    return value.astimezone(observer_timezone).strftime("%Y-%m-%dT%H:%M")
+
+
+def _local_iso(value: datetime, observer_timezone=SITE_TIMEZONE) -> str:
+    return value.astimezone(observer_timezone).isoformat()
+
+
+def _normalise_plot_theme(value: Optional[str], display_theme: str) -> str:
+    """Select a safe server-side palette without changing the user preference.
+
+    ``display_theme`` deliberately retains the operator's choice (including
+    ``auto``) for localStorage and future refreshes.  Browsers additionally
+    submit their currently resolved light/dark palette through ``plot_theme``
+    so Matplotlib can render an SVG that matches the active system theme.
+    A non-JavaScript form submission has no resolved palette, for which light
+    is the deterministic fallback unless the explicit preference is dark.
+    """
+    if value in {"light", "dark"}:
+        return value
+    return "dark" if display_theme == "dark" else "light"
+
+
+def _canonical_form_time(
+    value: str, display_timezone: Optional[str], observer_timezone=SITE_TIMEZONE
+) -> str:
+    """Return a UTC ISO value for client-side date controls, or an empty string.
+
+    Validation rerenders can occur after an unrelated invalid field.  Preserve
+    valid start/end instants in canonical UTC form so switching the display
+    zone after that rerender never shifts the planner by eight hours.
+    """
+    try:
+        return _parse_form_datetime(value, display_timezone, observer_timezone).astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    except (TypeError, ValueError):
+        return ""
+
+
+
+
+def _telescope_from_form(
+    telescope_mode: Optional[str],
+    custom_longitude_deg: Optional[str] = None,
+    custom_latitude_deg: Optional[str] = None,
+    custom_altitude_m: Optional[str] = None,
+    custom_timezone_offset_hours: Optional[str] = None,
+    custom_fov_diameter_deg: Optional[str] = None,
+) -> TelescopeConfig:
+    """Resolve LACT or one non-persistent WGS-84 custom observatory."""
+    mode = telescope_mode or "lact"
+    if mode == "lact":
+        return LACT_TELESCOPE
+    if mode != "custom":
+        raise ValueError("select LACT or a custom telescope")
+    raw = {
+        "longitude": custom_longitude_deg,
+        "latitude": custom_latitude_deg,
+        "altitude": custom_altitude_m,
+        "timezone": custom_timezone_offset_hours,
+        "FoV": custom_fov_diameter_deg,
+    }
+    if any(value is None or not value.strip() for value in raw.values()):
+        raise ValueError("all custom telescope fields must be supplied")
+    return custom_telescope(
+        float(custom_longitude_deg),
+        float(custom_latitude_deg),
+        float(custom_altitude_m),
+        float(custom_timezone_offset_hours),
+        float(custom_fov_diameter_deg),
+    )
+
+
+def _telescope_query(
+    telescope_mode: str = Query("lact"),
+    custom_longitude_deg: Optional[float] = Query(None, ge=-180, le=180),
+    custom_latitude_deg: Optional[float] = Query(None, ge=-90, le=90),
+    custom_altitude_m: Optional[float] = Query(None, ge=-500, le=10000),
+    custom_timezone_offset_hours: Optional[float] = Query(None, ge=-12, le=14),
+    custom_fov_diameter_deg: Optional[float] = Query(None, gt=0, le=180),
+) -> TelescopeConfig:
+    """FastAPI dependency mirroring the non-persistent planner configuration."""
+    if telescope_mode == "lact":
+        return LACT_TELESCOPE
+    if telescope_mode != "custom" or None in {
+        custom_longitude_deg, custom_latitude_deg, custom_altitude_m,
+        custom_timezone_offset_hours, custom_fov_diameter_deg,
+    }:
+        raise HTTPException(status_code=422, detail="complete custom telescope configuration is required")
+    try:
+        return custom_telescope(
+            custom_longitude_deg, custom_latitude_deg, custom_altitude_m,
+            custom_timezone_offset_hours, custom_fov_diameter_deg,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+def _constraints_from_values(
+    sun_max_altitude_deg: Optional[str] = None,
+    moon_min_separation_deg: Optional[str] = None,
+    target_min_zenith_deg: Optional[str] = None,
+    target_max_zenith_deg: Optional[str] = None,
+    minimum_window_seconds: Optional[str] = None,
+    *,
+    require_all: bool = False,
+) -> ConstraintSet:
+    # Form values arrive as strings. Normalise here so HTML form and API share
+    # one domain model. The planner itself requires all five values explicitly.
+    raw_values = {
+        "sun_max_altitude_deg": sun_max_altitude_deg,
+        "moon_min_separation_deg": moon_min_separation_deg,
+        "target_min_zenith_deg": target_min_zenith_deg,
+        "target_max_zenith_deg": target_max_zenith_deg,
+        "minimum_window_seconds": minimum_window_seconds,
+    }
+    if require_all and any(value is None or not value.strip() for value in raw_values.values()):
+        raise ValueError("all planning constraints must be supplied")
+    return ConstraintSet(
+        sun_max_altitude_deg=_parse_optional_float(sun_max_altitude_deg),
+        moon_min_separation_deg=_parse_optional_float(moon_min_separation_deg),
+        target_min_zenith_deg=_parse_optional_float(target_min_zenith_deg),
+        target_max_zenith_deg=_parse_optional_float(target_max_zenith_deg),
+        minimum_window_seconds=_parse_optional_int(minimum_window_seconds),
+    )
+
+
+def _planner_target(
+    source_selection: str,
+    region_ra_deg: Optional[str],
+    region_dec_deg: Optional[str],
+    region_radius_deg: Optional[str],
+    region_name: Optional[str] = None,
+    selected_catalogue=catalog,
+) -> tuple[str, Optional[Source], bool]:
+    """Resolve one immutable catalogue or transient operator-defined target.
+
+    Browser-created targets are intentionally not catalogued.  Their provided
+    name is retained for the result page and TXT plan, while an empty field is
+    deterministically converted to a ``TMP JHHMM±DDMM`` coordinate name.
+    ``none`` is accepted only for backwards-compatible API/form submissions;
+    it is not exposed in the current user interface.
+    """
+    if source_selection == "none":
+        return "Current LACT FoV (zenith pointing)", None, True
+    if source_selection == "region":
+        ra = _parse_optional_float(region_ra_deg)
+        dec = _parse_optional_float(region_dec_deg)
+        radius = _parse_optional_float(region_radius_deg)
+        if ra is None or dec is None or radius is None:
+            raise ValueError("region RA, Dec and radius are required")
+        if not (0.0 <= ra < 360.0 and -90.0 <= dec <= 90.0 and 0.0 < radius <= 90.0):
+            raise ValueError("region coordinates or radius are outside the allowed range")
+        name = normalise_temporary_target_name(region_name, ra, dec)
+        return (
+            f"{name}: RA {ra:.3f}°, Dec {dec:+.3f}°, radius {radius:.3f}°",
+            Source(-1, name, radius, 0.0, ra, dec, 0.0, 0.0, 0.0),
+            False,
+        )
+    try:
+        source = selected_catalogue.get(int(source_selection))
+        return source.display_name, source, False
+    except (ValueError, KeyError) as exc:
+        raise ValueError("select a catalogue source, current LACT FoV, or custom region") from exc
+
+
+def _highlighted_window_fov_sources(
+    sources, windows, telescope: TelescopeConfig, target: Source
+) -> list[int]:
+    """Return catalogue sources entering a target-centred tracked FoV.
+
+    During every full-footprint target window LACT tracks the selected target,
+    so this uses source-to-target separation rather than today's placeholder
+    zenith pointing. Fixed J2000 catalogue separations are time-independent.
+    """
+    if not windows:
+        return []
+    target_coordinate = SkyCoord(ra=target.ra, dec=target.dec, unit="deg", frame="fk5")
+    rows = list(sources)
+    coordinates = SkyCoord(ra=[item.ra for item in rows], dec=[item.dec for item in rows], unit="deg", frame="fk5")
+    separations = target_coordinate.separation(coordinates).deg
+    return [item.index for item, separation in zip(rows, separations) if item.index != target.index and float(separation) <= telescope.fov_radius_deg]
+
+def _current_fov_constraints(
+    constraints: ConstraintSet, telescope: TelescopeConfig = LACT_TELESCOPE
+) -> ConstraintSet:
+    """Limit legacy bulk planning to the selected telescope current FoV radius."""
+    current_limit = constraints.target_max_zenith_deg
+    fov_limit = telescope.fov_radius_deg if current_limit is None else min(current_limit, telescope.fov_radius_deg)
+    return constraints.model_copy(update={"target_max_zenith_deg": fov_limit})
+
+def _query_constraints(
+    sun_max_altitude_deg: Optional[float] = Query(None, ge=-90, le=-15),
+    moon_min_separation_deg: Optional[float] = Query(None, ge=0, le=180),
+    target_min_zenith_deg: Optional[float] = Query(None, ge=0, le=90),
+    target_max_zenith_deg: Optional[float] = Query(None, ge=0, le=90),
+    minimum_window_seconds: Optional[int] = Query(None, ge=0, le=2_678_400),
+) -> ConstraintSet:
+    # Cross-field validation happens in ConstraintSet. Convert its Pydantic
+    # errors to JSON-safe HTTP 422 details for GET query consumers.
+    try:
+        return ConstraintSet(
+            sun_max_altitude_deg=sun_max_altitude_deg,
+            moon_min_separation_deg=moon_min_separation_deg,
+            target_min_zenith_deg=target_min_zenith_deg,
+            target_max_zenith_deg=target_max_zenith_deg,
+            minimum_window_seconds=minimum_window_seconds,
+        )
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=[
+                {
+                    "loc": list(error.get("loc", ())),
+                    "msg": error["msg"],
+                    "type": error["type"],
+                }
+                for error in exc.errors()
+            ],
+        ) from exc
+
+
+def _base_context(
+    request: Request, telescope: TelescopeConfig = LACT_TELESCOPE
+) -> Dict[str, Any]:
+    return {
+        # The shared template contract avoids duplicating immutable scientific
+        # configuration in every route and keeps page/API provenance aligned.
+        "request": request,
+        "site": {
+            "longitude_deg": telescope.longitude_deg,
+            "latitude_deg": telescope.latitude_deg,
+            "altitude_m": telescope.altitude_m,
+            "timezone": telescope.timezone_label,
+            "source": telescope.source,
+        },
+        "telescope": telescope,
+        "fov_diameter": telescope.fov_diameter_deg,
+        "fov_radius": telescope.fov_radius_deg,
+        "frame_label": COORDINATE_FRAME_LABEL,
+        "catalog_hash": catalog.sha256,
+        "catalog_count": len(catalog.sources),
+        "catalogue": _catalogue_metadata(catalog),
+        "geometry_only": GEOMETRY_ONLY,
+        "timezone_name": SITE_TIMEZONE_NAME if telescope is LACT_TELESCOPE else telescope.timezone_label,
+    }
+
+
+def _source_detail(
+    source_index: int,
+    at_time: datetime,
+    constraints: ConstraintSet,
+    telescope: TelescopeConfig = LACT_TELESCOPE,
+    selected_catalogue=catalog,
+    *,
+    enforce_current_pointing: bool = False,
+) -> dict:
+    try:
+        source = selected_catalogue.get(source_index)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    status = source_status(
+        source, at_time, constraints, telescope,
+        enforce_current_pointing=enforce_current_pointing,
+    )
+    # Source records remain raw, but this response adds user-facing coordinate
+    # formats, current geometry and only locally curated enrichment fields.
+    return {
+        **source.to_dict(),
+        **format_ra_dec(source),
+        "coordinate_frame": COORDINATE_FRAME_LABEL,
+        "status": status.to_dict(),
+        "enrichment": enrichment_store.get(source.index) if selected_catalogue is catalog else {"verification_status": "not_available_for_temporary_catalogue"},
+        "geometry_only": True,
+    }
+
+
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request) -> HTMLResponse:
+    now = _now_utc()
+    telescope = LACT_TELESCOPE
+    constraints = ConstraintSet(**DEFAULT_PLANNER_CONSTRAINT_VALUES)
+    sky_svg, snapshot = render_all_sky_svg(catalog.sources, now, constraints, telescope=telescope, language="zh")
+    start = now.replace(second=0, microsecond=0)
+    end = start + timedelta(hours=24)
+    context = _base_context(request, telescope)
+    context.update(
+        {
+            "sources": catalog.sources,
+            "catalogue": _catalogue_metadata(catalog),
+            "sky_svg": sky_svg,
+            "snapshot": snapshot,
+            "now_local": now.astimezone(_observer_timezone(telescope)),
+            "default_start": _local_input(start, _observer_timezone(telescope)),
+            "default_end": _local_input(end, _observer_timezone(telescope)),
+            "default_start_utc": start.isoformat().replace("+00:00", "Z"),
+            "default_end_utc": end.isoformat().replace("+00:00", "Z"),
+            "selected_source": None,
+            "form_values": {
+                "source_index": "region",
+                "telescope_mode": "lact",
+                "custom_longitude_deg": "",
+                "custom_latitude_deg": "",
+                "custom_altitude_m": "",
+                "custom_timezone_offset_hours": "",
+                "custom_fov_diameter_deg": "",
+                "region_name": "",
+                "region_ra_deg": "",
+                "region_dec_deg": "",
+                "region_radius_deg": "",
+                "sun_max_altitude_deg": "-18",
+                "moon_min_separation_deg": "30",
+                "target_min_zenith_deg": "0",
+        "target_max_zenith_deg": "60",
+        "minimum_window_seconds": "0",
+        "display_theme": "auto",
+        "plot_theme": "light",
+        "display_timezone": "local",
+            },
+            "error": None,
+        }
+    )
+    return templates.TemplateResponse(request, "index.html", context)
+
+
+@app.post("/result", response_class=HTMLResponse)
+def result_page(
+    request: Request,
+    source_index: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
+    region_ra_deg: Optional[str] = Form(None),
+    region_dec_deg: Optional[str] = Form(None),
+    region_radius_deg: Optional[str] = Form(None),
+    region_name: Optional[str] = Form(None),
+    catalog_token: Optional[str] = Form(None),
+    telescope_mode: Optional[str] = Form(None),
+    custom_longitude_deg: Optional[str] = Form(None),
+    custom_latitude_deg: Optional[str] = Form(None),
+    custom_altitude_m: Optional[str] = Form(None),
+    custom_timezone_offset_hours: Optional[str] = Form(None),
+    custom_fov_diameter_deg: Optional[str] = Form(None),
+    display_theme: Optional[str] = Form(None),
+    plot_theme: Optional[str] = Form(None),
+    display_timezone: Optional[str] = Form(None),
+    sun_max_altitude_deg: Optional[str] = Form(None),
+    moon_min_separation_deg: Optional[str] = Form(None),
+    target_min_zenith_deg: Optional[str] = Form(None),
+    target_max_zenith_deg: Optional[str] = Form(None),
+    minimum_window_seconds: Optional[str] = Form(None),
+) -> HTMLResponse:
+    """Render either one selected target or all sources crossing the fixed zenith FoV."""
+    telescope: TelescopeConfig = LACT_TELESCOPE
+    selected_catalogue = catalog
+    observer_timezone = _observer_timezone(telescope)
+    context = _base_context(request, telescope)
+    # Keep invalid custom telescope values inside the normal validation rerender
+    # path rather than raising an unhandled error before template context exists.
+    try:
+        telescope = _telescope_from_form(
+            telescope_mode, custom_longitude_deg, custom_latitude_deg, custom_altitude_m,
+            custom_timezone_offset_hours, custom_fov_diameter_deg,
+        )
+        observer_timezone = _observer_timezone(telescope)
+        context = _base_context(request, telescope)
+        selected_catalogue = _resolve_catalogue(catalog_token)
+    except ValueError as telescope_error:
+        telescope_error_message = str(telescope_error)
+    form_values = {
+        "source_index": source_index,
+        "catalog_token": catalog_token or "",
+        "start_time": start_time,
+        "end_time": end_time,
+        "planner_start_utc": _canonical_form_time(start_time, display_timezone, observer_timezone),
+        "planner_end_utc": _canonical_form_time(end_time, display_timezone, observer_timezone),
+        "telescope_mode": telescope_mode or "lact",
+        "custom_longitude_deg": custom_longitude_deg or "",
+        "custom_latitude_deg": custom_latitude_deg or "",
+        "custom_altitude_m": custom_altitude_m or "",
+        "custom_timezone_offset_hours": custom_timezone_offset_hours or "",
+        "custom_fov_diameter_deg": custom_fov_diameter_deg or "",
+        "region_ra_deg": region_ra_deg or "",
+        "region_dec_deg": region_dec_deg or "",
+        "region_radius_deg": region_radius_deg or "",
+        "region_name": region_name or "",
+        "display_theme": display_theme if display_theme in {"auto", "light", "dark"} else "auto",
+        "plot_theme": "light",
+        "display_timezone": "utc" if display_timezone == "utc" else "local",
+        "sun_max_altitude_deg": sun_max_altitude_deg or "",
+        "moon_min_separation_deg": moon_min_separation_deg or "",
+        "target_min_zenith_deg": target_min_zenith_deg or "",
+        "target_max_zenith_deg": target_max_zenith_deg or "",
+        "minimum_window_seconds": minimum_window_seconds or "",
+    }
+    form_values["plot_theme"] = _normalise_plot_theme(plot_theme, form_values["display_theme"])
+    try:
+        if "telescope_error_message" in locals():
+            raise ValueError(telescope_error_message)
+        constraints = _constraints_from_values(
+            sun_max_altitude_deg, moon_min_separation_deg, target_min_zenith_deg,
+            target_max_zenith_deg, minimum_window_seconds, require_all=True,
+        )
+        request_model = WindowRequest(
+            source_index=int(source_index) if source_index not in {"none", "region"} else None,
+            all_sources=source_index == "none",
+            region_ra_deg=_parse_optional_float(region_ra_deg) if source_index == "region" else None,
+            region_dec_deg=_parse_optional_float(region_dec_deg) if source_index == "region" else None,
+            region_radius_deg=_parse_optional_float(region_radius_deg) if source_index == "region" else None,
+            region_name=(region_name.strip() if region_name and region_name.strip() else None) if source_index == "region" else None,
+            start_time=_parse_form_datetime(start_time, display_timezone, observer_timezone),
+            end_time=_parse_form_datetime(end_time, display_timezone, observer_timezone),
+            constraints=constraints,
+        )
+        form_values["planner_start_utc"] = request_model.start_utc.isoformat().replace("+00:00", "Z")
+        form_values["planner_end_utc"] = request_model.end_utc.isoformat().replace("+00:00", "Z")
+        target_label, source, all_sources = _planner_target(
+            source_index, region_ra_deg, region_dec_deg, region_radius_deg, region_name, selected_catalogue
+        )
+        _validate_iers_range(request_model.start_utc, request_model.end_utc)
+        if all_sources:
+            # In the current no-telemetry phase, LACT points at zenith. Restrict
+            # every catalogue computation to the 4.15 degree FoV radius.
+            fov_constraints = _current_fov_constraints(constraints, telescope)
+            # "All sources" means sources inside the current LACT FoV at the
+            # requested start instant, not a costly all-night scan of 190 rows.
+            # The displayed real-time pointing is presently fixed at zenith.
+            _, start_snapshot = render_all_sky_svg(
+                selected_catalogue.sources, request_model.start_utc, constraints, telescope=telescope, language="zh"
+            )
+            candidate_indexes = [
+                item["index"] for item in start_snapshot["sources"]
+                if item["geometry"]["target_pointing_separation_deg"] <= telescope.fov_radius_deg
+            ]
+            candidate_sources = [selected_catalogue.get(index) for index in candidate_indexes]
+            calculated_results = calculate_catalogue_windows(
+                candidate_sources, request_model.start_utc, request_model.end_utc, fov_constraints, telescope
+            )
+            summaries = [
+                {
+                    "source": candidate,
+                    "center_windows": candidate_result.center_windows,
+                    "full_windows": candidate_result.full_footprint_windows,
+                }
+                for candidate, candidate_result in zip(candidate_sources, calculated_results)
+            ]
+            sky_svg, snapshot = render_all_sky_svg(
+                selected_catalogue.sources, request_model.start_utc, constraints, telescope=telescope, language="zh"
+            )
+            context.update({
+                "target_label": target_label, "summaries": summaries, "constraints": fov_constraints,
+                "original_constraints": constraints, "sky_svg": sky_svg, "snapshot": snapshot,
+                "form_values": form_values, "start_local": request_model.start_utc.astimezone(observer_timezone),
+                "end_local": request_model.end_utc.astimezone(observer_timezone),
+                "result_start_utc": request_model.start_utc.isoformat().replace("+00:00", "Z"),
+                "result_end_utc": request_model.end_utc.isoformat().replace("+00:00", "Z"),
+                "error": None,
+            })
+            return templates.TemplateResponse(request, "bulk_result.html", context)
+
+        assert source is not None
+        result = calculate_windows(
+            source, request_model.start_utc, request_model.end_utc, constraints, telescope=telescope
+        )
+        status = source_status(source, request_model.start_utc, constraints, telescope)
+        highlighted_indexes = _highlighted_window_fov_sources(
+            selected_catalogue.sources, result.full_footprint_windows, telescope, source
+        )
+        result_map_sources = list(selected_catalogue.sources)
+        if source.index < 0:
+            # A temporary coordinate target is not part of the catalogue but
+            # still needs the same enlarged selected marker on its result map.
+            result_map_sources.append(source)
+        sky_svg, snapshot = render_all_sky_svg(
+            result_map_sources, request_model.start_utc, constraints,
+            selected_index=source.index, telescope=telescope, language="zh",
+        )
+        fov_svg = render_local_fov_svg(
+            source, selected_catalogue.sources, request_model.start_utc, status.to_dict(), telescope, language="zh"
+        )
+        plot_theme = form_values["plot_theme"]
+        # The plot receives a concrete label rather than assuming Beijing for
+        # a temporary observatory. UTC remains an explicit display preference.
+        plot_timezone_label = "UTC" if form_values["display_timezone"] == "utc" else telescope.timezone_label
+        plot_svg = render_window_plot(
+            result, theme=plot_theme, timezone_label=plot_timezone_label,
+            timezone_offset_hours=telescope.timezone_offset_hours,
+        )
+        result_dict = result.to_dict()
+        source_detail = _source_detail(
+            source.index, request_model.start_utc, constraints, telescope, selected_catalogue
+        ) if source.index >= 0 else None
+        context.update({
+            "sources": selected_catalogue.sources, "catalogue": _catalogue_metadata(selected_catalogue), "source": source, "source_detail": source_detail, "result": result,
+            "result_dict": result_dict, "status": status, "constraints": constraints, "sky_svg": sky_svg,
+            "fov_svg": fov_svg, "plot_svg": plot_svg, "snapshot": snapshot, "form_values": form_values,
+            "highlighted_indexes": highlighted_indexes,
+            "window_display_time": (
+                result.full_footprint_windows[0].start if result.full_footprint_windows
+                else request_model.start_utc
+            ).isoformat().replace("+00:00", "Z"),
+            "full_window_ranges_json": json.dumps([
+                [window.to_dict()["start"], window.to_dict()["end"]] for window in result.full_footprint_windows
+            ], separators=(",", ":")),
+            "target_label": target_label, "start_local": request_model.start_utc.astimezone(observer_timezone),
+            "end_local": request_model.end_utc.astimezone(observer_timezone), "error": None,
+        })
+        return templates.TemplateResponse(request, "result.html", context)
+    except HTTPException:
+        # IERS coverage failures are already structured HTTP 422 responses.
+        # Preserve them rather than converting them into an HTML server error.
+        raise
+    except (ValidationError, ValueError, KeyError) as exc:
+        # Keep valid datetime controls in canonical UTC form after an unrelated
+        # validation error (for example a zenith range). The browser can then
+        # render them accurately in either Beijing time or UTC.
+        form_values["planner_start_utc"] = _canonical_form_time(start_time, display_timezone, observer_timezone)
+        form_values["planner_end_utc"] = _canonical_form_time(end_time, display_timezone, observer_timezone)
+        now = _now_utc()
+        fallback_telescope = locals().get("telescope", LACT_TELESCOPE)
+        fallback_timezone = _observer_timezone(fallback_telescope)
+        sky_svg, snapshot = render_all_sky_svg(
+            selected_catalogue.sources, now, ConstraintSet(**DEFAULT_PLANNER_CONSTRAINT_VALUES), telescope=fallback_telescope, language="zh"
+        )
+        context = _base_context(request, fallback_telescope)
+        context.update({
+            "sources": selected_catalogue.sources, "catalogue": _catalogue_metadata(selected_catalogue), "sky_svg": sky_svg, "snapshot": snapshot,
+            "now_local": now.astimezone(fallback_timezone), "default_start": start_time,
+            "default_end": end_time, "default_start_utc": "", "default_end_utc": "", "selected_source": None, "form_values": form_values,
+            "error": str(exc),
+        })
+        return templates.TemplateResponse(request, "index.html", context, status_code=422)
+
+
+@app.get("/about", response_class=HTMLResponse)
+def about(request: Request) -> HTMLResponse:
+    context = _base_context(request)
+    context.update({"iers": iers_status(), "capabilities": CAPABILITIES})
+    return templates.TemplateResponse(request, "about.html", context)
+
+
+@app.get("/api/v1", response_class=HTMLResponse)
+def api_reference(request: Request) -> HTMLResponse:
+    context = _base_context(request)
+    context.update(
+        {
+            "endpoints": [
+                ("GET", "/api/v1/health", "源表、IERS 与补充数据健康状态"),
+                ("GET", "/api/v1/config", "站点、FoV 与能力边界"),
+                ("GET", "/api/v1/sources?q=&limit=", "检索 2LHAASO 源"),
+                ("GET", "/api/v1/sources/{index}", "源详情与指定时刻几何状态"),
+                ("GET", "/api/v1/sky/current", "全天图 SVG 与 190 源状态"),
+                ("POST", "/api/v1/windows/calculate", "中心和完整 footprint 观测窗口"),
+                ("GET", "/openapi.json", "机器可读 OpenAPI schema"),
+            ]
+        }
+    )
+    return templates.TemplateResponse(request, "api.html", context)
+
+
+@app.get("/api/v1/health")
+def health() -> dict:
+    iers = iers_status()
+    return {
+        "status": "ok" if iers["covers_current_time"] else "degraded",
+        "catalogue": {
+            "loaded": True,
+            "rows": len(catalog.sources),
+            "sha256": catalog.sha256,
+        },
+        "iers": iers,
+        "enrichment": {
+            "loaded": enrichment_store.load_error is None,
+            "error": enrichment_store.load_error,
+        },
+    }
+
+
+@app.get("/api/v1/config")
+def config() -> dict:
+    return {
+        "site": SITE_METADATA.__dict__,
+        "telescope": LACT_TELESCOPE.to_dict(),
+        "coordinate_frame": COORDINATE_FRAME_LABEL,
+        "fov_diameter_deg": FOV_DIAMETER_DEG,
+        "fov_radius_deg": FOV_RADIUS_DEG,
+        "capabilities": CAPABILITIES,
+        "joint_observation_evaluated": False,
+        "weather_evaluated": False,
+        "telemetry_evaluated": False,
+        "geometry_only": True,
+    }
+
+
+@app.get("/api/v1/catalogues")
+def catalogue_options() -> dict:
+    """List installed catalogue choices; uploads remain operator-session local."""
+    return {"catalogues": [{**_catalogue_metadata(catalog), "available": True}]}
+
+
+@app.post("/api/v1/catalogues/upload")
+async def upload_catalogue(file: UploadFile = File(...)) -> dict:
+    """Validate one temporary CSV source table without writing it to disk."""
+    try:
+        selected = temporary_catalogues.create_from_csv(
+            await file.read(), file.filename or "uploaded catalogue"
+        )
+    except CatalogError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {**_catalogue_metadata(selected), "sources": [source.to_dict() for source in selected.sources]}
+
+
+@app.get("/api/v1/sources")
+def sources(
+    q: str = Query(default="", max_length=80),
+    limit: int = Query(default=190, ge=1, le=190),
+    catalog_token: Optional[str] = Query(None),
+) -> dict:
+    try:
+        selected = _resolve_catalogue(catalog_token)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    matches = selected.search(q, limit)
+    return {
+        "count": len(matches),
+        "catalogue": _catalogue_metadata(selected),
+        "catalogue_sha256": selected.sha256,
+        "sources": [source.to_dict() for source in matches],
+    }
+
+
+@app.get("/api/v1/sources/{source_index}")
+def source_detail(
+    source_index: int,
+    at_time: Optional[datetime] = None,
+    catalog_token: Optional[str] = Query(None),
+    enforce_current_pointing: bool = Query(False),
+    constraints: ConstraintSet = Depends(_query_constraints),
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    try:
+        selected = _resolve_catalogue(catalog_token)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    moment = at_time or _now_utc()
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=SITE_TIMEZONE)
+    moment = moment.astimezone(timezone.utc)
+    _validate_iers_range(moment, moment)
+    return _source_detail(
+        source_index, moment, constraints, telescope, selected,
+        enforce_current_pointing=enforce_current_pointing,
+    )
+
+
+def _validate_iers_range(start: datetime, end: datetime) -> None:
+    """Reject work outside bundled Earth-orientation coverage for reproducibility."""
+    status = iers_status()
+    start_mjd = float(Time(start).mjd)
+    end_mjd = float(Time(end).mjd)
+    if start_mjd < status["first_mjd"] or end_mjd > status["last_mjd"]:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "requested time is outside bundled IERS coverage "
+                f"[{status['first_mjd']}, {status['last_mjd']}] MJD"
+            ),
+        )
+
+
+@app.get("/api/v1/sky/bodies")
+def current_bodies(
+    at_time: datetime = Query(...),
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    """Return lightweight Sun/Moon horizon coordinates for the shared header."""
+    moment = at_time.astimezone(timezone.utc) if at_time.tzinfo else at_time.replace(tzinfo=timezone.utc)
+    _validate_iers_range(moment, moment)
+    frame = AltAz(obstime=Time(moment), location=telescope.location, pressure=0 * u.hPa)
+    sun = get_sun(Time(moment)).transform_to(frame)
+    moon = get_body("moon", Time(moment), telescope.location).transform_to(frame)
+    return {
+        "at_time": moment.isoformat().replace("+00:00", "Z"),
+        "sun": {"altitude_deg": float(sun.alt.deg), "azimuth_deg": float(sun.az.deg)},
+        "moon": {"altitude_deg": float(moon.alt.deg), "azimuth_deg": float(moon.az.deg)},
+        "telescope": telescope.to_dict(),
+    }
+
+
+@app.get("/api/v1/sky/current")
+def current_sky(
+    at_time: Optional[datetime] = None,
+    selected_source_index: Optional[int] = Query(None, ge=0),
+    catalog_token: Optional[str] = Query(None),
+    language: str = Query("en", pattern="^(en|zh)$"),
+    status_mode: str = Query("instant", pattern="^(instant|trajectory)$"),
+    trajectory_end: Optional[datetime] = None,
+    highlight_indexes: Optional[str] = Query(None, max_length=6000),
+    trajectory_enforce_current_pointing: bool = Query(False),
+    trajectory_ranges: Optional[str] = Query(None, max_length=24000),
+    trajectory_display_time: Optional[datetime] = Query(None),
+    constraints: ConstraintSet = Depends(_query_constraints),
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    try:
+        selected = _resolve_catalogue(catalog_token)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    sky_request = SkyRequest(
+        at_time=at_time,
+        selected_source_index=selected_source_index,
+        constraints=constraints,
+    )
+    if status_mode == "trajectory":
+        if trajectory_end is None:
+            raise HTTPException(status_code=422, detail="trajectory_end is required for trajectory status mode")
+        if trajectory_end.tzinfo is None:
+            trajectory_end = trajectory_end.replace(tzinfo=SITE_TIMEZONE)
+        trajectory_end = trajectory_end.astimezone(timezone.utc)
+        if trajectory_end <= sky_request.at_utc:
+            raise HTTPException(status_code=422, detail="trajectory_end must be later than at_time")
+        _validate_iers_range(sky_request.at_utc, trajectory_end)
+    else:
+        trajectory_end = None
+        _validate_iers_range(sky_request.at_utc, sky_request.at_utc)
+    try:
+        highlights = [int(value) for value in (highlight_indexes or "").split(",") if value.strip()]
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="highlight_indexes must be a comma-separated index list") from exc
+    parsed_ranges = None
+    if trajectory_ranges:
+        try:
+            raw_ranges = json.loads(trajectory_ranges)
+            if not isinstance(raw_ranges, list):
+                raise ValueError
+            parsed_ranges = []
+            for raw in raw_ranges:
+                if not isinstance(raw, list) or len(raw) != 2:
+                    raise ValueError
+                begin = _parse_form_datetime(str(raw[0]), "utc")
+                finish = _parse_form_datetime(str(raw[1]), "utc")
+                if finish <= begin:
+                    raise ValueError
+                parsed_ranges.append((begin, finish))
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=422, detail="trajectory_ranges must be a JSON array of forward UTC intervals") from exc
+    allowed_indexes = {source.index for source in selected.sources}
+    highlights = [value for value in highlights if value in allowed_indexes]
+    # Purple tracked-FoV markers belong exclusively to observation-window mode
+    # and never override the selected target's own status marker.
+    if status_mode != "trajectory":
+        highlights = []
+    elif selected_source_index is not None:
+        highlights = [value for value in highlights if value != selected_source_index]
+    svg, snapshot = render_all_sky_svg(
+        selected.sources,
+        sky_request.at_utc,
+        sky_request.constraints,
+        selected_index=selected_source_index,
+        telescope=telescope,
+        language=language,
+        highlighted_indexes=highlights,
+        trajectory_end=trajectory_end,
+        trajectory_enforce_current_pointing=trajectory_enforce_current_pointing,
+        trajectory_ranges=parsed_ranges,
+        trajectory_display_time=trajectory_display_time,
+    )
+    snapshot.update({
+        "geometry_only": True,
+        "svg": svg,
+        "constraints": sky_request.constraints.model_dump(),
+        "catalogue": _catalogue_metadata(selected),
+    })
+    return snapshot
+
+
+def _api_target(
+    selected_catalogue, target_source_index: Optional[int], target_ra_deg: Optional[float],
+    target_dec_deg: Optional[float], target_radius_deg: Optional[float], target_name: Optional[str],
+) -> Source:
+    """Resolve a catalogue row or ephemeral target for display-only API routes."""
+    if target_source_index is not None:
+        return selected_catalogue.get(target_source_index)
+    if None in {target_ra_deg, target_dec_deg, target_radius_deg}:
+        raise HTTPException(status_code=422, detail="target source index or complete target coordinates are required")
+    return Source(
+        -1, normalise_temporary_target_name(target_name, target_ra_deg, target_dec_deg),
+        target_radius_deg, 0.0, target_ra_deg, target_dec_deg, 0.0, 0.0, 0.0,
+    )
+
+
+@app.get("/api/v1/windows/zenith-overlay")
+def zenith_overlay(
+    source_index: int = Query(..., ge=0),
+    start_time: datetime = Query(...),
+    end_time: datetime = Query(...),
+    catalog_token: Optional[str] = Query(None),
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    """Return a comparison source's zenith series for a result-page overlay.
+
+    The result page redraws only its visualization from this data. No target
+    selection, window boundary or saved observing plan is altered.
+    """
+    try:
+        selected = _resolve_catalogue(catalog_token)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    start = start_time.replace(tzinfo=SITE_TIMEZONE) if start_time.tzinfo is None else start_time
+    end = end_time.replace(tzinfo=SITE_TIMEZONE) if end_time.tzinfo is None else end_time
+    start, end = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+    if end <= start:
+        raise HTTPException(status_code=422, detail="end_time must be later than start_time")
+    _validate_iers_range(start, end)
+    samples = min(1441, max(2, int((end - start).total_seconds() // 60) + 1))
+    times = [datetime.fromtimestamp(value, timezone.utc) for value in np.linspace(start.timestamp(), end.timestamp(), samples)]
+    source = selected.get(source_index)
+    series = compute_geometry(source, times, telescope)
+    return {
+        "source": source.to_dict(),
+        "times": [value.isoformat().replace("+00:00", "Z") for value in times],
+        "zenith_deg": [float(value) for value in series.target_zenith_deg],
+        "telescope": telescope.to_dict(),
+    }
+
+
+@app.get("/api/v1/windows/plot-overlay")
+def plot_overlay(
+    comparison_source_index: List[int] = Query(default=[]),
+    comparison_colour: List[str] = Query(default=[]),
+    comparison_line_style: List[str] = Query(default=[]),
+    start_time: datetime = Query(...),
+    end_time: datetime = Query(...),
+    target_source_index: Optional[int] = Query(None, ge=0),
+    target_ra_deg: Optional[float] = Query(None, ge=0, lt=360),
+    target_dec_deg: Optional[float] = Query(None, ge=-90, le=90),
+    target_radius_deg: Optional[float] = Query(None, gt=0, le=90),
+    target_name: Optional[str] = Query(None, max_length=80),
+    catalog_token: Optional[str] = Query(None),
+    theme: str = Query("light", pattern="^(light|dark)$"),
+    timezone_label: str = Query("UTC", max_length=40),
+    constraints: ConstraintSet = Depends(_query_constraints),
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    """Render an optional dashed zenith comparison over the target plot.
+
+    This route is intentionally display-only: it recalculates the target with
+    the original constraints and overlays a second catalogue source without
+    changing the selected target, windows or observing plan.
+    """
+    try:
+        selected = _resolve_catalogue(catalog_token)
+        target = _api_target(selected, target_source_index, target_ra_deg, target_dec_deg, target_radius_deg, target_name)
+        comparison_indexes = list(dict.fromkeys(comparison_source_index))
+        if any(index < 0 for index in comparison_indexes):
+            raise ValueError("comparison source indexes must be non-negative")
+        comparisons = [selected.get(index) for index in comparison_indexes]
+        default_colours = ["#ff8c42", "#8b5cf6", "#00a6a6", "#d14f9b", "#8a9a22", "#7a6ff0"]
+        colours = [
+            value if re.fullmatch(r"#[0-9A-Fa-f]{6}", value) else default_colours[index % len(default_colours)]
+            for index, value in enumerate(comparison_colour[:len(comparisons)])
+        ]
+        while len(colours) < len(comparisons):
+            colours.append(default_colours[len(colours) % len(default_colours)])
+        allowed_styles = {"solid", "dotted", "dashdot"}
+        line_styles = [value if value in allowed_styles else "dashdot" for value in comparison_line_style[:len(comparisons)]]
+        line_styles.extend(["dashdot"] * (len(comparisons) - len(line_styles)))
+    except (ValueError, KeyError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    start = start_time.replace(tzinfo=SITE_TIMEZONE) if start_time.tzinfo is None else start_time
+    end = end_time.replace(tzinfo=SITE_TIMEZONE) if end_time.tzinfo is None else end_time
+    start, end = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+    if end <= start:
+        raise HTTPException(status_code=422, detail="end_time must be later than start_time")
+    _validate_iers_range(start, end)
+    result = calculate_windows(target, start, end, constraints, telescope=telescope)
+    companions = [compute_geometry(item, result.sample_times, telescope) for item in comparisons]
+    return {
+        "svg": render_window_plot(
+            result, theme=theme, timezone_label=timezone_label,
+            timezone_offset_hours=telescope.timezone_offset_hours,
+            zenith_overlays=[
+                (item.index, item.display_name, series.target_zenith_deg, colour, line_style)
+                for item, series, colour, line_style in zip(comparisons, companions, colours, line_styles)
+            ],
+        ),
+        "comparison_sources": [item.to_dict() for item in comparisons],
+        # Keep the original singular field for existing one-overlay clients.
+        "comparison_source": comparisons[0].to_dict() if len(comparisons) == 1 else None,
+    }
+
+
+@app.get("/api/v1/sky/local-fov")
+def local_fov(
+    at_time: datetime = Query(...),
+    target_source_index: Optional[int] = Query(None, ge=0),
+    target_ra_deg: Optional[float] = Query(None, ge=0, lt=360),
+    target_dec_deg: Optional[float] = Query(None, ge=-90, le=90),
+    target_radius_deg: Optional[float] = Query(None, gt=0, le=90),
+    target_name: Optional[str] = Query(None, max_length=80),
+    catalog_token: Optional[str] = Query(None),
+    language: str = Query("en", pattern="^(en|zh)$"),
+    constraints: ConstraintSet = Depends(_query_constraints),
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    """Render the selected target's local FoV in the requested UI language."""
+    try:
+        selected = _resolve_catalogue(catalog_token)
+        target = _api_target(selected, target_source_index, target_ra_deg, target_dec_deg, target_radius_deg, target_name)
+    except (ValueError, KeyError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    moment = at_time.replace(tzinfo=SITE_TIMEZONE) if at_time.tzinfo is None else at_time
+    moment = moment.astimezone(timezone.utc)
+    _validate_iers_range(moment, moment)
+    status = source_status(target, moment, constraints, telescope)
+    return {
+        "svg": render_local_fov_svg(target, selected.sources, moment, status.to_dict(), telescope, language),
+        "source": target.to_dict(),
+    }
+
+
+@app.post("/api/v1/windows/calculate")
+def windows_calculate(payload: WindowRequest) -> dict:
+    """Calculate a selected source, custom J2000 region, or current zenith FoV.
+
+    API bulk responses intentionally return compact interval summaries. The web
+    planner uses the same code path but renders the detailed source view only
+    after the operator selects a concrete source.
+    """
+    _validate_iers_range(payload.start_utc, payload.end_utc)
+    if payload.all_sources:
+        fov_constraints = _current_fov_constraints(payload.constraints, LACT_TELESCOPE)
+        _, start_snapshot = render_all_sky_svg(catalog.sources, payload.start_utc, ConstraintSet())
+        candidates = [
+            catalog.get(item["index"])
+            for item in start_snapshot["sources"]
+            if item["geometry"]["target_pointing_separation_deg"] <= LACT_TELESCOPE.fov_radius_deg
+        ]
+        calculated_results = calculate_catalogue_windows(
+            candidates, payload.start_utc, payload.end_utc, fov_constraints
+        )
+        results = [
+            {
+                "source": candidate.to_dict(),
+                "center_windows": [window.to_dict() for window in calculated.center_windows],
+                "full_footprint_windows": [window.to_dict() for window in calculated.full_footprint_windows],
+            }
+            for candidate, calculated in zip(candidates, calculated_results)
+        ]
+        return {
+            "target_mode": "current_lact_fov_fixed_zenith",
+            "pointing": {"altitude_deg": 90.0, "azimuth_deg": 0.0},
+            "constraints": fov_constraints.model_dump(), "results": results,
+            "fov_diameter_deg": FOV_DIAMETER_DEG, "catalogue_sha256": catalog.sha256,
+            "geometry_only": True,
+        }
+    if payload.source_index is not None:
+        source = catalog.get(payload.source_index)
+    else:
+        assert payload.region_ra_deg is not None and payload.region_dec_deg is not None and payload.region_radius_deg is not None
+        source = Source(
+            -1,
+            normalise_temporary_target_name(payload.region_name, payload.region_ra_deg, payload.region_dec_deg),
+            payload.region_radius_deg,
+            0.0,
+            payload.region_ra_deg,
+            payload.region_dec_deg,
+            0.0,
+            0.0,
+            0.0,
+        )
+    result = calculate_windows(source, payload.start_utc, payload.end_utc, payload.constraints)
+    response = result.to_dict()
+    response.update({
+        "target_mode": "catalogue_source" if source.index >= 0 else "custom_region",
+        "fov_diameter_deg": FOV_DIAMETER_DEG, "fov_radius_deg": FOV_RADIUS_DEG,
+        "joint_observation_evaluated": False, "weather_evaluated": False,
+        "telemetry_evaluated": False, "catalogue_sha256": catalog.sha256,
+    })
+    return response

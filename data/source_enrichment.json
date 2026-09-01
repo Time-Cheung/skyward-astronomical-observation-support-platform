@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "description": "Optional manually verified metadata for 2LHAASO sources. Empty in the first draft.",
+  "sources": {}
+}

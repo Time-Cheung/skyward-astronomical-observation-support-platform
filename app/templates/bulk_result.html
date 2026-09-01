@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Skyward | Current LACT FoV windows{% endblock %}
+{% block content %}
+<section class="result-heading">
+  <div>
+    <a class="back-link" href="/" data-i18n="backToPlanner">← Back to planner</a>
+    <p class="section-label" data-i18n="currentFovWindowResult">CURRENT LACT FoV</p>
+    <h1 data-i18n="currentFovTitle">Windows for sources in the current LACT FoV.</h1>
+    <p data-i18n="currentFovLead">The pointing placeholder is zenith until real LACT pointing telemetry is connected. Only sources inside the 8.3° FoV at the selected start time are evaluated.</p>
+  </div>
+</section>
+<section class="result-context" data-result-time-context data-start-utc="{{ result_start_utc }}" data-end-utc="{{ result_end_utc }}">
+  <div><span data-i18n="displayTime">Display time</span><strong data-time-display="range" data-start-utc="{{ result_start_utc }}" data-end-utc="{{ result_end_utc }}">{{ start_local.strftime('%Y-%m-%d %H:%M') }} <i data-i18n="to">to</i> {{ end_local.strftime('%Y-%m-%d %H:%M') }}</strong></div>
+  <div><span data-i18n="fovSources">FoV sources</span><strong>{{ summaries|length }}</strong></div>
+  <div><span data-i18n="pointingMode">Pointing</span><strong data-i18n="fixedZenith">Fixed zenith</strong></div>
+  <div><span data-i18n="enabledConstraints">Enabled constraints</span><strong>{{ constraints.enabled_labels()|length }}</strong></div>
+</section>
+<section class="sky-panel compact-panel bulk-map-panel">
+  <div class="panel-heading"><div><p class="section-label" data-i18n="startTime">START TIME</p><h2 data-i18n="allSky">All-sky map</h2></div><time>{{ start_local.strftime('%Y-%m-%d %H:%M') }} CST</time></div>
+  <div class="map-frame">{{ sky_svg|safe }}</div>
+</section>
+<section class="windows-panel bulk-windows-panel">
+  <div class="panel-heading"><div><p class="section-label" data-i18n="fovSources">FOv SOURCES</p><h2 data-i18n="currentFovWindows">Current FoV windows</h2></div><strong>{{ summaries|length }}</strong></div>
+  {% if summaries %}
+  <div class="bulk-window-list">
+    {% for item in summaries %}
+    <article class="window-row">
+      <div class="window-time"><strong>{{ item.source.display_name }}</strong></div>
+      <p><span data-i18n="centreWindows">Centre windows</span>: {{ item.center_windows|length }}; <span data-i18n="fullWindows">Full-footprint windows</span>: {{ item.full_windows|length }}</p>
+      {% if item.center_windows %}<p>{{ item.center_windows[0].start.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }} <span data-i18n="to">to</span> {{ item.center_windows[0].end.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}<div class="empty-state" data-i18n="noFovSources">No catalogue source lies inside the current fixed zenith FoV at the selected time.</div>{% endif %}
+</section>
+
+{% endblock %}

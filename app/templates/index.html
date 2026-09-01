@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Skyward | LACT Sky Map & Planner{% endblock %}
+{% block content %}
+<section class="page-heading skyward-heading">
+  <div>
+    <p class="section-label" data-i18n="currentSky">CURRENT SKY</p>
+    <h1 class="v0-title" data-i18n="homeTitle">V0: geometry assessment only</h1>
+    <p data-i18n="homeLead">Currently imported: the 2LHAASO source catalogue.</p>
+  </div>
+  <dl class="summary-stats" aria-label="Sky summary" data-i18n-aria-label="skySummary">
+    <div><dt data-i18n="catalogue">Catalogue</dt><dd>{{ catalog_count }}</dd></div>
+    <div><dt data-i18n="aboveHorizon">Above horizon</dt><dd>{{ snapshot.visible_source_count }}</dd></div>
+    <div><dt data-i18n="belowHorizon">Below horizon</dt><dd>{{ snapshot.below_horizon_source_count }}</dd></div>
+  </dl>
+</section>
+{% if error %}<div class="alert alert-error" role="alert"><strong data-i18n="inputValidation">Input validation</strong><span>{{ error }}</span></div>{% endif %}
+<div class="workspace-grid">
+  <section class="planner-panel" aria-labelledby="planner-title">
+    <div class="panel-heading"><div><p class="section-label" data-i18n="calculationConditions">CALCULATION CONDITIONS</p><h2 id="planner-title" data-i18n="windowPlanner">Window planner</h2></div></div>
+    <form method="post" action="/result" class="planner-form" id="planner-form">
+      <input type="hidden" id="display-theme-input" name="display_theme" value="light">
+      <input type="hidden" id="plot-theme-input" name="plot_theme" value="light">
+      <input type="hidden" id="display-timezone-input" name="display_timezone" value="local">
+      <input type="hidden" id="catalog-token-input" name="catalog_token" value="{{ form_values.catalog_token or '' }}">
+      <input type="hidden" id="planner-start-utc" value="{{ form_values.planner_start_utc or default_start_utc }}">
+      <input type="hidden" id="planner-end-utc" value="{{ form_values.planner_end_utc or default_end_utc }}">
+
+      <fieldset class="telescope-group field-wide"><legend data-i18n="telescopeSettings">Telescope settings</legend>
+        <div class="form-field field-wide"><label for="telescope_mode" data-i18n="telescope">Telescope</label><select id="telescope_mode" name="telescope_mode" data-telescope-select required><option value="lact" {% if form_values.telescope_mode != 'custom' %}selected{% endif %} data-i18n="lactTelescope">LACT</option><option value="custom" {% if form_values.telescope_mode == 'custom' %}selected{% endif %} data-i18n="customTelescope">Custom telescope</option></select><small data-i18n="telescopeFutureHelp">LACT is active now; additional observatories can be connected later.</small></div>
+        <div id="custom-telescope-fields" class="custom-telescope-fields field-wide" {% if form_values.telescope_mode != 'custom' %}hidden{% endif %}>
+          <p class="custom-telescope-note" data-i18n="customTelescopeHelp">Temporary WGS-84 configuration used only by this calculation; it is not saved.</p>
+          <div class="form-field"><label for="custom_longitude_deg" data-i18n="customLongitude">Longitude (WGS-84)</label><div class="unit-input"><input id="custom_longitude_deg" name="custom_longitude_deg" type="number" min="-180" max="180" step="0.000001" value="{{ form_values.custom_longitude_deg }}"><span>°</span></div></div>
+          <div class="form-field"><label for="custom_latitude_deg" data-i18n="customLatitude">Latitude (WGS-84)</label><div class="unit-input"><input id="custom_latitude_deg" name="custom_latitude_deg" type="number" min="-90" max="90" step="0.000001" value="{{ form_values.custom_latitude_deg }}"><span>°</span></div></div>
+          <div class="form-field"><label for="custom_altitude_m" data-i18n="customAltitude">Altitude</label><div class="unit-input"><input id="custom_altitude_m" name="custom_altitude_m" type="number" min="-500" max="10000" step="1" value="{{ form_values.custom_altitude_m }}"><span>m</span></div></div>
+          <div class="form-field"><label for="custom_timezone_offset_hours" data-i18n="customTimezone">Local UTC offset</label><div class="unit-input"><input id="custom_timezone_offset_hours" name="custom_timezone_offset_hours" type="number" min="-12" max="14" step="0.25" value="{{ form_values.custom_timezone_offset_hours }}"><span>h</span></div></div>
+          <div class="form-field"><label for="custom_fov_diameter_deg" data-i18n="customFov">Telescope FoV diameter</label><div class="unit-input"><input id="custom_fov_diameter_deg" name="custom_fov_diameter_deg" type="number" min="0.01" max="180" step="0.01" value="{{ form_values.custom_fov_diameter_deg }}"><span>°</span></div></div>
+        </div>
+      </fieldset>
+
+      <div class="form-field field-wide">
+        <label for="source_index" data-i18n="targetSource">Target source</label>
+        <select id="source_index" name="source_index" required data-source-select>
+          <option value="region" {% if form_values.source_index == 'region' %}selected{% endif %} data-i18n="addTargetOption">Add new target</option>
+          {% for source in sources %}<option value="{{ source.index }}" {% if form_values.source_index|string == source.index|string %}selected{% endif %}>{{ source.display_name }} | RA {{ '%.3f'|format(source.ra) }}° | Dec {{ '%+.3f'|format(source.dec) }}°</option>{% endfor %}
+        </select>
+      </div>
+      <div id="region-fields" class="region-fields field-wide" {% if form_values.source_index != 'region' %}hidden{% endif %}>
+        <div class="form-field field-wide"><label for="region_name" data-i18n="targetName">Target name</label><input id="region_name" name="region_name" type="text" maxlength="80" value="{{ form_values.region_name }}" data-i18n-placeholder="temporaryNamePlaceholder" placeholder="TMP JHHMM±DDMM"><small data-i18n="temporaryNameHelp">Leave blank to generate a TMP JHHMM±DDMM name from RA and Dec.</small></div>
+        <div class="form-field"><label for="region_ra_deg" data-i18n="regionRa">Region RA (J2000)</label><div class="unit-input"><input id="region_ra_deg" name="region_ra_deg" type="number" min="0" max="359.999" step="0.001" value="{{ form_values.region_ra_deg }}"><span>°</span></div></div>
+        <div class="form-field"><label for="region_dec_deg" data-i18n="regionDec">Region Dec (J2000)</label><div class="unit-input"><input id="region_dec_deg" name="region_dec_deg" type="number" min="-90" max="90" step="0.001" value="{{ form_values.region_dec_deg }}"><span>°</span></div></div>
+        <div class="form-field"><label for="region_radius_deg" data-i18n="regionRadius">Region radius</label><div class="unit-input"><input id="region_radius_deg" name="region_radius_deg" type="number" min="0.001" max="90" step="0.001" value="{{ form_values.region_radius_deg }}"><span>°</span></div></div>
+      </div>
+      <div class="form-field"><label for="start_time" data-i18n="startTime">Start time</label><input id="start_time" name="start_time" type="datetime-local" value="{{ form_values.start_time or default_start }}" required><small>{{ timezone_name }}</small></div>
+      <div class="form-field"><label for="end_time" data-i18n="endTime">End time</label><input id="end_time" name="end_time" type="datetime-local" value="{{ form_values.end_time or default_end }}" required><small data-i18n="maximum31Days">Maximum 1 day</small></div>
+      <fieldset class="constraint-group field-wide"><legend data-i18n="planningConstraints">Planning constraints</legend><div class="constraint-grid">
+        <div class="form-field"><label for="sun_max_altitude_deg" data-i18n="sunMaxAltitude">Maximum Sun altitude</label><div class="unit-input"><input id="sun_max_altitude_deg" name="sun_max_altitude_deg" type="number" min="-90" max="-15" step="0.1" value="{{ form_values.sun_max_altitude_deg or '-18' }}" required><span>°</span></div><small data-i18n="sunConstraintLimited">Must be -15° or below</small></div>
+        <div class="form-field"><label for="moon_min_separation_deg" data-i18n="moonMinSeparation">Minimum Moon separation</label><div class="unit-input"><input id="moon_min_separation_deg" name="moon_min_separation_deg" type="number" min="0" max="180" step="0.1" value="{{ form_values.moon_min_separation_deg or '30' }}" required><span>°</span></div></div>
+        <div class="form-field"><label for="target_min_zenith_deg" data-i18n="targetMinZenith">Minimum target zenith angle</label><div class="unit-input"><input id="target_min_zenith_deg" name="target_min_zenith_deg" type="number" min="0" max="90" step="0.1" value="{{ form_values.target_min_zenith_deg if form_values.target_min_zenith_deg is not none else '0' }}" required><span>°</span></div></div>
+        <div class="form-field"><label for="target_max_zenith_deg" data-i18n="targetMaxZenith">Maximum target zenith angle</label><div class="unit-input"><input id="target_max_zenith_deg" name="target_max_zenith_deg" type="number" min="0" max="90" step="0.1" value="{{ form_values.target_max_zenith_deg or '60' }}" required><span>°</span></div></div>
+        <div class="form-field"><label for="minimum_window_seconds" data-i18n="minimumWindow">Minimum continuous window</label><div class="unit-input"><input id="minimum_window_seconds" name="minimum_window_seconds" type="number" min="0" max="86400" step="1" value="{{ form_values.minimum_window_seconds if form_values.minimum_window_seconds is not none else '0' }}" required><span>s</span></div></div>
+      </div></fieldset>
+      <button class="primary-button" type="submit" data-i18n="calculateWindows">Calculate windows</button>
+    </form>
+  </section>
+  <section class="sky-panel" aria-labelledby="sky-title" data-sky-panel>
+    <div class="panel-heading"><div><p class="section-label" data-i18n="horizonCoordinates">HORIZON COORDINATES</p><h2 id="sky-title" data-i18n="allSkyTitle">LACT all-sky view</h2></div><div class="sky-panel-settings"><label class="sky-mode-control"><span data-i18n="skyMode">Sky mode</span><select id="sky-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label><label class="sky-mode-control"><span data-i18n="catalogue">Catalogue</span><select id="catalogue-select" data-catalogue-select><option value="">2LHAASO</option></select></label></div></div>
+    <div class="catalogue-upload-control"><label for="catalogue-upload" data-i18n="uploadCatalogue">Upload source catalogue (CSV)</label><input id="catalogue-upload" type="file" accept=".csv,text/csv"><small data-i18n="catalogueUploadHelp">UTF-8 CSV: name, ra, dec; optional ext. Uploads are temporary and remain only in memory.</small><span id="catalogue-upload-status" aria-live="polite"></span></div>
+    <div class="sky-time-control" id="sky-time-control" hidden><label for="sky-at-time" data-i18n="skyTime">Sky time</label><input id="sky-at-time" type="datetime-local" value="{{ now_local.strftime('%Y-%m-%dT%H:%M') }}"><button id="sky-time-apply" class="secondary-button" type="button" data-i18n="applySkyTime">Apply</button></div>
+    <div class="sky-zoom-controls" aria-label="Sky map zoom" data-i18n-aria-label="skyZoom"><span data-i18n="skyZoom">Sky map zoom</span><button id="sky-zoom-out" class="secondary-button" type="button" data-i18n-title="zoomOut" title="Zoom out">−</button><button id="sky-zoom-reset" class="secondary-button" type="button" data-i18n="zoomReset">100%</button><button id="sky-zoom-in" class="secondary-button" type="button" data-i18n-title="zoomIn" title="Zoom in">+</button><button id="sky-zoom-centre" class="secondary-button" type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>
+    <div class="map-frame" data-map-frame data-zoom-max="5">{{ sky_svg|safe }}</div>
+    <div class="legend" aria-label="Status legend" data-i18n-aria-label="statusLegend"><span><i class="legend-star green"></i><b data-i18n="greenStatus">Full footprint passes</b></span><span><i class="legend-star yellow"></i><b data-i18n="yellowStatus">Centre passes, edge fails</b></span><span><i class="legend-star red"></i><b data-i18n="redStatus">Centre fails</b></span></div>
+    <p class="map-note" data-i18n="allSkyNote">Colours use the current pointing, the configured hard FoV and default geometric constraints. The current LACT pointing is fixed to zenith pending telemetry. Select a star for details.</p>
+  </section>
+</div>
+<section class="method-strip"><div><strong data-i18n="centreWindow">Centre window</strong><span data-i18n="centreWindowDescription">The source centre passes horizon and enabled constraints.</span></div><div><strong data-i18n="fullWindow">Full-footprint window</strong><span data-i18n="fullWindowDescription">The nominal extension fits entirely within the configured hard FoV and edge constraints.</span></div><div><strong data-i18n="secondBoundary">Second-scale boundaries</strong><span data-i18n="secondBoundaryDescription">Every second is evaluated and boundaries are refined to within one second.</span></div></section>
+{% endblock %}
