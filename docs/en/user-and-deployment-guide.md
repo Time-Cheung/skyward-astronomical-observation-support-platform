@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Skyward is a LAN-only geometry observation-support platform. It loads the 190-source `2LHAASO` catalogue, computes horizon coordinates for targets, the Sun and the Moon using the selected telescope configuration, and reports candidate observing windows. The current release includes a complete LACT adapter; additional telescope adapters can be connected later.
+Skyward is currently a LAN-only platform with a LACT telescope adapter. This release calculates candidate observing windows from astronomical and telescope geometry only. It is not a general real-time observatory service yet. Future development will add adapters for different telescopes, real-time telescope operating status, real-time celestial positions, site weather and environmental information, and joint assessment of weather, celestial motion and telescope operating/pointing trajectories to identify suitable observing periods.
 
 **This release is geometry only.** It does not evaluate weather, clouds, aerosols, live LACT telemetry, current mechanical pointing, mechanical limits, tracking error, off-axis response, real sensitivity, or LHAASO joint-observation acceptance. A result is not a formal observing approval.
 
