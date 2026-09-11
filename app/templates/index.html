@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Skyward | Astronomical Observation Support Platform{% endblock %}
+{% block title %}Skyward | LACT Sky Map & Planner{% endblock %}
 {% block content %}
 <section class="page-heading skyward-heading">
   <div>
@@ -22,6 +22,7 @@
       <input type="hidden" id="plot-theme-input" name="plot_theme" value="light">
       <input type="hidden" id="display-timezone-input" name="display_timezone" value="local">
       <input type="hidden" id="catalog-token-input" name="catalog_token" value="{{ form_values.catalog_token or '' }}">
+      <input type="hidden" id="catalog-tokens-input" name="catalog_tokens" value="{{ form_values.catalog_tokens or '2lhaaso' }}">
       <input type="hidden" id="planner-start-utc" value="{{ form_values.planner_start_utc or default_start_utc }}">
       <input type="hidden" id="planner-end-utc" value="{{ form_values.planner_end_utc or default_end_utc }}">
 
@@ -38,10 +39,11 @@
       </fieldset>
 
       <div class="form-field field-wide">
-        <label for="source_index" data-i18n="targetSource">Target source</label>
+        <label for="source-search" data-i18n="targetSource">Target source</label>
+        <input id="source-search" type="search" data-source-search data-i18n-placeholder="sourceSearchPlaceholder" placeholder="Filter by source name">
         <select id="source_index" name="source_index" required data-source-select>
           <option value="region" {% if form_values.source_index == 'region' %}selected{% endif %} data-i18n="addTargetOption">Add new target</option>
-          {% for source in sources %}<option value="{{ source.index }}" {% if form_values.source_index|string == source.index|string %}selected{% endif %}>{{ source.display_name }} | RA {{ '%.3f'|format(source.ra) }}° | Dec {{ '%+.3f'|format(source.dec) }}°</option>{% endfor %}
+          {% for source in sources|sort(attribute="name") %}<option value="{{ source.index }}" {% if form_values.source_index|string == source.index|string %}selected{% endif %}>{{ source.display_name }} | RA {{ '%.3f'|format(source.ra) }}° | Dec {{ '%+.3f'|format(source.dec) }}°</option>{% endfor %}
         </select>
       </div>
       <div id="region-fields" class="region-fields field-wide" {% if form_values.source_index != 'region' %}hidden{% endif %}>
@@ -63,7 +65,7 @@
     </form>
   </section>
   <section class="sky-panel" aria-labelledby="sky-title" data-sky-panel>
-    <div class="panel-heading"><div><p class="section-label" data-i18n="horizonCoordinates">HORIZON COORDINATES</p><h2 id="sky-title" data-i18n="allSkyTitle">LACT all-sky view</h2></div><div class="sky-panel-settings"><label class="sky-mode-control"><span data-i18n="skyMode">Sky mode</span><select id="sky-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label><label class="sky-mode-control"><span data-i18n="catalogue">Catalogue</span><select id="catalogue-select" data-catalogue-select><option value="">2LHAASO</option></select></label></div></div>
+    <div class="panel-heading"><div><p class="section-label" data-i18n="horizonCoordinates">HORIZON COORDINATES</p><h2 id="sky-title" data-i18n="allSkyTitle">LACT all-sky view</h2></div><div class="sky-panel-settings"><label class="sky-mode-control"><span data-i18n="skyMode">Sky mode</span><select id="sky-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label><label class="sky-mode-control"><span data-i18n="catalogue">Catalogue</span><select id="catalogue-select" data-catalogue-select multiple size="3" aria-label="Selected catalogues"><option value="2lhaaso" selected>2LHAASO</option></select></label><label class="gaia-toggle"><input id="include-gaia" type="checkbox"><span data-i18n="includeGaia">Gaia DR3 calibration stars</span></label></div></div>
     <div class="catalogue-upload-control"><label for="catalogue-upload" data-i18n="uploadCatalogue">Upload source catalogue (CSV)</label><input id="catalogue-upload" type="file" accept=".csv,text/csv"><small data-i18n="catalogueUploadHelp">UTF-8 CSV: name, ra, dec; optional ext. Uploads are temporary and remain only in memory.</small><span id="catalogue-upload-status" aria-live="polite"></span></div>
     <div class="sky-time-control" id="sky-time-control" hidden><label for="sky-at-time" data-i18n="skyTime">Sky time</label><input id="sky-at-time" type="datetime-local" value="{{ now_local.strftime('%Y-%m-%dT%H:%M') }}"><button id="sky-time-apply" class="secondary-button" type="button" data-i18n="applySkyTime">Apply</button></div>
     <div class="sky-zoom-controls" aria-label="Sky map zoom" data-i18n-aria-label="skyZoom"><span data-i18n="skyZoom">Sky map zoom</span><button id="sky-zoom-out" class="secondary-button" type="button" data-i18n-title="zoomOut" title="Zoom out">−</button><button id="sky-zoom-reset" class="secondary-button" type="button" data-i18n="zoomReset">100%</button><button id="sky-zoom-in" class="secondary-button" type="button" data-i18n-title="zoomIn" title="Zoom in">+</button><button id="sky-zoom-centre" class="secondary-button" type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>

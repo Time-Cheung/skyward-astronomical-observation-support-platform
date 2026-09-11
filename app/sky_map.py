@@ -10,9 +10,9 @@ import numpy as np
 from astropy.coordinates import AltAz, SkyCoord, get_body, get_sun
 from astropy.time import Time
 
-from .astronomy import source_coord
+from .astronomy import J2000_FRAME, source_coord
 from .catalog import Source
-from .config import LACT_TELESCOPE, TelescopeConfig
+from .config import DISPLAY_COORDINATE_FRAMES, LACT_TELESCOPE, TelescopeConfig
 from .schemas import ConstraintSet
 from .status import sky_snapshot, sky_trajectory_snapshot
 
@@ -43,6 +43,47 @@ def _polar(altitude: float, azimuth: float, cx: float, cy: float, radius: float)
     return cx + radial * math.sin(azimuth_rad), cy - radial * math.cos(azimuth_rad), visible
 
 
+def _normalise_display_frame(value: str) -> str:
+    return value if value in DISPLAY_COORDINATE_FRAMES else "altaz"
+
+
+def _display_label(value: str) -> str:
+    return DISPLAY_COORDINATE_FRAMES[_normalise_display_frame(value)]
+
+
+def _zenith_coordinate(at_time: datetime, telescope: TelescopeConfig) -> SkyCoord:
+    frame = AltAz(obstime=Time(_utc(at_time)), location=telescope.location, pressure=0 * u.hPa)
+    return SkyCoord(az=0 * u.deg, alt=90 * u.deg, frame=frame)
+
+
+def _project_coordinate(coordinate: SkyCoord, center: SkyCoord, cx: float, cy: float, radius: float, visible: bool) -> tuple[float, float, bool, float]:
+    separation = float(center.separation(coordinate).deg)
+    position_angle = float(center.position_angle(coordinate).deg)
+    radial = radius * min(separation / 90.0, 1.0)
+    angle = math.radians(position_angle)
+    return cx + radial * math.sin(angle), cy - radial * math.cos(angle), visible and separation <= 90.0, position_angle
+
+
+def _project_source(source: Source, geometry: dict, at_time: datetime, telescope: TelescopeConfig, frame_key: str, cx: float, cy: float, radius: float) -> tuple[float, float, bool, float]:
+    if frame_key == "altaz":
+        x, y, visible = _polar(float(geometry["target_altitude_deg"]), float(geometry["target_azimuth_deg"]), cx, cy, radius)
+        return x, y, visible, float(geometry["target_azimuth_deg"])
+    display_frame = J2000_FRAME if frame_key == "j2000" else "galactic"
+    coordinate = source_coord(source).transform_to(display_frame)
+    center = _zenith_coordinate(at_time, telescope).transform_to(display_frame)
+    return _project_coordinate(coordinate, center, cx, cy, radius, float(geometry["target_altitude_deg"]) >= 0.0)
+
+
+def _project_body(altitude: float, azimuth: float, at_time: datetime, telescope: TelescopeConfig, frame_key: str, cx: float, cy: float, radius: float) -> tuple[float, float, bool, float]:
+    if frame_key == "altaz":
+        x, y, visible = _polar(altitude, azimuth, cx, cy, radius)
+        return x, y, visible, azimuth
+    altaz_frame = AltAz(obstime=Time(_utc(at_time)), location=telescope.location, pressure=0 * u.hPa)
+    coordinate = SkyCoord(az=azimuth * u.deg, alt=altitude * u.deg, frame=altaz_frame)
+    display_frame = J2000_FRAME if frame_key == "j2000" else "galactic"
+    return _project_coordinate(coordinate.transform_to(display_frame), _zenith_coordinate(at_time, telescope).transform_to(display_frame), cx, cy, radius, altitude >= 0.0)
+
+
 def _star_points(x: float, y: float, outer: float = 7.0, inner: float = 3.0) -> str:
     return " ".join(
         f"{x + (outer if index % 2 == 0 else inner) * math.cos(math.radians(-90.0 + index * 36.0)):.1f},{y + (outer if index % 2 == 0 else inner) * math.sin(math.radians(-90.0 + index * 36.0)):.1f}"
@@ -60,7 +101,7 @@ def _body_icon(x: float, y: float, kind: str, label: str) -> str:
     )
 
 
-def _fov_boundary(at_time: datetime, telescope: TelescopeConfig, cx: float, cy: float, radius: float) -> str:
+def _fov_boundary(at_time: datetime, telescope: TelescopeConfig, cx: float, cy: float, radius: float, display_frame: str = "altaz") -> str:
     """Trace a true spherical FoV boundary through the same map projection."""
     boundary = SkyCoord(
         az=telescope.pointing_azimuth_deg * u.deg,
@@ -68,8 +109,14 @@ def _fov_boundary(at_time: datetime, telescope: TelescopeConfig, cx: float, cy: 
         frame=AltAz(obstime=Time(_utc(at_time)), location=telescope.location, pressure=0 * u.hPa),
     ).directional_offset_by(np.linspace(0, 2 * np.pi, 145) * u.rad, telescope.fov_radius_deg * u.deg)
     points = []
+    center = _zenith_coordinate(at_time, telescope).transform_to(J2000_FRAME if display_frame == "j2000" else "galactic")
     for altitude, azimuth in zip(boundary.alt.deg, boundary.az.deg):
-        x, y, _ = _polar(float(altitude), float(azimuth), cx, cy, radius)
+        if display_frame == "altaz":
+            x, y, _ = _polar(float(altitude), float(azimuth), cx, cy, radius)
+        else:
+            altaz_frame = AltAz(obstime=Time(_utc(at_time)), location=telescope.location, pressure=0 * u.hPa)
+            coordinate = SkyCoord(az=float(azimuth) * u.deg, alt=float(altitude) * u.deg, frame=altaz_frame)
+            x, y, _, _ = _project_coordinate(coordinate.transform_to(J2000_FRAME if display_frame == "j2000" else "galactic"), center, cx, cy, radius, float(altitude) >= 0.0)
         points.append(f"{x:.2f},{y:.2f}")
     return " ".join(points)
 
@@ -82,8 +129,10 @@ def render_all_sky_svg(
     trajectory_enforce_current_pointing: bool = True,
     trajectory_ranges: Optional[Iterable[tuple[datetime, datetime]]] = None,
     trajectory_display_time: Optional[datetime] = None,
+    display_frame: str = "altaz",
 ) -> tuple[str, dict]:
     """Render a bilingual instantaneous or trajectory-status all-sky map."""
+    display_frame = _normalise_display_frame(display_frame)
     sources = list(sources)
     highlighted = set(highlighted_indexes or ())
     text = _labels(language)
@@ -96,9 +145,9 @@ def render_all_sky_svg(
     width, height = 760.0, 700.0
     cx, cy, radius = 350.0, 335.0, 260.0
     lines = [
-        f'<svg class="sky-map-svg" viewBox="0 0 {width:.0f} {height:.0f}" role="img" aria-label="{_esc(telescope.name)} all-sky horizon map">',
-        f'<title>{_esc(telescope.name)} all-sky horizon map</title>',
-        '<desc>The centre is zenith, the outer circle is horizon, and radial distance is zenith angle.</desc>',
+        f'<svg class="sky-map-svg" data-display-frame="{_esc(display_frame)}" viewBox="0 0 {width:.0f} {height:.0f}" role="img" aria-label="{_esc(telescope.name)} {_esc(_display_label(display_frame))} map">',
+        f'<title>{_esc(telescope.name)} {_esc(_display_label(display_frame))} map</title>',
+        f'<desc>{_esc(_display_label(display_frame))} display; the centre is the zenith reference and the outer circle is the 90 degree display boundary.</desc>',
         '<defs><clipPath id="sky-clip"><circle cx="350" cy="335" r="260" /></clipPath></defs>',
         f'<circle class="sky-surface" cx="{cx}" cy="{cy}" r="{radius}" />',
     ]
@@ -115,20 +164,23 @@ def render_all_sky_svg(
         lines.append(f'<text class="compass-label" x="{cx + (x-cx)*1.08:.1f}" y="{cy + (y-cy)*1.08 + 5:.1f}" text-anchor="middle">{text[key]}</text>')
 
     pointing_x, pointing_y, _ = _polar(telescope.pointing_altitude_deg, telescope.pointing_azimuth_deg, cx, cy, radius)
-    lines.append(f'<polyline class="realtime-fov-ring" points="{_fov_boundary(at_time, telescope, cx, cy, radius)}" role="img" aria-label="{_esc(telescope.name)} FoV, diameter {telescope.fov_diameter_deg:.2f} degrees" tabindex="0"><title>{_esc(telescope.name)} FoV: {telescope.fov_diameter_deg:.2f}° diameter</title></polyline>')
+    lines.append(f'<polyline class="realtime-fov-ring" points="{_fov_boundary(at_time, telescope, cx, cy, radius, display_frame)}" role="img" aria-label="{_esc(telescope.name)} FoV, diameter {telescope.fov_diameter_deg:.2f} degrees" tabindex="0"><title>{_esc(telescope.name)} FoV: {telescope.fov_diameter_deg:.2f}° diameter</title></polyline>')
     lines.append(f'<text class="realtime-fov-label" x="{pointing_x:.1f}" y="{pointing_y + 31:.1f}" text-anchor="middle">{_esc(telescope.name)} FoV</text>')
 
     visible_count = below_count = 0
+    source_by_index = {source.index: source for source in sources}
     for item in snapshot["sources"]:
         geometry = item["geometry"]
-        x, y, visible = _polar(float(geometry["target_altitude_deg"]), float(geometry["target_azimuth_deg"]), cx, cy, radius)
+        item_source = source_by_index[item["index"]]
+        x, y, visible, _ = _project_source(item_source, geometry, at_time, telescope, display_frame, cx, cy, radius)
         if not visible and trajectory_end is None and item["index"] != selected_index:
             below_count += 1
             continue
         if not visible:
             # Observation-window sources and the selected planning target stay
             # represented at the horizon boundary even when below the horizon.
-            x, y, _ = _polar(0.0, float(geometry["target_azimuth_deg"]), cx, cy, radius)
+            if display_frame == "altaz":
+                x, y, _ = _polar(0.0, float(geometry["target_azimuth_deg"]), cx, cy, radius)
             below_count += 1
         else:
             visible_count += 1
@@ -136,19 +188,23 @@ def render_all_sky_svg(
         selected = " selected-source" if item["index"] == selected_index else ""
         highlight = " trajectory-highlight" if item["index"] in highlighted else ""
         title = f'{item["display_name"]} | {item["status"]}'
-        star = _star_points(x, y, 12.0, 5.0) if item["index"] == selected_index else _star_points(x, y)
-        lines.append(f'<g class="source-marker status-{status}{selected}{highlight}" data-source-index="{item["index"]}" tabindex="0" role="button" aria-label="{_esc(title)}"><title>{_esc(title)}</title><polygon points="{star}" /></g>')
+        if item_source.is_calibration_star:
+            shape = f'<polygon points="{_star_points(x, y, 8.0, 3.2)}" />'
+        else:
+            extension_radius = max(2.5, min(18.0, 2.5 + float(item_source.ext) * 3.0))
+            shape = f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{extension_radius:.1f}" />'
+        lines.append(f'<g class="source-marker source-type-{_esc(item_source.source_type)} status-{status}{selected}{highlight}" data-source-index="{item["index"]}" tabindex="0" role="button" aria-label="{_esc(title)}"><title>{_esc(title)}</title>{shape}</g>')
     if snapshot["sources"]:
         geometry = snapshot["sources"][0]["geometry"]
         for kind in ("sun", "moon"):
             altitude = float(geometry[f"{kind}_altitude_deg"])
             if altitude >= 0.0:
-                x, y, _ = _polar(altitude, float(geometry[f"{kind}_azimuth_deg"]), cx, cy, radius)
+                x, y, _, _ = _project_body(altitude, float(geometry[f"{kind}_azimuth_deg"]), at_time, telescope, display_frame, cx, cy, radius)
                 lines.append(_body_icon(x, y, kind, text[kind]))
         snapshot["sun"] = {"altitude_deg": geometry["sun_altitude_deg"], "azimuth_deg": geometry["sun_azimuth_deg"]}
         snapshot["moon"] = {"altitude_deg": geometry["moon_altitude_deg"], "azimuth_deg": geometry["moon_azimuth_deg"]}
     lines.append("</svg>")
-    snapshot.update({"visible_source_count": visible_count, "below_horizon_source_count": below_count, "lact_pointing": {"mode": telescope.pointing_mode, "altitude_deg": telescope.pointing_altitude_deg, "azimuth_deg": telescope.pointing_azimuth_deg, "fov_diameter_deg": telescope.fov_diameter_deg, "fov_radius_deg": telescope.fov_radius_deg}, "highlighted_source_indexes": sorted(highlighted)})
+    snapshot.update({"display_frame": display_frame, "display_frame_label": _display_label(display_frame), "visible_source_count": visible_count, "below_horizon_source_count": below_count, "lact_pointing": {"mode": telescope.pointing_mode, "altitude_deg": telescope.pointing_altitude_deg, "azimuth_deg": telescope.pointing_azimuth_deg, "fov_diameter_deg": telescope.fov_diameter_deg, "fov_radius_deg": telescope.fov_radius_deg}, "highlighted_source_indexes": sorted(highlighted)})
     return "".join(lines), snapshot
 
 

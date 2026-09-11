@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Skyward | Current telescope FoV windows{% endblock %}
+{% block title %}Skyward | Current LACT FoV windows{% endblock %}
 {% block content %}
 <section class="result-heading">
   <div>
     <a class="back-link" href="/" data-i18n="backToPlanner">← Back to planner</a>
     <p class="section-label" data-i18n="currentFovWindowResult">CURRENT LACT FoV</p>
     <h1 data-i18n="currentFovTitle">Windows for sources in the current LACT FoV.</h1>
-    <p data-i18n="currentFovLead">The pointing placeholder is zenith until telescope pointing telemetry is connected. Only sources inside the selected telescope FoV at the requested start time are evaluated.</p>
+    <p data-i18n="currentFovLead">The pointing placeholder is zenith until real LACT pointing telemetry is connected. Only sources inside the 8.3° FoV at the selected start time are evaluated.</p>
   </div>
 </section>
 <section class="result-context" data-result-time-context data-start-utc="{{ result_start_utc }}" data-end-utc="{{ result_end_utc }}">
