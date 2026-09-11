@@ -39,12 +39,14 @@
     </dl>
   </article>
   <article>
-    <h2 data-i18n="iersOffline">Offline IERS data</h2>
+    <h2 data-i18n="iersOffline">IERS online-first data</h2>
     <dl class="definition-list">
       <div><dt data-i18n="currentCoverage">Current coverage</dt><dd>{{ 'Yes' if iers.covers_current_time else 'No' }}</dd></div>
       <div><dt>MJD range</dt><dd>{{ iers.first_mjd }} - {{ iers.last_mjd }}</dd></div>
-      <div><dt data-i18n="autoDownload">Automatic download</dt><dd data-i18n="disabled">Disabled</dd></div>
+      <div><dt data-i18n="iersSourceKind">Active source</dt><dd>{{ iers.source_kind }}</dd></div>
+      <div><dt data-i18n="iersUpdate">Update policy</dt><dd>{{ iers.update_interval_days|round(0)|int }} days; {{ 'due' if iers.update_due else 'fresh' }}</dd></div>
       <div><dt data-i18n="file">File</dt><dd class="path-value">{{ iers.source }}</dd></div>
+      {% if iers.last_error %}<div><dt data-i18n="iersLastError">Last online error</dt><dd>{{ iers.last_error }}</dd></div>{% endif %}
     </dl>
   </article>
 </section>

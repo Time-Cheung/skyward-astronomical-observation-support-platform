@@ -6,9 +6,10 @@
  * operator keeps their own display preference without adding server accounts.
  */
 (() => {
-  const STORAGE_KEYS = Object.freeze({ theme: "skyward.theme", language: "skyward.language", timezone: "skyward.timezone" });
+  const STORAGE_KEYS = Object.freeze({ theme: "skyward.theme", language: "skyward.language", timezone: "skyward.timezone", coordinate: "skyward.coordinate" });
   const THEMES = ["auto", "light", "dark"];
   const TIMEZONES = Object.freeze({ local: "Asia/Shanghai", utc: "UTC" });
+  const COORDINATE_FRAMES = Object.freeze({ altaz: "AltAz / Horizon", j2000: "J2000 equatorial", galactic: "Galactic" });
 
   const translations = {
     zh: {
@@ -36,7 +37,7 @@
       jsonApi: "JSON 接口", apiTitle: "局域网 API 参考。", apiLead: "所有接口均无账号认证，只能在受控局域网中开放。交互式 Swagger 已禁用，避免浏览器加载公网 CDN；机器可读 schema 保留在 <code>/openapi.json</code>。", endpoints: "端点", windowRequestExample: "窗口请求示例", apiDisclaimer: "响应中的", apiDisclaimerEnd: "表示未评估天气、遥测、机械安全或联合观测条件。",
       apiDescription1: "源表、IERS 与补充数据健康状态", apiDescription2: "站点、FoV 与能力边界", apiDescription3: "检索 2LHAASO 源", apiDescription4: "源详情与指定时刻几何状态", apiDescription5: "全天图 SVG 与 190 源状态", apiDescription6: "中心和完整 footprint 观测窗口", apiDescription7: "机器可读 OpenAPI schema",
       loading: "载入中", closeDetails: "关闭详情", loadingDetail: "正在计算当前地平坐标和状态。", failedDetail: "无法载入源详情", noData: "暂无数据，待核验", centrePass: "源中心通过", centreFail: "源中心未通过", footprintPass: "完整 extension 通过", footprintFail: "完整 extension 未通过",
-      sexagesimal: "时分秒 / 度分秒", extension: "Extension", positionErrorLabel: "95% 位置误差", altAzZenith: "高度 / 方位 / 天顶角", moonSeparation: "月亮角距", sunAltitude: "太阳高度", statusReasons: "状态原因", enrichment: "待核验扩展信息", verification: "核验状态", associatedSources: "关联源", sourceSearchEmpty: "没有匹配的源", allFieldsRequired: "所有项目必须填写", planningConstraints: "观测规划约束", sunConstraintLimited: "必须为 -15° 或更低", addTargetOption: "添加新目标", targetName: "目标名称", temporaryNamePlaceholder: "留空自动生成 TMP JHHMM±DDMM", temporaryNameHelp: "留空将根据 RA 和 Dec 自动生成 TMP JHHMM±DDMM 名称。", regionRa: "天区 RA（J2000）", regionDec: "天区 Dec（J2000）", regionRadius: "天区半径", skyMode: "全天图模式", liveSky: "实时，每分钟刷新", fixedSky: "指定时间", skyTime: "全天图时间", applySkyTime: "应用", localDateTime: "本地日期和时间", sunHorizonCoordinates: "太阳 高度 / 方位", moonHorizonCoordinates: "月亮 高度 / 方位", useForPlanner: "填入观测规划", replaceAndCalculate: "替换并重新计算", currentFovWindowResult: "当前望远镜视野", currentFovTitle: "当前望远镜视野内源的观测窗口。", currentFovLead: "在接入望远镜实时指向前，指向占位为天顶。仅计算所选开始时刻处于当前望远镜视野内的源。", fovSources: "视野内源", pointingMode: "指向", fixedZenith: "固定天顶", currentFovWindows: "当前视野窗口", noFovSources: "所选时刻的固定天顶视野内没有源", planObservation: "加入观测计划", observationPlan: "观测计划", plannedStart: "计划开始时间", plannedEnd: "计划结束时间", notes: "备注", planRangeHint: "默认填写当前完整源窗口中经逐秒复核有效的计划时间。计划时间必须留在该窗口内。", planRangeError: "计划时间必须位于当前完整源窗口内，且结束时间晚于开始时间。", planSecondUnavailable: "该窗口内没有可表示为完整秒的有效观测计划区间。", downloadPlan: "下载 TXT 计划表", planAdded: "已加入计划表", constraints: "约束条件",
+      sexagesimal: "时分秒 / 度分秒", extension: "Extension", positionErrorLabel: "95% 位置误差", altAzZenith: "高度 / 方位 / 天顶角", moonSeparation: "月亮角距", sunAltitude: "太阳高度", statusReasons: "状态原因", enrichment: "待核验扩展信息", verification: "核验状态", associatedSources: "关联源", sourceSearchEmpty: "没有匹配的源", allFieldsRequired: "所有项目必须填写", planningConstraints: "观测规划约束", sunConstraintLimited: "必须为 -15° 或更低", addTargetOption: "添加新目标", targetName: "目标名称", temporaryNamePlaceholder: "留空自动生成 TMP JHHMM±DDMM", temporaryNameHelp: "留空将根据 RA 和 Dec 自动生成 TMP JHHMM±DDMM 名称。", regionRa: "天区 RA（J2000）", regionDec: "天区 Dec（J2000）", regionRadius: "天区半径", skyMode: "全天图模式", liveSky: "实时，每分钟刷新", fixedSky: "指定时间", skyTime: "全天图时间", applySkyTime: "应用", localDateTime: "本地日期和时间", sunHorizonCoordinates: "太阳 高度 / 方位", moonHorizonCoordinates: "月亮 高度 / 方位", useForPlanner: "填入观测规划", replaceAndCalculate: "替换并重新计算", currentFovWindowResult: "当前 LACT 视野", currentFovTitle: "当前 LACT 视野内源的观测窗口。", currentFovLead: "在接入 LACT 实时指向前，指向占位为天顶。仅计算所选开始时刻处于 8.3°视野内的源。", fovSources: "视野内源", pointingMode: "指向", fixedZenith: "固定天顶", currentFovWindows: "当前视野窗口", noFovSources: "所选时刻的固定天顶视野内没有源", planObservation: "加入观测计划", observationPlan: "观测计划", plannedStart: "计划开始时间", plannedEnd: "计划结束时间", notes: "备注", planRangeHint: "默认填写当前完整源窗口中经逐秒复核有效的计划时间。计划时间必须留在该窗口内。", planRangeError: "计划时间必须位于当前完整源窗口内，且结束时间晚于开始时间。", planSecondUnavailable: "该窗口内没有可表示为完整秒的有效观测计划区间。", downloadPlan: "下载 TXT 计划表", planAdded: "已加入计划表", constraints: "约束条件",
     },
     en: {
       brandHome: "Skyward home", brandDescriptor: "ASTRONOMICAL OBSERVATION SUPPORT PLATFORM", primaryNavigation: "Primary navigation", displaySettings: "Display settings",
@@ -63,13 +64,14 @@
       jsonApi: "JSON API", apiTitle: "LAN API reference.", apiLead: "All endpoints are unauthenticated and must remain inside the controlled LAN. Interactive Swagger is disabled so a browser never tries to load a public CDN. The machine-readable schema remains at <code>/openapi.json</code>.", endpoints: "Endpoints", windowRequestExample: "Window request example", apiDisclaimer: "A response with", apiDisclaimerEnd: "does not evaluate weather, telemetry, mechanical safety or joint-observation conditions.",
       apiDescription1: "Catalogue, IERS and enrichment health", apiDescription2: "Site, FoV and capability boundaries", apiDescription3: "Search 2LHAASO sources", apiDescription4: "Source detail and geometry at a chosen time", apiDescription5: "All-sky SVG and 190 source states", apiDescription6: "Centre and full-footprint observing windows", apiDescription7: "Machine-readable OpenAPI schema",
       loading: "Loading", closeDetails: "Close details", loadingDetail: "Computing current horizon coordinates and status.", failedDetail: "Unable to load source details", noData: "No data, pending verification", centrePass: "Centre passes", centreFail: "Centre fails", footprintPass: "Full extension passes", footprintFail: "Full extension fails",
-      sexagesimal: "Sexagesimal", extension: "Extension", positionErrorLabel: "95% position error", altAzZenith: "Alt / Az / Zenith", moonSeparation: "Moon separation", sunAltitude: "Sun altitude", statusReasons: "Status reasons", enrichment: "Unverified enrichment", verification: "Verification", associatedSources: "Associated sources", sourceSearchEmpty: "No matching sources", allFieldsRequired: "All fields are required", planningConstraints: "Planning constraints", sunConstraintLimited: "Must be -15° or below", addTargetOption: "Add new target", targetName: "Target name", temporaryNamePlaceholder: "Leave blank for TMP JHHMM±DDMM", temporaryNameHelp: "Leave blank to derive a TMP JHHMM±DDMM name from RA and Dec.", regionRa: "Region RA (J2000)", regionDec: "Region Dec (J2000)", regionRadius: "Region radius", skyMode: "Sky mode", liveSky: "Live, refresh each minute", fixedSky: "Specific time", skyTime: "Sky time", applySkyTime: "Apply", localDateTime: "Local date and time", sunHorizonCoordinates: "Sun Alt / Az", moonHorizonCoordinates: "Moon Alt / Az", useForPlanner: "Use for planning", replaceAndCalculate: "Replace and recalculate", currentFovWindowResult: "CURRENT TELESCOPE FoV", currentFovTitle: "Windows for sources in the current telescope FoV.", currentFovLead: "The pointing placeholder is zenith until telescope pointing telemetry is connected. Only sources inside the selected telescope FoV at the requested start time are evaluated.", fovSources: "FoV sources", pointingMode: "Pointing", fixedZenith: "Fixed zenith", currentFovWindows: "Current FoV windows", noFovSources: "No catalogue source lies inside the current fixed zenith FoV at the selected time.", planObservation: "Add to observing plan", observationPlan: "Observing plan", plannedStart: "Planned start", plannedEnd: "Planned end", notes: "Notes", planRangeHint: "The prefilled plan is checked at whole-second precision inside this full-footprint window. Planned times must stay within the valid interval.", planRangeError: "Planned times must lie inside this full-footprint window, with an end later than its start.", planSecondUnavailable: "No valid whole-second observing-plan interval exists within this window.", downloadPlan: "Download TXT plan", planAdded: "Added to plan", constraints: "Constraints",
+      sexagesimal: "Sexagesimal", extension: "Extension", positionErrorLabel: "95% position error", altAzZenith: "Alt / Az / Zenith", moonSeparation: "Moon separation", sunAltitude: "Sun altitude", statusReasons: "Status reasons", enrichment: "Unverified enrichment", verification: "Verification", associatedSources: "Associated sources", sourceSearchEmpty: "No matching sources", allFieldsRequired: "All fields are required", planningConstraints: "Planning constraints", sunConstraintLimited: "Must be -15° or below", addTargetOption: "Add new target", targetName: "Target name", temporaryNamePlaceholder: "Leave blank for TMP JHHMM±DDMM", temporaryNameHelp: "Leave blank to derive a TMP JHHMM±DDMM name from RA and Dec.", regionRa: "Region RA (J2000)", regionDec: "Region Dec (J2000)", regionRadius: "Region radius", skyMode: "Sky mode", liveSky: "Live, refresh each minute", fixedSky: "Specific time", skyTime: "Sky time", applySkyTime: "Apply", localDateTime: "Local date and time", sunHorizonCoordinates: "Sun Alt / Az", moonHorizonCoordinates: "Moon Alt / Az", useForPlanner: "Use for planning", replaceAndCalculate: "Replace and recalculate", currentFovWindowResult: "CURRENT LACT FoV", currentFovTitle: "Windows for sources in the current LACT FoV.", currentFovLead: "The pointing placeholder is zenith until real LACT pointing telemetry is connected. Only sources inside the 8.3° FoV at the selected start time are evaluated.", fovSources: "FoV sources", pointingMode: "Pointing", fixedZenith: "Fixed zenith", currentFovWindows: "Current FoV windows", noFovSources: "No catalogue source lies inside the current fixed zenith FoV at the selected time.", planObservation: "Add to observing plan", observationPlan: "Observing plan", plannedStart: "Planned start", plannedEnd: "Planned end", notes: "Notes", planRangeHint: "The prefilled plan is checked at whole-second precision inside this full-footprint window. Planned times must stay within the valid interval.", planRangeError: "Planned times must lie inside this full-footprint window, with an end later than its start.", planSecondUnavailable: "No valid whole-second observing-plan interval exists within this window.", downloadPlan: "Download TXT plan", planAdded: "Added to plan", constraints: "Constraints",
     }
   };
 
 
   // API contracts keep machine codes; the local UI maps them to readable bilingual labels.
   Object.assign(translations.zh, {
+    coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
     homeTitle: 'V0版本：仅几何判断', homeLead: '目前仅导入2LHAASO源表。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
     allSkyNote: '颜色由当前指向、望远镜硬视场和默认几何约束共同判定。实时指向尚未接入，当前固定为天顶；点击星形查看源详情。',
     telescopeSettings: '望远镜设置', telescope: '望远镜', lactTelescope: 'LACT', customTelescope: '自定义望远镜',
@@ -81,6 +83,7 @@
     target_above_horizon: '目标高于地平线', target_inside_current_fov: '目标在当前视场内', sun_altitude: '太阳高度角', moon_separation: '月亮角距', target_min_zenith: '目标最小天顶角', target_max_zenith: '目标最大天顶角', extension_inside_fov: '源扩展落入视场', extension_inside_current_fov: '源扩展落入当前视场', extension_above_horizon: '源扩展高于地平线', extension_max_zenith: '源扩展不超出地平线限制', minimum_window: '最短连续窗口',
   });
   Object.assign(translations.en, {
+    coordinateFrame: "Coordinate frame", coordAltAz: "AltAz / Horizon", coordJ2000: "Equatorial (J2000)", coordGalactic: "Galactic", includeGaia: "Gaia DR3 calibration stars", iersSourceKind: "Active source", iersUpdate: "Update policy", iersLastError: "Last online error",
     homeTitle: 'V0: geometry assessment only', homeLead: 'Currently imported: the 2LHAASO source catalogue.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
     allSkyNote: 'Colours use the current pointing, telescope hard FoV and default geometric constraints. Pointing is fixed to zenith until telemetry is connected; select a star for details.',
     telescopeSettings: 'Telescope settings', telescope: 'Telescope', lactTelescope: 'LACT', customTelescope: 'Custom telescope',
@@ -119,6 +122,7 @@
   const getLanguage = () => localStorage.getItem(STORAGE_KEYS.language) || "zh";
   const getThemePreference = () => localStorage.getItem(STORAGE_KEYS.theme) || "auto";
   const getTimezonePreference = () => localStorage.getItem(STORAGE_KEYS.timezone) || "local";
+  const getCoordinateFrame = () => Object.hasOwn(COORDINATE_FRAMES, localStorage.getItem(STORAGE_KEYS.coordinate)) ? localStorage.getItem(STORAGE_KEYS.coordinate) : "altaz";
   const resultTelescopeContext = () => document.getElementById("detail-query-context");
   const isCustomTelescope = () => (document.getElementById("telescope_mode")?.value || resultTelescopeContext()?.dataset.telescopeMode) === "custom";
   const observerOffsetHours = () => {
@@ -248,13 +252,24 @@
     if (notify && previous !== selected) document.dispatchEvent(new CustomEvent("skyward:timezone-change", { detail: { previous, timezone: selected } }));
   };
 
+  const applyCoordinateFrame = (frame, { notify = true } = {}) => {
+    const selected = Object.hasOwn(COORDINATE_FRAMES, frame) ? frame : "altaz";
+    const previous = getCoordinateFrame();
+    localStorage.setItem(STORAGE_KEYS.coordinate, selected);
+    const selector = document.getElementById("coordinate-select");
+    if (selector) selector.value = selected;
+    if (notify && previous !== selected) document.dispatchEvent(new CustomEvent("skyward:coordinate-change", { detail: { previous, frame: selected } }));
+  };
+
   const initialiseDisplaySettings = () => {
     const initialTheme = getThemePreference();
     applyTheme(initialTheme, { persist: false, notify: false });
     applyTimezone(getTimezonePreference(), { notify: false });
+    applyCoordinateFrame(getCoordinateFrame(), { notify: false });
     applyLanguage(getLanguage());
     document.getElementById("language-select")?.addEventListener("change", (event) => applyLanguage(event.target.value));
     document.getElementById("timezone-select")?.addEventListener("change", (event) => applyTimezone(event.target.value));
+    document.getElementById("coordinate-select")?.addEventListener("change", (event) => applyCoordinateFrame(event.target.value));
     document.getElementById("theme-toggle")?.addEventListener("click", () => {
       const current = document.documentElement.dataset.theme || "auto";
       applyTheme(THEMES[(THEMES.indexOf(current) + 1) % THEMES.length]);
@@ -540,6 +555,7 @@
 
   const initialiseSourceSearch = () => {
     const select = document.querySelector("[data-source-select]");
+    const searchInput = document.querySelector("[data-source-search]");
     const regionFields = document.getElementById("region-fields");
     const nameInput = document.getElementById("region_name");
     const raInput = document.getElementById("region_ra_deg");
@@ -564,7 +580,9 @@
     raInput?.addEventListener("input", syncTemporaryName);
     decInput?.addEventListener("input", syncTemporaryName);
     select.addEventListener("change", syncTargetMode);
+    searchInput?.addEventListener("input", filterSourceOptions);
     syncTargetMode();
+    filterSourceOptions();
   };
 
   const localDatetimeValue = (date, timeZone = displayTimezone(), includeSeconds = false) => {
@@ -616,8 +634,16 @@
     sync();
   };
 
+  const selectedCatalogueTokens = () => {
+    const select = document.getElementById("catalogue-select");
+    return select ? [...select.selectedOptions].map(option => option.value).filter(Boolean) : [];
+  };
+
   const skyQueryParameters = (date) => {
-    const params = new URLSearchParams({ at_time: date.toISOString(), language: getLanguage() });
+    const params = new URLSearchParams({ at_time: date.toISOString(), language: getLanguage(), display_frame: getCoordinateFrame() });
+    const tokens = selectedCatalogueTokens();
+    if (tokens.length) params.set("catalog_tokens", tokens.join(","));
+    if (document.getElementById("include-gaia")?.checked || tokens.includes("gaia-dr3")) params.set("include_gaia", "true");
     ['sun_max_altitude_deg', 'moon_min_separation_deg', 'target_min_zenith_deg', 'target_max_zenith_deg', 'minimum_window_seconds'].forEach((id) => {
       const value = document.getElementById(id)?.value;
       if (value !== undefined && value !== '') params.set(id, value);
@@ -695,10 +721,26 @@
   const replaceSourceOptions = (sources) => {
     const select = document.querySelector('[data-source-select]');
     if (!select) return;
+    const previous = select.value;
+    const sorted = [...sources].sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' }) || Number(a.index) - Number(b.index));
     const option = '<option value="region">' + escapeHtml(translate('addTargetOption')) + '</option>';
-    select.innerHTML = option + sources.map((source) => '<option value="' + source.index + '">' + escapeHtml(source.display_name) + ' | RA ' + Number(source.ra).toFixed(3) + '° | Dec ' + Number(source.dec).toFixed(3) + '°</option>').join('');
-    select.value = 'region';
+    select.innerHTML = option + sorted.map((source) => '<option value="' + source.index + '">' + escapeHtml(source.display_name) + ' | RA ' + Number(source.ra).toFixed(3) + '° | Dec ' + Number(source.dec).toFixed(3) + '°</option>').join('');
+    select.value = [...select.options].some((item) => item.value === previous) ? previous : 'region';
     select.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  const filterSourceOptions = () => {
+    const input = document.getElementById('source-search');
+    const select = document.querySelector('[data-source-select]');
+    if (!input || !select) return;
+    const needle = input.value.trim().toLocaleLowerCase();
+    [...select.options].forEach((option) => {
+      option.hidden = option.value !== 'region' && needle !== '' && !option.textContent.toLocaleLowerCase().includes(needle);
+    });
+    if (select.value !== 'region' && select.selectedOptions[0]?.hidden) {
+      select.value = 'region';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
   };
 
   const initialiseCatalogueControls = () => {
@@ -709,14 +751,19 @@
     if (!select || !upload) return;
     const catalogueSources = new Map();
     const refreshSky = () => document.getElementById('sky-mode')?.dispatchEvent(new Event('change'));
-    const loadSources = async (catalogueToken) => {
-      if (catalogueSources.has(catalogueToken)) return catalogueSources.get(catalogueToken);
+    fetch('/api/v1/catalogues').then(response => response.json()).then(data => (data.catalogues || []).filter(item => item.identifier !== '2lhaaso').forEach(item => select.add(new Option(item.label, item.identifier)))).catch(() => {});
+    const loadSources = async (catalogueTokens) => {
+      const tokens = (Array.isArray(catalogueTokens) ? catalogueTokens : [catalogueTokens])
+        .filter(Boolean).filter(value => value !== 'gaia-dr3');
+      const selectedTokens = tokens.length ? tokens : ['2lhaaso'];
+      const cacheKey = selectedTokens.join(',');
+      if (catalogueSources.has(cacheKey)) return catalogueSources.get(cacheKey);
       const query = new URLSearchParams({ limit: '190' });
-      if (catalogueToken) query.set('catalog_token', catalogueToken);
+      query.set('catalog_tokens', cacheKey);
       const response = await fetch('/api/v1/sources?' + query.toString());
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const rows = (await response.json()).sources || [];
-      catalogueSources.set(catalogueToken, rows);
+      catalogueSources.set(cacheKey, rows);
       return rows;
     };
     upload.addEventListener('change', async () => {
@@ -729,10 +776,14 @@
         const response = await fetch('/api/v1/catalogues/upload', { method: 'POST', body });
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || ('HTTP ' + response.status));
-        select.replaceChildren(new Option('2LHAASO', ''), new Option(data.label + ' (' + data.count + ')', data.token, true, true));
+        const option = new Option(data.label + ' (' + data.count + ')', data.token, true, true);
+        select.add(option);
+        option.selected = true;
         catalogueSources.set(data.token, data.sources || []);
-        if (token) token.value = data.token;
-        replaceSourceOptions(data.sources || []);
+        const selected = selectedCatalogueTokens();
+        if (token) token.value = selected.find(value => value !== '2lhaaso') || '';
+        const rows = await loadSources(selected);
+        replaceSourceOptions(rows);
         if (status) status.textContent = translate('catalogueUploaded');
         refreshSky();
       } catch (error) {
@@ -740,16 +791,19 @@
       }
     });
     select.addEventListener('change', async () => {
-      const requestedToken = select.value;
+      if (selectedCatalogueTokens().includes('gaia-dr3')) {
+        document.getElementById('include-gaia')?.click();
+        if (status) status.textContent = translate('includeGaia');
+      }
+      const requestedTokens = selectedCatalogueTokens();
       try {
-        const rows = await loadSources(requestedToken);
-        // Keep target choices and catalogue token atomic to avoid index drift.
+        const rows = await loadSources(requestedTokens);
         replaceSourceOptions(rows);
-        if (token) token.value = requestedToken;
+        const firstToken = requestedTokens.find(value => value !== '2lhaaso' && value !== 'gaia-dr3') || '2lhaaso';
+        if (token) token.value = firstToken === '2lhaaso' ? '' : firstToken;
         refreshSky();
       } catch (error) {
         if (status) status.textContent = translate('catalogueUploadFailed') + ': ' + error.message;
-        select.value = token?.value || '';
       }
     });
   };
@@ -811,6 +865,7 @@
     mode.addEventListener('change', configure);
     applyButton?.addEventListener('click', () => { if (mode.value === 'fixed' && timeInput.value) refresh(selectedInputDate(timeInput)); });
     document.addEventListener('skyward:language-change', () => refresh(activeDate));
+    document.addEventListener('skyward:coordinate-change', () => refresh(activeDate));
     document.addEventListener('skyward:timezone-change', () => { timeInput.value = localDatetimeValue(activeDate); updateClock(activeDate); if (mode.value === 'fixed') refresh(activeDate); });
     document.addEventListener('skyward:telescope-change', () => { timeInput.value = localDatetimeValue(activeDate); updateTelescopeContext(); refresh(activeDate); });
     document.addEventListener('skyward:refresh-realtime', () => { if (mode.value === 'live') refresh(new Date()); });
@@ -893,6 +948,7 @@
       const requestMode = mode?.value || 'instant';
       const params = activeParameters();
       params.set('language', getLanguage());
+      params.set('display_frame', getCoordinateFrame());
       if (requestMode === 'trajectory' && context.dataset.highlightIndexes) {
         params.set('highlight_indexes', context.dataset.highlightIndexes);
       }
@@ -955,6 +1011,7 @@
     refreshExplanation();
     window.queueMicrotask(() => { refresh(); configureLocalMode(); });
     document.addEventListener('skyward:language-change', () => { refresh(); refreshLocal(); });
+    document.addEventListener('skyward:coordinate-change', () => { refresh(); });
     document.addEventListener('skyward:timezone-will-change', () => { if (localMode?.value === 'fixed' && localTimeInput?.value) localFixedInstant = selectedInputDate(localTimeInput); });
     document.addEventListener('skyward:timezone-change', () => {
       if (localMode?.value === 'fixed' && localTimeInput?.value && localFixedInstant) localTimeInput.value = localDatetimeValue(localFixedInstant);

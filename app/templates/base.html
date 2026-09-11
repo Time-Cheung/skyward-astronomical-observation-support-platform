@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LAN-only geometry observation-support platform; current release includes a LACT adapter, with future multi-telescope status, celestial-position and site-weather integration.">
   <meta name="color-scheme" content="light dark">
-  <title>{% block title %}Skyward | Astronomical Observation Support Platform{% endblock %}</title>
+  <title>{% block title %}Skyward | LACT Observation Planner{% endblock %}</title>
   <!-- All visual and interaction assets are local so the LAN deployment stays offline. -->
   <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
   <script defer src="{{ url_for('static', path='/app.js') }}"></script>
@@ -37,6 +36,14 @@
           <select id="timezone-select" aria-label="Time zone" data-i18n-aria-label="timezone">
             <option value="local" data-i18n="timezoneLocal">Beijing: UTC+8</option>
             <option value="utc">UTC</option>
+          </select>
+        </label>
+        <label class="setting-control" for="coordinate-select">
+          <span class="sr-only" data-i18n="coordinateFrame">Coordinate frame</span>
+          <select id="coordinate-select" aria-label="Coordinate frame" data-i18n-aria-label="coordinateFrame">
+            <option value="altaz" data-i18n="coordAltAz">AltAz / Horizon</option>
+            <option value="j2000" data-i18n="coordJ2000">J2000 equatorial</option>
+            <option value="galactic" data-i18n="coordGalactic">Galactic</option>
           </select>
         </label>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme" data-i18n-aria-label="switchTheme" title="Switch theme" data-i18n-title="switchTheme">

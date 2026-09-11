@@ -19,11 +19,14 @@ from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
 from .astronomy import compute_catalog_geometry, compute_geometry, format_ra_dec, iers_status
-from .catalog import CatalogError, Source, TemporaryCatalog, catalog, enrichment_store, temporary_catalogues
+from .catalog import CatalogError, CatalogCollection, Source, TemporaryCatalog, catalog, enrichment_store, temporary_catalogues
+from .gaia import GaiaQueryError, query_gaia_stars
 from .config import (
     BASE_DIR,
     CAPABILITIES,
     COORDINATE_FRAME_LABEL,
+    DEFAULT_DISPLAY_COORDINATE_FRAME,
+    DISPLAY_COORDINATE_FRAMES,
     DEFAULT_PLANNER_CONSTRAINT_VALUES,
     FOV_DIAMETER_DEG,
     FOV_RADIUS_DEG,
@@ -45,7 +48,7 @@ from .windows import calculate_catalogue_windows, calculate_windows
 app = FastAPI(
     title="Skyward Astronomical Observation Support Platform",
     version="0.1.0",
-    description="LAN-only geometry planning prototype with a current LACT adapter; future releases will integrate additional telescope status, celestial-position and site-weather services.",
+    description="LAN-only geometry planning prototype with a current LACT adapter and extensible catalogue/display interfaces.",
     docs_url=None,
     redoc_url=None,
 )
@@ -55,12 +58,31 @@ templates = Jinja2Templates(directory=BASE_DIR / "app" / "templates")
 
 def _resolve_catalogue(catalog_token: Optional[str] = None):
     """Return the reviewed catalogue or a short-lived in-memory CSV upload."""
-    if not catalog_token:
+    if not catalog_token or catalog_token == catalog.identifier:
         return catalog
     try:
         return temporary_catalogues.get(catalog_token)
     except KeyError as exc:
         raise ValueError(str(exc)) from exc
+
+
+def _resolve_catalogues(catalog_token: Optional[str] = None, catalog_tokens: Optional[str] = None):
+    raw = catalog_tokens if catalog_tokens is not None else catalog_token
+    tokens = [item.strip() for item in (raw or "").split(",") if item.strip()]
+    selected = [catalog] if not tokens else []
+    for token in tokens:
+        if token == "gaia-dr3":
+            continue
+        if token == catalog.identifier:
+            if catalog not in selected:
+                selected.append(catalog)
+        else:
+            selected.append(_resolve_catalogue(token))
+    return selected
+
+
+def _catalogue_collection(catalogues):
+    return CatalogCollection(catalogues)
 
 
 def _catalogue_metadata(selected) -> dict:
@@ -459,7 +481,7 @@ def _source_detail(
         **format_ra_dec(source),
         "coordinate_frame": COORDINATE_FRAME_LABEL,
         "status": status.to_dict(),
-        "enrichment": enrichment_store.get(source.index) if selected_catalogue is catalog else {"verification_status": "not_available_for_temporary_catalogue"},
+        "enrichment": enrichment_store.get(source.index) if source.catalogue_label == catalog.label and source.source_type == "catalogue" else {"verification_status": "not_available_for_temporary_catalogue"},
         "geometry_only": True,
     }
 
@@ -523,6 +545,7 @@ def result_page(
     region_radius_deg: Optional[str] = Form(None),
     region_name: Optional[str] = Form(None),
     catalog_token: Optional[str] = Form(None),
+    catalog_tokens: Optional[str] = Form(None),
     telescope_mode: Optional[str] = Form(None),
     custom_longitude_deg: Optional[str] = Form(None),
     custom_latitude_deg: Optional[str] = Form(None),
@@ -552,12 +575,13 @@ def result_page(
         )
         observer_timezone = _observer_timezone(telescope)
         context = _base_context(request, telescope)
-        selected_catalogue = _resolve_catalogue(catalog_token)
+        selected_catalogue = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
     except ValueError as telescope_error:
         telescope_error_message = str(telescope_error)
     form_values = {
         "source_index": source_index,
         "catalog_token": catalog_token or "",
+        "catalog_tokens": catalog_tokens or (catalog_token or "2lhaaso"),
         "start_time": start_time,
         "end_time": end_time,
         "planner_start_utc": _canonical_form_time(start_time, display_timezone, observer_timezone),
@@ -783,7 +807,10 @@ def config() -> dict:
 @app.get("/api/v1/catalogues")
 def catalogue_options() -> dict:
     """List installed catalogue choices; uploads remain operator-session local."""
-    return {"catalogues": [{**_catalogue_metadata(catalog), "available": True}]}
+    return {"catalogues": [
+        {**_catalogue_metadata(catalog), "available": True},
+        {"identifier": "gaia-dr3", "label": "Gaia DR3", "available": True, "online": True, "temporary": False},
+    ]}
 
 
 @app.post("/api/v1/catalogues/upload")
@@ -801,11 +828,12 @@ async def upload_catalogue(file: UploadFile = File(...)) -> dict:
 @app.get("/api/v1/sources")
 def sources(
     q: str = Query(default="", max_length=80),
-    limit: int = Query(default=190, ge=1, le=190),
+    limit: int = Query(default=190, ge=1, le=2000),
     catalog_token: Optional[str] = Query(None),
+    catalog_tokens: Optional[str] = Query(None, max_length=4000),
 ) -> dict:
     try:
-        selected = _resolve_catalogue(catalog_token)
+        selected = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     matches = selected.search(q, limit)
@@ -822,12 +850,14 @@ def source_detail(
     source_index: int,
     at_time: Optional[datetime] = None,
     catalog_token: Optional[str] = Query(None),
+    catalog_tokens: Optional[str] = Query(None, max_length=4000),
+    display_frame: str = Query(DEFAULT_DISPLAY_COORDINATE_FRAME, pattern="^(altaz|j2000|galactic)$"),
     enforce_current_pointing: bool = Query(False),
     constraints: ConstraintSet = Depends(_query_constraints),
     telescope: TelescopeConfig = Depends(_telescope_query),
 ) -> dict:
     try:
-        selected = _resolve_catalogue(catalog_token)
+        selected = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     moment = at_time or _now_utc()
@@ -880,6 +910,12 @@ def current_sky(
     at_time: Optional[datetime] = None,
     selected_source_index: Optional[int] = Query(None, ge=0),
     catalog_token: Optional[str] = Query(None),
+    catalog_tokens: Optional[str] = Query(None, max_length=4000),
+    include_gaia: bool = Query(False),
+    gaia_radius_deg: float = Query(5.0, ge=0.1, le=15.0),
+    gaia_limit: int = Query(500, ge=1, le=2000),
+    gaia_max_mag: float = Query(18.0, ge=5.0, le=22.0),
+    display_frame: str = Query(DEFAULT_DISPLAY_COORDINATE_FRAME, pattern="^(altaz|j2000|galactic)$"),
     language: str = Query("en", pattern="^(en|zh)$"),
     status_mode: str = Query("instant", pattern="^(instant|trajectory)$"),
     trajectory_end: Optional[datetime] = None,
@@ -891,9 +927,24 @@ def current_sky(
     telescope: TelescopeConfig = Depends(_telescope_query),
 ) -> dict:
     try:
-        selected = _resolve_catalogue(catalog_token)
+        selected = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if catalog_tokens and "gaia-dr3" in {item.strip() for item in catalog_tokens.split(",")}:
+        include_gaia = True
+    gaia_status = {"requested": include_gaia, "loaded": False, "error": None, "count": 0}
+    render_sources = list(selected.sources)
+    if include_gaia:
+        try:
+            gaia_sources, gaia_meta = query_gaia_stars(at_time or _now_utc(), telescope, gaia_radius_deg, gaia_limit, gaia_max_mag)
+            gaia_catalogue = type("GaiaCatalogue", (), {
+                "sources": gaia_sources, "label": "Gaia DR3", "identifier": "gaia-dr3",
+                "sha256": "online",
+            })()
+            render_sources = _catalogue_collection([*selected.catalogues, gaia_catalogue]).sources
+            gaia_status.update({"loaded": True, "count": len(gaia_sources), **gaia_meta})
+        except GaiaQueryError as exc:
+            gaia_status["error"] = str(exc)
     sky_request = SkyRequest(
         at_time=at_time,
         selected_source_index=selected_source_index,
@@ -932,7 +983,7 @@ def current_sky(
                 parsed_ranges.append((begin, finish))
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             raise HTTPException(status_code=422, detail="trajectory_ranges must be a JSON array of forward UTC intervals") from exc
-    allowed_indexes = {source.index for source in selected.sources}
+    allowed_indexes = {source.index for source in render_sources}
     highlights = [value for value in highlights if value in allowed_indexes]
     # Purple tracked-FoV markers belong exclusively to observation-window mode
     # and never override the selected target's own status marker.
@@ -941,7 +992,7 @@ def current_sky(
     elif selected_source_index is not None:
         highlights = [value for value in highlights if value != selected_source_index]
     svg, snapshot = render_all_sky_svg(
-        selected.sources,
+        render_sources,
         sky_request.at_utc,
         sky_request.constraints,
         selected_index=selected_source_index,
@@ -952,9 +1003,12 @@ def current_sky(
         trajectory_enforce_current_pointing=trajectory_enforce_current_pointing,
         trajectory_ranges=parsed_ranges,
         trajectory_display_time=trajectory_display_time,
+        display_frame=display_frame,
     )
     snapshot.update({
         "geometry_only": True,
+        "gaia": gaia_status,
+        "display_frame": display_frame,
         "svg": svg,
         "constraints": sky_request.constraints.model_dump(),
         "catalogue": _catalogue_metadata(selected),

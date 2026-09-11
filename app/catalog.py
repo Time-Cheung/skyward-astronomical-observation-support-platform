@@ -7,7 +7,7 @@ import json
 import math
 import secrets
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
@@ -43,6 +43,8 @@ class Source:
     b: float
     p_err_95: Optional[float]
     catalogue_label: str = "2LHAASO"
+    source_type: str = "catalogue"
+    gaia_mag: Optional[float] = None
 
     @property
     def display_name(self) -> str:
@@ -57,7 +59,16 @@ class Source:
         payload["p_err(95%)"] = payload.pop("p_err_95")
         payload["catalogue"] = payload.pop("catalogue_label")
         payload["display_name"] = self.display_name
+        payload["source_key"] = self.source_key
         return payload
+
+    @property
+    def source_key(self) -> str:
+        return f"{self.catalogue_label}:{self.index}"
+
+    @property
+    def is_calibration_star(self) -> bool:
+        return self.source_type == "gaia"
 
 
 def _hash_bytes(value: bytes) -> str:
@@ -83,7 +94,8 @@ def _galactic_from_fk5(ra_deg: float, dec_deg: float) -> tuple[float, float]:
 
 
 def _validate_sources(
-    rows: Sequence[dict], *, label: str, require_canonical_indexes: bool
+    rows: Sequence[dict], *, label: str, require_canonical_indexes: bool,
+    source_type: str = "catalogue",
 ) -> List[Source]:
     """Validate built-in rows and minimal in-memory upload rows."""
     sources: List[Source] = []
@@ -104,6 +116,7 @@ def _validate_sources(
                 ra=ra, dec=dec, l=l, b=b,
                 p_err_95=_optional_float(row, "p_err_95", "p_err(95%)"),
                 catalogue_label=label,
+                source_type=source_type,
             )
         except (TypeError, ValueError, KeyError) as exc:
             raise CatalogError(f"Invalid row at line {line_number}: {exc}") from exc
@@ -135,6 +148,38 @@ def _validate_sources(
         if [source.index for source in sources] != expected_indexes:
             raise CatalogError("Catalogue indexes must be contiguous and ordered 0-189")
     return sources
+
+class CatalogCollection:
+    """A request-scoped view over one or more source tables.
+
+    Source indexes are remapped to one stable namespace so SVG/API marker IDs
+    cannot collide when multiple uploaded tables are displayed together.
+    """
+
+    def __init__(self, catalogues: Sequence[object]) -> None:
+        self.catalogues = tuple(catalogues)
+        rows: List[Source] = []
+        for catalogue in self.catalogues:
+            for source in catalogue.sources:
+                rows.append(replace(source, index=len(rows)))
+        self.sources = rows
+        self._by_index = {source.index: source for source in rows}
+        self.label = " + ".join(getattr(item, "label", "Catalogue") for item in self.catalogues)
+        self.identifier = ",".join(getattr(item, "identifier", "upload") for item in self.catalogues)
+        self.sha256 = _hash_bytes("|".join(getattr(item, "sha256", "") for item in self.catalogues).encode("utf-8"))
+
+    def get(self, index: int) -> Source:
+        try:
+            return self._by_index[index]
+        except KeyError as exc:
+            raise KeyError(f"Unknown source index: {index}") from exc
+
+    def search(self, query: str = "", limit: int = 190) -> List[Source]:
+        needle = query.strip().casefold()
+        matches = [source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold()]
+        matches.sort(key=lambda source: (source.name.casefold(), source.catalogue_label.casefold(), source.index))
+        return matches[:max(0, limit)]
+
 
 class Catalog:
     """Reviewed built-in 2LHAASO catalogue with strict provenance checks."""
@@ -177,8 +222,9 @@ class Catalog:
 
     def search(self, query: str = "", limit: int = 190) -> List[Source]:
         needle = query.strip().casefold()
-        matches = (source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold())
-        return list(matches)[: max(0, min(limit, CATALOG_EXPECTED_ROWS))]
+        matches = [source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold()]
+        matches.sort(key=lambda source: (source.name.casefold(), source.index))
+        return matches[: max(0, min(limit, CATALOG_EXPECTED_ROWS))]
 
 
 @dataclass(frozen=True)
@@ -199,7 +245,9 @@ class TemporaryCatalog:
 
     def search(self, query: str = "", limit: int = 1000) -> List[Source]:
         needle = query.strip().casefold()
-        return [source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold()][:limit]
+        matches = [source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold()]
+        matches.sort(key=lambda source: (source.name.casefold(), source.index))
+        return matches[:limit]
 
 
 class TemporaryCatalogStore:
@@ -216,6 +264,32 @@ class TemporaryCatalogStore:
         now = time.monotonic()
         for token in [key for key, value in self._catalogues.items() if value.expires_at <= now]:
             del self._catalogues[token]
+
+    def create_from_rows(
+        self, rows: Sequence[dict], label: str, source_type: str = "catalogue",
+        raw: Optional[bytes] = None,
+    ) -> TemporaryCatalog:
+        self._purge()
+        if not rows:
+            raise CatalogError("Catalogue contains no source rows")
+        if len(rows) > self.MAX_ROWS:
+            raise CatalogError(f"Uploaded catalogue exceeds {self.MAX_ROWS} source rows")
+        normalised = [dict(row) for row in rows]
+        for index, row in enumerate(normalised):
+            row.setdefault("index", index)
+        safe_label = str(label or "Uploaded catalogue").strip()[:48] or "Uploaded catalogue"
+        sources = tuple(_validate_sources(
+            normalised, label=safe_label, require_canonical_indexes=False, source_type=source_type
+        ))
+        digest = _hash_bytes(raw) if raw is not None else _hash_bytes(
+            json.dumps(normalised, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        )
+        temporary = TemporaryCatalog(
+            token=secrets.token_urlsafe(18), label=safe_label, sha256=digest,
+            sources=sources, expires_at=time.monotonic() + self.TTL_SECONDS,
+        )
+        self._catalogues[temporary.token] = temporary
+        return temporary
 
     def create_from_csv(self, raw: bytes, filename: str = "uploaded catalogue") -> TemporaryCatalog:
         """Parse an in-memory UTF-8 CSV with name, ra, dec and optional fields."""

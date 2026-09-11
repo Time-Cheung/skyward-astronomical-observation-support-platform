@@ -64,7 +64,7 @@ def test_source_list_search_and_detail_contract():
 def test_unknown_source_and_invalid_query_are_clean_errors():
     assert client.get("/api/v1/sources/999").status_code == 404
     assert client.get("/api/v1/sources/190").status_code == 404
-    assert client.get("/api/v1/sources", params={"limit": 191}).status_code == 422
+    assert client.get("/api/v1/sources", params={"limit": 2001}).status_code == 422
     invalid_range = {"target_min_zenith_deg": 70, "target_max_zenith_deg": 20}
     assert client.get("/api/v1/sources/11", params=invalid_range).status_code == 422
     assert client.get("/api/v1/sky/current", params=invalid_range).status_code == 422

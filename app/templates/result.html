@@ -8,7 +8,7 @@
          The result header has no replacement action. The form preserves every
          constraint, display setting and telescope field across that choice. -->
     <form id="replace-source-form" method="post" action="/result" hidden>
-      <input name="source_index"><input name="catalog_token" value="{{ form_values.catalog_token }}"><input name="start_time" value="{{ result_dict.start }}"><input name="end_time" value="{{ result_dict.end }}">
+      <input name="source_index"><input name="catalog_token" value="{{ form_values.catalog_token }}"><input name="catalog_tokens" value="{{ form_values.catalog_tokens }}"><input name="start_time" value="{{ result_dict.start }}"><input name="end_time" value="{{ result_dict.end }}">
       <input name="region_name" value=""><input name="region_ra_deg" value=""><input name="region_dec_deg" value=""><input name="region_radius_deg" value="">
       <input name="telescope_mode" value="{{ form_values.telescope_mode }}"><input name="custom_longitude_deg" value="{{ form_values.custom_longitude_deg }}"><input name="custom_latitude_deg" value="{{ form_values.custom_latitude_deg }}"><input name="custom_altitude_m" value="{{ form_values.custom_altitude_m }}"><input name="custom_timezone_offset_hours" value="{{ form_values.custom_timezone_offset_hours }}"><input name="custom_fov_diameter_deg" value="{{ form_values.custom_fov_diameter_deg }}">
       <input name="display_theme" value="{{ form_values.display_theme }}"><input name="plot_theme" value="{{ form_values.plot_theme }}"><input name="display_timezone" value="{{ form_values.display_timezone }}">

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from math import isfinite
 from pathlib import Path
@@ -13,6 +14,14 @@ DATA_DIR = BASE_DIR / "data"
 CATALOG_PATH = DATA_DIR / "2LHAASO.txt"
 ENRICHMENT_PATH = DATA_DIR / "source_enrichment.json"
 IERS_BUNDLED_PATH = DATA_DIR / "iers" / "finals2000A.all"
+IERS_CACHE_DIR = Path(os.environ.get("SKYWARD_CACHE_DIR", str(Path.home() / ".cache" / "skyward"))) / "iers"
+IERS_CACHE_PATH = IERS_CACHE_DIR / "finals2000A.all"
+IERS_ONLINE_URL = "https://datacenter.iers.org/data/9/finals2000A.all"
+IERS_REFRESH_INTERVAL_SECONDS = 7 * 24 * 3600
+IERS_REQUEST_TIMEOUT_SECONDS = 6
+GAIA_TAP_URL = "https://gea.esac.esa.int/tap-server/tap/sync"
+GAIA_QUERY_TIMEOUT_SECONDS = 8
+GAIA_CACHE_TTL_SECONDS = 6 * 3600
 
 # Confirmed LACT site parameters. The legacy constants stay public because
 # external scripts and the API configuration endpoint already use them.
@@ -30,6 +39,12 @@ SITE_LOCATION = EarthLocation(
 FOV_DIAMETER_DEG = 8.3
 FOV_RADIUS_DEG = FOV_DIAMETER_DEG / 2.0
 COORDINATE_FRAME_LABEL = "FK5 J2000"
+DISPLAY_COORDINATE_FRAMES = {
+    "altaz": "AltAz / Horizon",
+    "j2000": "FK5 J2000",
+    "galactic": "Galactic",
+}
+DEFAULT_DISPLAY_COORDINATE_FRAME = "altaz"
 GEOMETRY_ONLY = True
 
 # The homepage colours use these values in addition to the current telescope

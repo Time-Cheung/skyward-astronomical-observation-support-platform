@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import os
+import threading
+import time as _time_module
 import warnings
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Sequence, Union
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 import astropy.units as u
 import numpy as np
@@ -13,21 +19,93 @@ from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
 
 from .catalog import Source
-from .config import IERS_BUNDLED_PATH, LACT_TELESCOPE, TelescopeConfig
+from .config import (
+    IERS_BUNDLED_PATH, IERS_CACHE_DIR, IERS_CACHE_PATH, IERS_ONLINE_URL,
+    IERS_REFRESH_INTERVAL_SECONDS, IERS_REQUEST_TIMEOUT_SECONDS,
+    LACT_TELESCOPE, TelescopeConfig,
+)
 
-# The LAN service is intentionally offline. Prefer the project-bundled IERS-A
-# snapshot so deployments do not depend on Astropy cache state or internet access.
+# Use an explicit bounded updater instead of Astropy's implicit downloader.
+# Geometry remains available from the project-bundled file when the LAN has no
+# egress; a successful online refresh atomically replaces only the user cache.
 iers.conf.auto_download = False
 iers.conf.auto_max_age = None
 iers.conf.iers_degraded_accuracy = "warn"
-if IERS_BUNDLED_PATH.exists():
-    IERS_TABLE = iers.IERS_A.open(str(IERS_BUNDLED_PATH))
-    iers.earth_orientation_table.set(IERS_TABLE)
-    IERS_SOURCE_PATH = IERS_BUNDLED_PATH
+IERS_LOCK = threading.RLock()
+IERS_REFRESH_STATE = {"last_attempt": None, "last_success": None, "last_error": None}
+
+
+def _open_iers(path: Path):
+    table = iers.IERS_A.open(str(path))
+    iers.earth_orientation_table.set(table)
+    return table
+
+
+def _cache_is_fresh() -> bool:
+    try:
+        return IERS_CACHE_PATH.is_file() and (
+            _time_module.time() - IERS_CACHE_PATH.stat().st_mtime
+            < IERS_REFRESH_INTERVAL_SECONDS
+        )
+    except OSError:
+        return False
+
+
+if _cache_is_fresh():
+    IERS_TABLE = _open_iers(IERS_CACHE_PATH)
+    IERS_SOURCE_PATH = IERS_CACHE_PATH
+    IERS_SOURCE_KIND = "online_cache"
 else:
-    IERS_TABLE = iers.IERS_A.open(iers.IERS_A_FILE)
-    iers.earth_orientation_table.set(IERS_TABLE)
-    IERS_SOURCE_PATH = iers.IERS_A_FILE
+    fallback_path = IERS_BUNDLED_PATH if IERS_BUNDLED_PATH.exists() else Path(iers.IERS_A_FILE)
+    IERS_TABLE = _open_iers(fallback_path)
+    IERS_SOURCE_PATH = fallback_path
+    IERS_SOURCE_KIND = "bundled"
+
+
+def refresh_iers(*, blocking: bool = False) -> None:
+    """Refresh the IERS-A cache when its substantive weekly cycle is due."""
+    if not blocking:
+        thread = threading.Thread(target=lambda: refresh_iers(blocking=True), daemon=True, name="skyward-iers-refresh")
+        thread.start()
+        return
+    global IERS_TABLE, IERS_SOURCE_PATH, IERS_SOURCE_KIND
+    with IERS_LOCK:
+        IERS_REFRESH_STATE["last_attempt"] = datetime.now(timezone.utc).isoformat()
+    try:
+        IERS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        request = Request(
+            IERS_ONLINE_URL,
+            headers={"Accept": "text/plain", "User-Agent": "Skyward/0.2 LAN astronomy helper"},
+        )
+        with urlopen(request, timeout=IERS_REQUEST_TIMEOUT_SECONDS) as response:
+            payload = response.read(16 * 1024 * 1024 + 1)
+        if len(payload) > 16 * 1024 * 1024:
+            raise OSError("IERS response exceeded the bounded 16 MiB limit")
+        temporary = IERS_CACHE_PATH.with_suffix(".download")
+        temporary.write_bytes(payload)
+        # Parse the download before publishing it as the active cache. A
+        # truncated or HTML error response must never poison the last-known
+        # good cache used by the offline geometry path.
+        table = iers.IERS_A.open(str(temporary))
+        os.replace(temporary, IERS_CACHE_PATH)
+        iers.earth_orientation_table.set(table)
+        with IERS_LOCK:
+            IERS_TABLE = table
+            IERS_SOURCE_PATH = IERS_CACHE_PATH
+            IERS_SOURCE_KIND = "online_cache"
+            IERS_REFRESH_STATE["last_success"] = datetime.now(timezone.utc).isoformat()
+            IERS_REFRESH_STATE["last_error"] = None
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+        with IERS_LOCK:
+            IERS_REFRESH_STATE["last_error"] = str(exc)
+
+
+def _start_iers_refresh() -> None:
+    # Never make the first page request wait for the network.
+    refresh_iers(blocking=False)
+
+
+_start_iers_refresh()
 
 J2000_FRAME = FK5(equinox=Time("J2000"))
 
@@ -227,19 +305,32 @@ def format_ra_dec(source: Source) -> dict:
 
 
 def iers_status() -> dict:
-    """Expose offline IERS coverage without triggering network activity."""
+    """Expose coverage and non-blocking online refresh state."""
     table = IERS_TABLE
     first_mjd = float(table["MJD"][0].value)
     last_mjd = float(table["MJD"][-1].value)
     predictive_mjd = table.meta.get("predictive_mjd")
     now_mjd = float(Time.now().mjd)
+    try:
+        age_seconds = max(0.0, _time_module.time() - Path(IERS_SOURCE_PATH).stat().st_mtime)
+    except OSError:
+        age_seconds = None
     return {
         "source": str(IERS_SOURCE_PATH),
+        "source_kind": IERS_SOURCE_KIND,
         "first_mjd": first_mjd,
         "last_mjd": last_mjd,
         "predictive_mjd": float(predictive_mjd) if predictive_mjd is not None else None,
         "current_mjd": now_mjd,
         "covers_current_time": first_mjd <= now_mjd <= last_mjd,
         "current_values_are_predicted": bool(predictive_mjd is not None and now_mjd >= float(predictive_mjd)),
+        "online_priority": True,
         "auto_download": False,
+        "cache_path": str(IERS_CACHE_PATH),
+        "age_seconds": age_seconds,
+        "update_interval_days": IERS_REFRESH_INTERVAL_SECONDS / 86400,
+        "update_due": age_seconds is None or age_seconds >= IERS_REFRESH_INTERVAL_SECONDS,
+        "last_attempt": IERS_REFRESH_STATE.get("last_attempt"),
+        "last_success": IERS_REFRESH_STATE.get("last_success"),
+        "last_error": IERS_REFRESH_STATE.get("last_error"),
     }
