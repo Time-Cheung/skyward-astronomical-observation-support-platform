@@ -45,6 +45,16 @@ class Source:
     catalogue_label: str = "2LHAASO"
     source_type: str = "catalogue"
     gaia_mag: Optional[float] = None
+    catalogue_id: str = "2lhaaso"
+    original_id: str = ""
+    original_row: Optional[int] = None
+    footprint_known: bool = True
+    footprint_kind: str = "catalogue_radius"
+    notes: Optional[dict] = None
+
+    @property
+    def planning_radius_deg(self) -> Optional[float]:
+        return self.ext if self.footprint_known else None
 
     @property
     def display_name(self) -> str:
@@ -54,17 +64,26 @@ class Source:
             return self.name
         return f"{self.catalogue_label} {self.name}".strip()
 
-    def to_dict(self) -> dict:
-        payload = asdict(self)
+    def to_dict(self, include_notes: bool = False) -> dict:
+        # Avoid recursively copying thousands of bibliography/raw-field blocks
+        # into every sky marker and paginated selection response.
+        payload = {key: value for key, value in self.__dict__.items() if key != "notes"}
+        if include_notes:
+            payload["notes"] = self.notes
         payload["p_err(95%)"] = payload.pop("p_err_95")
         payload["catalogue"] = payload.pop("catalogue_label")
         payload["display_name"] = self.display_name
         payload["source_key"] = self.source_key
+        payload["original_id"] = self.original_id or self.name
+        payload["planning_radius_deg"] = self.planning_radius_deg
+        if self.source_type == "gaia":
+            payload["source_id"] = self.original_id or self.name
+        payload["ext"] = self.planning_radius_deg
         return payload
 
     @property
     def source_key(self) -> str:
-        return f"{self.catalogue_label}:{self.index}"
+        return f"{self.catalogue_id}:{self.original_id or self.name}"
 
     @property
     def is_calibration_star(self) -> bool:
@@ -101,6 +120,7 @@ def _validate_sources(
     sources: List[Source] = []
     seen_indexes = set()
     seen_names = set()
+    seen_ids = set()
     for line_number, row in enumerate(rows, start=2):
         try:
             ra = float(row["ra"])
@@ -117,6 +137,8 @@ def _validate_sources(
                 p_err_95=_optional_float(row, "p_err_95", "p_err(95%)"),
                 catalogue_label=label,
                 source_type=source_type,
+                original_id=str(row.get("original_id", row["name"])).strip(),
+                original_row=int(row["index"]),
             )
         except (TypeError, ValueError, KeyError) as exc:
             raise CatalogError(f"Invalid row at line {line_number}: {exc}") from exc
@@ -124,6 +146,12 @@ def _validate_sources(
         optional_values = (source.ext_err, source.p_err_95)
         if not source.name:
             raise CatalogError(f"Empty source name at line {line_number}")
+        # Upload names/IDs must fit every planner/detail/query identity field.
+        # Unicode and URL-reserved punctuation are valid; controls are not.
+        if len(source.name) > 80 or not 1 <= len(source.original_id) <= 80:
+            raise CatalogError(f"Source name and original_id must contain 1-80 characters at line {line_number}")
+        if any(ord(char) < 32 or ord(char) == 127 for char in source.name + source.original_id):
+            raise CatalogError(f"Control characters in source identity at line {line_number}")
         if not all(math.isfinite(value) for value in values) or not all(
             value is None or math.isfinite(value) for value in optional_values
         ):
@@ -138,6 +166,9 @@ def _validate_sources(
             raise CatalogError(f"Duplicate index {source.index}")
         if source.name.casefold() in seen_names:
             raise CatalogError(f"Duplicate source name {source.name}")
+        if source.original_id in seen_ids:
+            raise CatalogError(f"Duplicate original_id {source.original_id}")
+        seen_ids.add(source.original_id)
         seen_indexes.add(source.index)
         seen_names.add(source.name.casefold())
         sources.append(source)
@@ -150,35 +181,35 @@ def _validate_sources(
     return sources
 
 class CatalogCollection:
-    """A request-scoped view over one or more source tables.
-
-    Source indexes are remapped to one stable namespace so SVG/API marker IDs
-    cannot collide when multiple uploaded tables are displayed together.
-    """
+    """A request-scoped view preserving globally stable source identities."""
 
     def __init__(self, catalogues: Sequence[object]) -> None:
         self.catalogues = tuple(catalogues)
         rows: List[Source] = []
+        seen = set()
         for catalogue in self.catalogues:
             for source in catalogue.sources:
-                rows.append(replace(source, index=len(rows)))
+                if source.source_key not in seen:
+                    rows.append(source)
+                    seen.add(source.source_key)
         self.sources = rows
+        self._by_key = {source.source_key: source for source in rows}
         self._by_index = {source.index: source for source in rows}
         self.label = " + ".join(getattr(item, "label", "Catalogue") for item in self.catalogues)
-        self.identifier = ",".join(getattr(item, "identifier", "upload") for item in self.catalogues)
+        self.identifier = ",".join(getattr(item, "identifier", getattr(item, "token", "upload")) for item in self.catalogues)
         self.sha256 = _hash_bytes("|".join(getattr(item, "sha256", "") for item in self.catalogues).encode("utf-8"))
 
-    def get(self, index: int) -> Source:
+    def get(self, index: int | str) -> Source:
         try:
-            return self._by_index[index]
-        except KeyError as exc:
-            raise KeyError(f"Unknown source index: {index}") from exc
+            return self._by_key[index] if isinstance(index, str) and ":" in index else self._by_index[int(index)]
+        except (KeyError, ValueError) as exc:
+            raise KeyError(f"Unknown source identity: {index}") from exc
 
-    def search(self, query: str = "", limit: int = 190) -> List[Source]:
+    def search(self, query: str = "", limit: Optional[int] = 190, offset: int = 0) -> List[Source]:
         needle = query.strip().casefold()
-        matches = [source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold()]
+        matches = [source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold() or needle in source.source_key.casefold()]
         matches.sort(key=lambda source: (source.name.casefold(), source.catalogue_label.casefold(), source.index))
-        return matches[:max(0, limit)]
+        return matches[offset:] if limit is None else matches[offset:offset + max(0, limit)]
 
 
 class Catalog:
@@ -288,6 +319,7 @@ class TemporaryCatalogStore:
             token=secrets.token_urlsafe(18), label=safe_label, sha256=digest,
             sources=sources, expires_at=time.monotonic() + self.TTL_SECONDS,
         )
+        temporary = self._identify(temporary)
         self._catalogues[temporary.token] = temporary
         return temporary
 
@@ -319,8 +351,18 @@ class TemporaryCatalogStore:
             token=secrets.token_urlsafe(18), label=label, sha256=_hash_bytes(raw),
             sources=sources, expires_at=time.monotonic() + self.TTL_SECONDS,
         )
+        temporary = self._identify(temporary)
         self._catalogues[temporary.token] = temporary
         return temporary
+
+    def _identify(self, temporary: TemporaryCatalog) -> TemporaryCatalog:
+        # Stay inside JavaScript's exact integer range; token identity survives
+        # any display-table selection or ordering within this upload lifetime.
+        base = 1_000_000 + int(hashlib.sha256(temporary.token.encode()).hexdigest()[:9], 16) * 1024
+        return replace(temporary, sources=tuple(
+            replace(source, index=base + row, catalogue_id=temporary.token)
+            for row, source in enumerate(temporary.sources)
+        ))
 
     def get(self, token: str) -> TemporaryCatalog:
         self._purge()
@@ -359,6 +401,97 @@ class EnrichmentStore:
         if isinstance(stored, dict):
             base.update(stored)
         return base
+
+
+class JSONCatalog:
+    """Reviewed normalized table, preserving original identity and notes."""
+
+    def __init__(self, path: Path, identifier: str, offset: int, expected: int):
+        raw = path.read_bytes()
+        payload = json.loads(raw)
+        if payload.get("schema_version") != 1 or payload.get("catalogue_id") != identifier:
+            raise CatalogError(f"Invalid catalogue envelope: {path}")
+        self.identifier, self.label = identifier, payload["label"]
+        self.sha256, self.provenance = _hash_bytes(raw), payload.get("provenance", {})
+        rows = payload["sources"]
+        if len(rows) != expected:
+            raise CatalogError(f"Expected {expected} {identifier} rows, found {len(rows)}")
+        self.sources = []
+        seen = set()
+        for ordinal, row in enumerate(rows):
+            original_id = str(row["original_id"]).strip()
+            if not original_id or original_id in seen:
+                raise CatalogError(f"Empty or duplicated original ID: {original_id}")
+            seen.add(original_id)
+            ra, dec = float(row["ra_deg"]), float(row["dec_deg"])
+            if not math.isfinite(ra) or not math.isfinite(dec) or not (0 <= ra < 360 and -90 <= dec <= 90):
+                raise CatalogError(f"Invalid coordinates: {original_id}")
+            radius = row.get("planning_radius_deg")
+            known = bool(row.get("footprint_known", False)) and radius is not None
+            if radius is not None and (not math.isfinite(float(radius)) or not 0 <= float(radius) <= 90):
+                raise CatalogError(f"Invalid planning radius: {original_id}")
+            l, b = row.get("l_deg"), row.get("b_deg")
+            if l is None or b is None:
+                l, b = _galactic_from_fk5(ra, dec)
+            self.sources.append(Source(
+                offset + ordinal, row["name"], float(radius) if known else 0.0,
+                None, ra, dec, float(l), float(b), row.get("p_err_95"),
+                catalogue_label=self.label, catalogue_id=identifier,
+                original_id=original_id, original_row=int(row.get("original_row", ordinal)),
+                footprint_known=known, footprint_kind=row.get("footprint_kind", "unknown"),
+                notes=row.get("notes", {}),
+            ))
+        self._collection = CatalogCollection([self])
+
+    def get(self, identity):
+        return self._collection.get(identity)
+
+
+BUILTIN_CATALOGUES = {
+    "fermi-fl16y": ("Fermi FL16Y", 10_000, 7224),
+    "fermi-3fhl": ("Fermi 3FHL", 30_000, 1556),
+    "tevcat": ("TeVCat", 40_000, 361),
+}
+_BUILTIN_CACHE = {}
+
+
+def installed_catalogue(identifier: str):
+    if identifier == "2lhaaso":
+        return catalog
+    if identifier not in BUILTIN_CATALOGUES:
+        raise KeyError(identifier)
+    path = CATALOG_PATH.parent / "catalogues" / f"{identifier}.json"
+    if not path.is_file():
+        raise CatalogError(f"Catalogue not installed: {identifier}")
+    stamp = path.stat().st_mtime_ns
+    cached = _BUILTIN_CACHE.get(identifier)
+    if cached and cached[0] == stamp:
+        return cached[1]
+    _, offset, expected = BUILTIN_CATALOGUES[identifier]
+    loaded = JSONCatalog(path, identifier, offset, expected)
+    _BUILTIN_CACHE[identifier] = (stamp, loaded)
+    return loaded
+
+
+def resolve_source(identity: int | str) -> Source:
+    """Resolve a target independently of the current display-layer selection."""
+    if isinstance(identity, str) and ":" in identity:
+        identifier, _ = identity.split(":", 1)
+        table = installed_catalogue(identifier) if identifier in {"2lhaaso", *BUILTIN_CATALOGUES} else temporary_catalogues.get(identifier)
+        return CatalogCollection([table]).get(identity)
+    index = int(identity)
+    if 0 <= index < CATALOG_EXPECTED_ROWS:
+        return catalog.get(index)
+    for identifier, (_, offset, count) in BUILTIN_CATALOGUES.items():
+        if offset <= index < offset + count:
+            return installed_catalogue(identifier).get(index)
+    temporary_catalogues._purge()
+    for table in list(temporary_catalogues._catalogues.values()):
+        try:
+            return table.get(index)
+        except KeyError:
+            pass
+    raise KeyError(f"Unknown source identity: {identity}")
 
 
 catalog = Catalog()

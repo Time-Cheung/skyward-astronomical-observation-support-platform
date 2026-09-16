@@ -17,12 +17,15 @@
 <div class="workspace-grid">
   <section class="planner-panel" aria-labelledby="planner-title">
     <div class="panel-heading"><div><p class="section-label" data-i18n="calculationConditions">CALCULATION CONDITIONS</p><h2 id="planner-title" data-i18n="windowPlanner">Window planner</h2></div></div>
+    {% include "_catalogue_panel.html" %}
     <form method="post" action="/result" class="planner-form" id="planner-form">
+      <input type="hidden" id="source-key-input" name="source_key" value="{{ form_values.source_key or '' }}">
+      <input type="hidden" name="nominal_radius_deg" value="{{ form_values.nominal_radius_deg if form_values.nominal_radius_deg is defined and form_values.nominal_radius_deg is not none else '' }}">
       <input type="hidden" id="display-theme-input" name="display_theme" value="light">
       <input type="hidden" id="plot-theme-input" name="plot_theme" value="light">
       <input type="hidden" id="display-timezone-input" name="display_timezone" value="local">
       <input type="hidden" id="catalog-token-input" name="catalog_token" value="{{ form_values.catalog_token or '' }}">
-      <input type="hidden" id="catalog-tokens-input" name="catalog_tokens" value="{{ form_values.catalog_tokens or '2lhaaso' }}">
+      <input type="hidden" id="catalog-tokens-input" name="catalog_tokens" value="{{ form_values.catalog_tokens if form_values.catalog_tokens is defined and form_values.catalog_tokens is not none else '2lhaaso' }}">
       <input type="hidden" id="planner-start-utc" value="{{ form_values.planner_start_utc or default_start_utc }}">
       <input type="hidden" id="planner-end-utc" value="{{ form_values.planner_end_utc or default_end_utc }}">
 
@@ -39,11 +42,20 @@
       </fieldset>
 
       <div class="form-field field-wide">
-        <label for="source-search" data-i18n="targetSource">Target source</label>
-        <input id="source-search" type="search" data-source-search data-i18n-placeholder="sourceSearchPlaceholder" placeholder="Filter by source name">
-        <select id="source_index" name="source_index" required data-source-select>
-          <option value="region" {% if form_values.source_index == 'region' %}selected{% endif %} data-i18n="addTargetOption">Add new target</option>
-          {% for source in sources|sort(attribute="name") %}<option value="{{ source.index }}" {% if form_values.source_index|string == source.index|string %}selected{% endif %}>{{ source.display_name }} | RA {{ '%.3f'|format(source.ra) }}° | Dec {{ '%+.3f'|format(source.dec) }}°</option>{% endfor %}
+        <label id="target-source-label" data-i18n="targetSource">Target source</label>
+        <div class="source-combobox">
+          <button type="button" id="source-picker-toggle" class="secondary-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="source-picker-popup" aria-labelledby="target-source-label source-picker-value"><span id="source-picker-value" data-i18n="targetSource">Target source</span></button>
+          <div id="source-picker-popup" class="source-picker-popup" role="dialog" aria-labelledby="target-source-label" hidden>
+            <label class="sr-only" for="source-search" data-i18n="searchCatalogue">Search all selected catalogues</label>
+            <input id="source-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="source-options" autocomplete="off" data-source-search data-i18n-placeholder="sourceSearchPlaceholder" placeholder="Filter by source name">
+            <div id="source-options" role="listbox" aria-labelledby="target-source-label"></div>
+            <p id="source-search-status" role="status" aria-live="polite"></p>
+            <button id="source-load-more" type="button" class="secondary-button" data-i18n="loadMore" hidden>Load more</button>
+          </div>
+        </div>
+        <select id="source_index" name="source_index" required data-source-select hidden aria-hidden="true" tabindex="-1">
+          <option value="region" {% if not form_values.source_key and form_values.source_index == 'region' %}selected{% endif %} data-i18n="addTargetOption">Add new target</option>
+          {% for source in sources|sort(attribute="name") %}<option value="{{ source.index }}" data-source-key="{{ source.source_key }}" {% if (form_values.source_key and form_values.source_key == source.source_key) or (not form_values.source_key and (form_values.source_index|string == source.index|string or form_values.source_index == source.source_key)) %}selected{% endif %}>{{ source.display_name }} | RA {{ '%.3f'|format(source.ra) }}° | Dec {{ '%+.3f'|format(source.dec) }}°</option>{% endfor %}
         </select>
       </div>
       <div id="region-fields" class="region-fields field-wide" {% if form_values.source_index != 'region' %}hidden{% endif %}>
@@ -65,11 +77,11 @@
     </form>
   </section>
   <section class="sky-panel" aria-labelledby="sky-title" data-sky-panel>
-    <div class="panel-heading"><div><p class="section-label" data-i18n="horizonCoordinates">HORIZON COORDINATES</p><h2 id="sky-title" data-i18n="allSkyTitle">LACT all-sky view</h2></div><div class="sky-panel-settings"><label class="sky-mode-control"><span data-i18n="skyMode">Sky mode</span><select id="sky-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label><label class="sky-mode-control"><span data-i18n="catalogue">Catalogue</span><select id="catalogue-select" data-catalogue-select multiple size="3" aria-label="Selected catalogues"><option value="2lhaaso" selected>2LHAASO</option></select></label><label class="gaia-toggle"><input id="include-gaia" type="checkbox"><span data-i18n="includeGaia">Gaia DR3 calibration stars</span></label></div></div>
+    <div class="panel-heading"><div><p class="section-label" data-i18n="horizonCoordinates">HORIZON COORDINATES</p><h2 id="sky-title" data-i18n="allSkyTitle">LACT all-sky view</h2></div><div class="sky-panel-settings"><label class="sky-mode-control"><span data-i18n="skyMode">Sky mode</span><select id="sky-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label></div></div>
     <div class="catalogue-upload-control"><label for="catalogue-upload" data-i18n="uploadCatalogue">Upload source catalogue (CSV)</label><input id="catalogue-upload" type="file" accept=".csv,text/csv"><small data-i18n="catalogueUploadHelp">UTF-8 CSV: name, ra, dec; optional ext. Uploads are temporary and remain only in memory.</small><span id="catalogue-upload-status" aria-live="polite"></span></div>
     <div class="sky-time-control" id="sky-time-control" hidden><label for="sky-at-time" data-i18n="skyTime">Sky time</label><input id="sky-at-time" type="datetime-local" value="{{ now_local.strftime('%Y-%m-%dT%H:%M') }}"><button id="sky-time-apply" class="secondary-button" type="button" data-i18n="applySkyTime">Apply</button></div>
     <div class="sky-zoom-controls" aria-label="Sky map zoom" data-i18n-aria-label="skyZoom"><span data-i18n="skyZoom">Sky map zoom</span><button id="sky-zoom-out" class="secondary-button" type="button" data-i18n-title="zoomOut" title="Zoom out">−</button><button id="sky-zoom-reset" class="secondary-button" type="button" data-i18n="zoomReset">100%</button><button id="sky-zoom-in" class="secondary-button" type="button" data-i18n-title="zoomIn" title="Zoom in">+</button><button id="sky-zoom-centre" class="secondary-button" type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>
-    <div class="map-frame" data-map-frame data-zoom-max="5">{{ sky_svg|safe }}</div>
+    <div class="map-frame" data-map-frame data-zoom-max="1000">{{ sky_svg|safe }}</div>
     <div class="legend" aria-label="Status legend" data-i18n-aria-label="statusLegend"><span><i class="legend-star green"></i><b data-i18n="greenStatus">Full footprint passes</b></span><span><i class="legend-star yellow"></i><b data-i18n="yellowStatus">Centre passes, edge fails</b></span><span><i class="legend-star red"></i><b data-i18n="redStatus">Centre fails</b></span></div>
     <p class="map-note" data-i18n="allSkyNote">Colours use the current pointing, the configured hard FoV and default geometric constraints. The current LACT pointing is fixed to zenith pending telemetry. Select a star for details.</p>
   </section>

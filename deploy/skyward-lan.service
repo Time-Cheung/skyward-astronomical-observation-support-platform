@@ -1,0 +1,32 @@
+# EXAMPLE B: controlled LAN only; no accounts, never expose publicly.
+# Replace user/group, project/cache paths and 192.168.50.10 with the REAL server LAN IP.
+# Example approved CIDR 192.168.50.0/24 MUST be replaced and enforced by firewall/ACL.
+# Prefer a specific LAN IP. Use 0.0.0.0 only behind a verified trusted-source firewall.
+# Client URL uses the REAL server LAN IP, never 0.0.0.0 or client 127.0.0.1.
+# Create both cache subdirectories owned by this service user before starting.
+# Do not also run the local example on port 8000. See bilingual deployment guides.
+[Unit]
+Description=Skyward geometry-only planner (controlled LAN)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=skyward
+Group=skyward
+WorkingDirectory=/opt/skyward
+Environment=MPLCONFIGDIR=/var/cache/skyward-lan/matplotlib
+Environment=SKYWARD_CACHE_DIR=/var/cache/skyward-lan/data
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/skyward/.venv/bin/python -m uvicorn app.main:app --host 192.168.50.10 --port 8000
+Restart=on-failure
+RestartSec=5
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/var/cache/skyward-lan
+
+[Install]
+WantedBy=multi-user.target

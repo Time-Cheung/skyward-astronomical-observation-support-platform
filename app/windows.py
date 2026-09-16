@@ -65,6 +65,11 @@ class WindowResult:
     # Exact observer/FoV context used for every calculated interval.
     telescope: TelescopeConfig = LACT_TELESCOPE
 
+    def __post_init__(self):
+        if not self.source.footprint_known:
+            self.full_footprint_windows = []
+            self.warnings = [*self.warnings, "full_footprint_not_evaluated: supply an explicit nominal radius to assess a footprint"]
+
     def to_dict(self, max_samples: int = 1200) -> dict:
         sample_indices = _downsample_indices(len(self.sample_times), max_samples)
         samples = []
@@ -74,6 +79,8 @@ class WindowResult:
             samples.append(item)
         return {
             "geometry_only": True,
+            "full_footprint_evaluated": self.source.footprint_known,
+            "footprint_assessment": "nominal_radius" if self.source.footprint_known else "full_footprint_not_evaluated",
             "source": self.source.to_dict(),
             "start": iso_utc(self.start),
             "end": iso_utc(self.end),

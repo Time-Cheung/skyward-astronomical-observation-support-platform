@@ -23,8 +23,8 @@
       targetMinZenith: "目标最小天顶角", optional: "可留空", minZenithHelp: "避免过近天顶", targetMaxZenith: "目标最大天顶角", maxZenithPlaceholder: "例如 50", maxZenithHelp: "避免过近地平线",
       minimumWindow: "最短连续窗口", minimumWindowPlaceholder: "例如 1800", minimumWindowHelp: "0 表示不按持续时间筛除", calculateWindows: "计算窗口",
       horizonCoordinates: "地平坐标", allSkyTitle: "LACT 站点全天图", statusLegend: "状态图例", greenStatus: "完整源满足", yellowStatus: "中心满足，边缘不满足", redStatus: "中心不满足",
-      allSkyNote: "图心是天顶和站点标记，不代表 LACT 当前实际机械光轴。点击星形查看源详情。", centreWindow: "中心窗口", centreWindowDescription: "源中心满足地平线和已启用约束。",
-      fullWindow: "完整源窗口", fullWindowDescription: "名义 extension 完整落入 8.3°硬 FoV，并满足边缘约束。", secondBoundary: "秒级边界", secondBoundaryDescription: "粗采样定位约束交叉点，再将边界细化至 1 秒以内。",
+      allSkyNote: "图心是天顶和站点标记，不代表 LACT 当前实际机械光轴。点击源标记查看源详情。", centreWindow: "中心窗口", centreWindowDescription: "源中心满足地平线和已启用约束。",
+      fullWindow: "完整源窗口", fullWindowDescription: "名义 extension 完整落入 8.3°硬 FoV，并满足边缘约束。", secondBoundary: "秒级边界", secondBoundaryDescription: "逐秒检查几何条件，并将边界细化至 1 秒以内。",
       backToPlanner: "← 返回规划", windowResult: "窗口结果", displayTime: "显示时间", j2000Coordinates: "J2000 坐标", nominalExtension: "名义 extension", startingStatus: "起始状态", beijingTime: "北京时间", to: "至",
       centreWindows: "中心窗口", fullWindows: "完整源窗口", enabledConstraints: "启用约束", allSky: "全天图", green: "绿色", yellow: "黄色", red: "红色", pointingCentre: "指向中心", localFovTitle: "LACT 8.3°局部 FoV", hardBoundary: "硬边界",
       localFovNote: "灰色实线圆表示局部视场图的显示边界，蓝色虚线圆表示望远镜 FoV 硬边界，青色虚线圆表示目标源的名义 extension。名义 extension 很小时，青色圆可能被中央目标标记遮住而看不到。", conditionsOverTime: "条件随时间变化", plotTitle: "几何量与完整源窗口", plotHelp: "绿色背景表示完整源窗口",
@@ -51,7 +51,7 @@
       minimumWindow: "Minimum continuous window", minimumWindowPlaceholder: "e.g. 1800", minimumWindowHelp: "0 keeps all durations", calculateWindows: "Calculate windows",
       horizonCoordinates: "HORIZON COORDINATES", allSkyTitle: "LACT all-sky view", statusLegend: "Status legend", greenStatus: "Full footprint passes", yellowStatus: "Centre passes, edge fails", redStatus: "Centre fails",
       allSkyNote: "The centre is zenith and the site marker, not LACT's actual mechanical pointing. Select a star for details.", centreWindow: "Centre window", centreWindowDescription: "The source centre passes horizon and enabled constraints.",
-      fullWindow: "Full-footprint window", fullWindowDescription: "The nominal extension fits entirely within the 8.3° hard FoV and edge constraints.", secondBoundary: "Second-scale boundaries", secondBoundaryDescription: "Coarse samples locate crossings, then boundaries are refined to within one second.",
+      fullWindow: "Full-footprint window", fullWindowDescription: "The nominal extension fits entirely within the 8.3° hard FoV and edge constraints.", secondBoundary: "Second-scale boundaries", secondBoundaryDescription: "Every second is evaluated and boundaries are refined to within one second.",
       backToPlanner: "← Back to planner", windowResult: "WINDOW RESULT", displayTime: "Display time", j2000Coordinates: "J2000 coordinates", nominalExtension: "Nominal extension", startingStatus: "Starting status", beijingTime: "Beijing time", to: "to",
       centreWindows: "Centre windows", fullWindows: "Full-footprint windows", enabledConstraints: "Enabled constraints", allSky: "All-sky map", green: "Green", yellow: "Yellow", red: "Red", pointingCentre: "POINTING CENTRE", localFovTitle: "LACT 8.3° local FoV", hardBoundary: "Hard boundary",
       localFovNote: "The grey solid circle is the local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension can be hidden beneath the central target marker.", conditionsOverTime: "CONDITIONS OVER TIME", plotTitle: "Geometry and full-footprint windows", plotHelp: "Green shading marks full-footprint windows",
@@ -73,7 +73,7 @@
   Object.assign(translations.zh, {
     coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
     homeTitle: 'V0版本：仅几何判断', homeLead: '目前仅导入2LHAASO源表。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
-    allSkyNote: '颜色由当前指向、望远镜硬视场和默认几何约束共同判定。实时指向尚未接入，当前固定为天顶；点击星形查看源详情。',
+    allSkyNote: '颜色由当前指向、望远镜硬视场和默认几何约束共同判定。实时指向尚未接入，当前固定为天顶；点击源标记查看源详情。',
     telescopeSettings: '望远镜设置', telescope: '望远镜', lactTelescope: 'LACT', customTelescope: '自定义望远镜',
     telescopeFutureHelp: '当前已接入 LACT；后续可扩展其他望远镜。', customTelescopeHelp: '本次计算临时使用 WGS-84 配置，不会保存到服务器。',
     customLongitude: '经度（WGS-84）', customLatitude: '纬度（WGS-84）', customAltitude: '海拔', customTimezone: '本地 UTC 偏移', customFov: '望远镜视场直径',
@@ -94,6 +94,14 @@
     altAz: 'Alt / Az', addZenithOverlay: 'Add Zenith - Time curve', removeZenithOverlay: 'Remove Zenith - Time curve', savePlot: 'Save geometry and full-footprint plot (SVG)', chooseZoomCentre: 'Choose centre', resultStatusMode: 'Map status', statusInstant: 'Real-time', statusTrajectory: 'Observation window', instantStatusExplanation: 'Real-time: green means the full source is observable now, yellow means only its centre is observable, and red means its centre is unavailable.', trajectoryStatusExplanation: 'Observation window: observability inside the target full-footprint windows; all sources, Sun and Moon are shown at the target first full-footprint-window start, or the calculation start when none exists.', trackedFovSource: 'Tracked-FoV source', refreshRealtime: 'Refresh live all-sky / FoV maps', localFovMode: 'Local FoV mode', zenithCurveManagement: 'Zenith-Time curve management', curveColour: 'Curve colour', curveLineStyle: 'Curve line style', removeCurve: 'Remove curve', confirmAddPlan: 'Confirm addition', downloadObservationPlan: 'Download observing plan', duplicatePlanPrompt: 'A plan for this source already exists. Choose overwrite, add as a new entry, or cancel this addition.', duplicatePlanKicker: 'Duplicate plan', duplicatePlanTitle: 'This source already has a saved plan', overwritePrevious: 'Overwrite', addAsNewEntry: 'Add as new entry', cancelAddition: 'Cancel addition', noSavedPlan: 'No observing plan has been saved.', legendGreenMeaning: 'Full source observable', legendYellowMeaning: 'Centre only', legendRedMeaning: 'Centre unavailable', uploadCatalogue: 'Upload source catalogue (CSV)', catalogueUploadHelp: 'UTF-8 CSV: name, ra, dec are required; ext is optional. Uploads are temporary and stored only in memory.', catalogueUploading: 'Uploading catalogue', catalogueUploaded: 'Catalogue loaded', catalogueUploadFailed: 'Catalogue upload failed',
     target_above_horizon: 'target above horizon', target_inside_current_fov: 'target inside current FoV', sun_altitude: 'Sun altitude', moon_separation: 'Moon separation', target_min_zenith: 'minimum target zenith angle', target_max_zenith: 'maximum target zenith angle', extension_inside_fov: 'extension inside FoV', extension_inside_current_fov: 'extension inside current FoV', extension_above_horizon: 'extension above horizon', extension_max_zenith: 'extension within horizon limit', minimum_window: 'minimum continuous window',
   });
+  Object.assign(translations.zh, {
+    catalogueLayers: '目录图层', layerScope: '仅切换显示图层，不重新计算所选目标。', emptyLayers: '未选择目录图层', searchCatalogue: '搜索所有已选目录', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '目录清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按目录选择显示图层，检索目标并计算几何窗口。'
+  });
+  Object.assign(translations.en, {
+    catalogueLayers: 'Catalogue layers', layerScope: 'Display layers only. Changing layers does not recalculate the selected target.', emptyLayers: 'No catalogue layers selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
+  });
+  Object.assign(translations.zh, { gaiaUnorderedSubset: '按行数上限返回的无序子集；不是最亮 N 颗，也不是代表性抽样。', operatorNominalAssumption: '用户指定的名义半径假设', unknownFootprint: '未提供；未评估完整源范围' });
+  Object.assign(translations.en, { gaiaUnorderedSubset: 'Bounded unordered subset; not the brightest N stars and not a representative sample.', operatorNominalAssumption: 'Operator-supplied nominal assumption', unknownFootprint: 'Not provided; full footprint not evaluated' });
   const formatCondition = (code) => translate(code, String(code || '').replaceAll('_', ' '));
   const formatReason = (code) => {
     const value = String(code || '');
@@ -297,7 +305,8 @@
 
   const displayValue = (value) => {
     if (value === null || value === undefined || value === "") return translate("noData");
-    if (Array.isArray(value)) return value.length ? value.join(", ") : translate("noData");
+    if (Array.isArray(value)) return value.length ? JSON.stringify(value) : translate('noData');
+    if (typeof value === 'object') return JSON.stringify(value);
     return String(value);
   };
 
@@ -308,6 +317,10 @@
     // Preserve a short-lived upload token with every request that needs the selected catalogue.
     const catalogueToken = context?.dataset?.catalogToken ?? document.getElementById('catalog-token-input')?.value;
     if (catalogueToken) params.set('catalog_token', catalogueToken);
+    if (!params.has('catalog_tokens')) {
+      const tokens = context?.dataset?.catalogTokens ?? document.getElementById('catalog-tokens-input')?.value;
+      if (tokens !== undefined) params.set('catalog_tokens', tokens);
+    }
     if (mode !== 'custom') return params;
     const fields = [
       ['customLongitudeDeg', 'custom_longitude_deg'], ['customLatitudeDeg', 'custom_latitude_deg'],
@@ -327,7 +340,7 @@
     const context = document.getElementById("detail-query-context");
     if (context) {
       const params = new URLSearchParams();
-      const mapping = { atTime: "at_time", sunMaxAltitudeDeg: "sun_max_altitude_deg", moonMinSeparationDeg: "moon_min_separation_deg", targetMinZenithDeg: "target_min_zenith_deg", targetMaxZenithDeg: "target_max_zenith_deg", minimumWindowSeconds: "minimum_window_seconds" };
+      const mapping = { atTime: "at_time", sunMaxAltitudeDeg: "sun_max_altitude_deg", moonMinSeparationDeg: "moon_min_separation_deg", targetMinZenithDeg: "target_min_zenith_deg", targetMaxZenithDeg: "target_max_zenith_deg", minimumWindowSeconds: "minimum_window_seconds", nominalRadiusDeg: "nominal_radius_deg" };
       Object.entries(mapping).forEach(([key, parameter]) => {
         const value = context.dataset[key];
         if (value !== undefined && value !== "") params.set(parameter, value);
@@ -353,7 +366,7 @@
     return appendTelescopeParameters(params);
   };
 
-  const statusClass = (status) => String(status || "RED").toLowerCase();
+  const statusClass = (status) => ['GREEN','YELLOW','RED','UNKNOWN'].includes(status) ? status.toLowerCase() : 'unknown';
 
   const detailMarkup = (data) => {
     const status = data.status || {}, geometry = status.geometry || {}, enrichment = data.enrichment || {}, reasons = status.reasons || [];
@@ -361,7 +374,7 @@
     const footprintLabel = status.footprint_pass ? translate("footprintPass") : translate("footprintFail");
     const measured = (value, digits = 3) => (value === null || value === undefined || value === "")
       ? escapeHtml(translate("noData")) : Number(value).toFixed(digits) + "°";
-    const extension = Number(data.ext).toFixed(3) + "°";
+    const extension = measured(data.ext);
     const extensionError = data.ext_err === null || data.ext_err === undefined
       ? escapeHtml(translate("noData")) : Number(data.ext_err).toFixed(3) + "°";
     return `
@@ -380,24 +393,36 @@
         <div><dt>Spectral model</dt><dd>${escapeHtml(displayValue(enrichment.spectral_model))}</dd></div>
         <div><dt>Spatial model</dt><dd>${escapeHtml(displayValue(enrichment.spatial_model))}</dd></div>
         <div><dt>Distance</dt><dd>${escapeHtml(displayValue(enrichment.distance))}</dd></div>
-        <div><dt>${escapeHtml(translate("associatedSources"))}</dt><dd>${escapeHtml(displayValue(enrichment.associated_sources))}</dd></div>
-        <div><dt>TeVCat</dt><dd>${enrichment.tevcat_url ? `<a href="${escapeHtml(enrichment.tevcat_url)}" rel="noreferrer">${escapeHtml(enrichment.tevcat_name || "TeVCat")}</a>` : escapeHtml(translate("noData"))}</dd></div>
+        <div><dt>${escapeHtml(translate("associatedSources"))}</dt><dd>${noteValueMarkup(enrichment.associated_sources)}</dd></div>
+        <div><dt>TeVCat</dt><dd>${safeExternalUrl(enrichment.tevcat_url) ? `<a href="${escapeHtml(safeExternalUrl(enrichment.tevcat_url))}" rel="noreferrer">${escapeHtml(enrichment.tevcat_name || "TeVCat")}</a>` : escapeHtml(translate("noData"))}</dd></div>
         <div><dt>${escapeHtml(translate("verification"))}</dt><dd>${escapeHtml(displayValue(enrichment.verification_status))}</dd></div>
       </dl></section>`;
   };
+
+  const noteValueMarkup = value => { const text=displayValue(value); return text.length>240 || Array.isArray(value) || (value && typeof value==='object') ? `<details><summary>${escapeHtml(translate('rawFields'))}</summary><pre>${escapeHtml(text)}</pre></details>` : escapeHtml(text); };
+  const rawDetailMarkup = (data) => `<details class="raw-fields"><summary>${escapeHtml(translate('rawFields'))}</summary><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>`;
+  const safeExternalUrl = value => { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } };
 
   const zenithOverlayIndexes = new Set();
   const overlayPalette = ["#ff8c42", "#8b5cf6", "#00a6a6", "#d14f9b", "#8a9a22", "#7a6ff0"];
   const zenithOverlayStyles = new Map();
   const overlayStyle = (index) => {
-    if (!zenithOverlayStyles.has(Number(index))) {
-      zenithOverlayStyles.set(Number(index), { colour: overlayPalette[zenithOverlayStyles.size % overlayPalette.length], lineStyle: "dashdot", label: "Source " + index });
+    if (!zenithOverlayStyles.has(String(index))) {
+      zenithOverlayStyles.set(String(index), { colour: overlayPalette[zenithOverlayStyles.size % overlayPalette.length], lineStyle: "dashdot", label: "Source " + index });
     }
-    return zenithOverlayStyles.get(Number(index));
+    return zenithOverlayStyles.get(String(index));
   };
 
+  const isResultTargetIdentity = identity => {
+    const context = document.getElementById('detail-query-context');
+    if (!context) return false;
+    const value = String(identity);
+    return value === context.dataset.resultSourceKey || value === context.dataset.resultSourceIndex;
+  };
+  let sourceDetailGeneration=0, sourceDetailController;
   const openSource = async (sourceIndex) => {
     if (!dialog) return;
+    const generation=++sourceDetailGeneration; sourceDetailController?.abort(); sourceDetailController=new AbortController();
     dialogTitle.textContent = translate("loading");
     dialogUseSource.hidden = true;
     dialogUseSource.dataset.useSource = "";
@@ -406,13 +431,17 @@
     dialog.showModal();
     try {
       const detailParameters = activeParameters();
+      // A nominal footprint assumption belongs to one target, not the catalogue.
+      if (!isResultTargetIdentity(sourceIndex)) detailParameters.delete('nominal_radius_deg');
       const windowMode = document.getElementById('result-status-mode')?.value === 'trajectory';
       detailParameters.set("enforce_current_pointing", windowMode ? "false" : "true");
-      const response = await fetch('/api/v1/sources/' + sourceIndex + '?' + detailParameters.toString(), { headers: { Accept: "application/json" } });
+      const response = await fetch('/api/v1/sources/' + encodeURIComponent(sourceIndex) + '?' + detailParameters.toString(), { signal:sourceDetailController.signal, headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
+      if(generation!==sourceDetailGeneration || !dialog.open)return;
       dialogTitle.textContent = data.display_name;
-      dialogUseSource.dataset.useSource = String(data.index);
+      dialogUseSource.dataset.useSource = data.source_key || String(data.index);
+      replaceSourceOptions([data]);
       // The dialog button fills the planner on the homepage or replaces the
       // selected target on an individual result page. Bulk results expose
       // neither route, so do not show an action that cannot be completed.
@@ -420,18 +449,20 @@
         document.getElementById("source_index")
         || document.getElementById("replace-source-form")
       );
-      dialogBody.innerHTML = detailMarkup(data);
-      const resultTarget = document.getElementById("detail-query-context")?.dataset.resultSourceIndex;
+      dialogBody.innerHTML = detailMarkup(data) + rawDetailMarkup(data);
+      const resultTarget = document.getElementById("detail-query-context")?.dataset.resultSourceKey;
+      const sourceKey=data.source_key || String(data.index);
       if (dialogAddZenith) {
-        dialogAddZenith.hidden = !(resultTarget !== undefined && resultTarget !== String(data.index) && !zenithOverlayIndexes.has(data.index));
+        dialogAddZenith.hidden = !(resultTarget !== undefined && resultTarget !== sourceKey && !zenithOverlayIndexes.has(sourceKey));
         dialogAddZenith.onclick = async () => {
-          zenithOverlayIndexes.add(data.index);
-          overlayStyle(data.index).label = data.display_name;
+          zenithOverlayIndexes.add(sourceKey);
+          overlayStyle(sourceKey).label = data.display_name;
           await refreshZenithOverlays();
           dialogAddZenith.hidden = true;
         };
       }
     } catch (error) {
+      if(error.name==='AbortError' || generation!==sourceDetailGeneration)return;
       dialogTitle.textContent = translate("failedDetail");
       dialogBody.innerHTML = `<p class="dialog-error">${escapeHtml(error.message)}</p>`;
     }
@@ -440,16 +471,22 @@
   const useSourceForPlanner = (sourceIndex) => {
     const plannerSelect = document.getElementById("source_index");
     if (plannerSelect) {
-      plannerSelect.value = String(sourceIndex);
+      const option=[...plannerSelect.options].find(option=>option.dataset.sourceKey===String(sourceIndex) || option.value===String(sourceIndex));
+      if(!option)return;plannerSelect.value = option.value;
       plannerSelect.dispatchEvent(new Event("change", { bubbles: true }));
       dialog?.close();
-      plannerSelect.scrollIntoView({ behavior: "smooth", block: "center" });
-      plannerSelect.focus();
+      document.getElementById('source-picker-toggle')?.scrollIntoView({block:'center'});
+      document.getElementById('source-picker-toggle')?.focus();
       return;
     }
     const replacementForm = document.getElementById("replace-source-form");
     if (replacementForm) {
       replacementForm.elements.source_index.value = String(sourceIndex);
+      if(replacementForm.elements.source_key)replacementForm.elements.source_key.value=String(sourceIndex);
+      if(replacementForm.elements.nominal_radius_deg) {
+        replacementForm.elements.nominal_radius_deg.value = isResultTargetIdentity(sourceIndex)
+          ? document.getElementById('detail-query-context')?.dataset.nominalRadiusDeg || '' : '';
+      }
       // Keep original result instants explicit. This matters for the legacy
       // bulk page because its visible values are Beijing wall time while an
       // operator may switch the header to UTC before replacing a source.
@@ -521,20 +558,30 @@
     document.addEventListener("skyward:timezone-change", relabelTimezone);
   };
 
+  const openGaiaSource = marker => {
+    if(!dialog)return;
+    const key=marker.dataset.gaiaSourceId || marker.dataset.sourceKey || marker.dataset.sourceId || marker.dataset.sourceIndex;
+    const data=gaiaDetails.get(String(key));
+    dialogTitle.textContent=data?.display_name || 'Gaia DR3 '+key;
+    dialogUseSource.hidden=true;if(dialogAddZenith)dialogAddZenith.hidden=true;
+    dialogBody.innerHTML=`<p>${escapeHtml(translate('gaiaCandidateWarning'))}</p>` + rawDetailMarkup(data || {source_id:key,notes:translate('noData')});
+    dialog.showModal();
+  };
   const initialiseSourceDialog = () => {
     document.addEventListener("click", (event) => {
-      const marker = event.target.closest("[data-source-index]");
+      const marker = event.target.closest('[data-gaia-source-id], [data-source-index]');
       const explicit = event.target.closest("[data-open-source]");
       const useSource = event.target.closest("[data-use-source]") || (event.target.closest("#dialog-use-source")?.dataset.useSource ? event.target.closest("#dialog-use-source") : null);
       const replaceSource = event.target.closest("[data-replace-source]");
       if (useSource) useSourceForPlanner(useSource.dataset.useSource);
       else if (replaceSource) useSourceForPlanner(replaceSource.dataset.replaceSource);
       else if (explicit) openSource(explicit.dataset.openSource);
-      else if (marker) openSource(marker.dataset.sourceIndex);
+      else if (marker?.matches('.source-type-gaia, [data-gaia-source-id]')) openGaiaSource(marker);
+      else if (marker) openSource(marker.dataset.sourceKey || marker.dataset.sourceIndex);
       if (event.target.closest("[data-close-dialog]")) dialog?.close();
     });
     document.addEventListener("keydown", (event) => {
-      if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-source-index]")) { event.preventDefault(); openSource(event.target.dataset.sourceIndex); }
+      if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-source-index], [data-gaia-source-id]')) { event.preventDefault(); if(event.target.matches('.source-type-gaia, [data-gaia-source-id]'))openGaiaSource(event.target);else openSource(event.target.dataset.sourceKey || event.target.dataset.sourceIndex); }
     });
     dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
   };
@@ -571,7 +618,9 @@
       if (generated) nameInput.value = generated;
     };
     const syncTargetMode = () => {
-      const isRegion = select.value === "region";
+      const isRegion = select.value === 'region';
+      const sourceKeyInput = document.getElementById('source-key-input');
+      if(sourceKeyInput)sourceKeyInput.value=isRegion ? '' : select.selectedOptions[0]?.dataset.sourceKey || '';
       if (regionFields) regionFields.hidden = !isRegion;
       regionFields?.querySelectorAll("input").forEach((input) => { input.required = isRegion && input.id !== "region_name"; });
       if (isRegion) syncTemporaryName();
@@ -634,16 +683,18 @@
     sync();
   };
 
-  const selectedCatalogueTokens = () => {
-    const select = document.getElementById("catalogue-select");
-    return select ? [...select.selectedOptions].map(option => option.value).filter(Boolean) : [];
+  const selectedCatalogueTokens = () => [...document.querySelectorAll('[data-catalogue-id]:checked')].map(input => input.value);
+  const appendLayerParameters = (params) => {
+    // Explicit empty is meaningful. Never fall back to a default catalogue.
+    params.set('catalog_tokens', selectedCatalogueTokens().filter(id => id !== 'gaia-dr3').join(','));
+    params.set('include_gaia', 'false');
+    params.set('display_frame', getCoordinateFrame());
+    return params;
   };
 
   const skyQueryParameters = (date) => {
     const params = new URLSearchParams({ at_time: date.toISOString(), language: getLanguage(), display_frame: getCoordinateFrame() });
-    const tokens = selectedCatalogueTokens();
-    if (tokens.length) params.set("catalog_tokens", tokens.join(","));
-    if (document.getElementById("include-gaia")?.checked || tokens.includes("gaia-dr3")) params.set("include_gaia", "true");
+    appendLayerParameters(params);
     ['sun_max_altitude_deg', 'moon_min_separation_deg', 'target_min_zenith_deg', 'target_max_zenith_deg', 'minimum_window_seconds'].forEach((id) => {
       const value = document.getElementById(id)?.value;
       if (value !== undefined && value !== '') params.set(id, value);
@@ -651,55 +702,81 @@
     return appendTelescopeParameters(params);
   };
 
+  const appendCameraParameters = (params, frame) => {
+    params.set('zoom',frame?.dataset.zoom || '1');
+    const bounds=frame?.querySelector('svg')?.getAttribute('viewBox');
+    if(bounds)params.set('bounds',bounds.trim().split(/[ ,]+/).join(','));
+    return params;
+  };
   const installZoomControls = (frame, controls, explicitCentreButton = null) => {
-    if (!frame) return;
-    let zoom = 1;
-    let choosingCentre = false;
-    let centre = { x: 0.5, y: 0.5 };
-    const root = controls || document;
-    const findControl = (selector, fallbackId) => root.querySelector?.(selector) || (fallbackId ? document.getElementById(fallbackId) : null);
-    const reset = findControl('[data-zoom-reset]', 'sky-zoom-reset');
-    const initialViewportHeight = frame.getBoundingClientRect().height;
-    if (initialViewportHeight > 0) frame.style.height = initialViewportHeight + 'px';
-    const centreButton = findControl('[data-zoom-centre]', null) || explicitCentreButton;
-    const svg = () => frame.querySelector('svg');
-    const scrollToCentre = (smooth = true) => {
-      const image = svg();
-      if (!image || zoom <= 1) return;
-      frame.scrollTo({ left: Math.max(0, centre.x * image.scrollWidth - frame.clientWidth / 2), top: Math.max(0, centre.y * image.scrollHeight - frame.clientHeight / 2), behavior: smooth ? 'smooth' : 'auto' });
+    if (!frame || frame.dataset.cameraInstalled) return;
+    frame.dataset.cameraInstalled = 'true';
+    const root = controls || document.querySelector('.sky-zoom-controls');
+    const find = (selector, id) => root?.querySelector(selector) || document.getElementById(id);
+    let zoom = 1, cx = .5, cy = .5, choosing = false, drag = null, dragged = false;
+    const reset = find('[data-zoom-reset]', 'sky-zoom-reset');
+    const centreButton = find('[data-zoom-centre]', 'sky-zoom-centre') || explicitCentreButton;
+    const input = document.createElement('input'); input.type = 'number'; input.min = '1'; input.max = '1000'; input.step = 'any'; input.value = '1'; input.className = 'zoom-factor'; input.setAttribute('aria-label', 'Zoom factor (1x-1000x)');
+    root?.insertBefore(input, reset || null);
+    const dimensions = () => {
+      const svg = frame.querySelector('svg');
+      if (!svg) return null;
+      if (!frame.dataset.baseViewBox) frame.dataset.baseViewBox = svg.getAttribute('viewBox');
+      const [x,y,w,h] = frame.dataset.baseViewBox.split(/[ ,]+/).map(Number);
+      return {svg,x,y,w,h};
     };
-    const apply = (next, keepCentre = true) => {
-      const image = svg();
-      const configuredMaximum = Number(controls?.dataset.zoomMax || frame.dataset.zoomMax || 3);
-      zoom = Math.max(1, Math.min(configuredMaximum, Number(next.toFixed(2))));
-      if (!image) return;
-      image.style.width = (zoom * 100) + '%';
-      image.style.maxWidth = 'none';
-      image.style.maxHeight = 'none';
-      image.style.minWidth = (zoom * 100) + '%';
-      image.style.setProperty('--map-icon-scale', String(1 / zoom));
-      if (reset) reset.textContent = String(Math.round(zoom * 100)) + '%';
-      window.requestAnimationFrame(() => keepCentre && scrollToCentre(false));
+    let cameraTimer;
+    const apply = (next = zoom, notify = true) => {
+      zoom = Math.max(1, Math.min(1000, Number(next) || 1));
+      const d = dimensions(); if (!d) return;
+      const w = d.w / zoom, h = d.h / zoom;
+      cx = Math.max(.5 / zoom, Math.min(1 - .5 / zoom, cx));
+      cy = Math.max(.5 / zoom, Math.min(1 - .5 / zoom, cy));
+      d.svg.setAttribute('viewBox', `${d.x + cx*d.w-w/2} ${d.y + cy*d.h-h/2} ${w} ${h}`);
+      // Server geometry already divides glyph radii and text by its render zoom.
+      // Only compensate for camera movement since that render, not zoom twice.
+      const serverZoom = Number(d.svg.dataset.zoom) || 1;
+      d.svg.style.setProperty('--map-icon-scale', String(serverZoom / zoom));
+      d.svg.querySelectorAll('[data-gaia-layer]').forEach(layer => {
+        layer.style.setProperty('--map-icon-scale', String((Number(layer.dataset.renderZoom) || serverZoom) / zoom));
+      });
+      input.value = String(Number(zoom.toFixed(4)));
+      frame.dataset.zoom = String(zoom);
+      if (reset) reset.textContent = translate('zoomReset');
+      if(notify){clearTimeout(cameraTimer);cameraTimer=setTimeout(()=>frame.dispatchEvent(new Event('skyward:camera-change')),240);}
     };
-    const finishCentreChoice = () => { choosingCentre = false; frame.classList.remove('choose-zoom-centre'); centreButton?.setAttribute('aria-pressed', 'false'); };
-    findControl('[data-zoom-out]', 'sky-zoom-out')?.addEventListener('click', () => apply(zoom - .25));
-    findControl('[data-zoom-in]', 'sky-zoom-in')?.addEventListener('click', () => apply(zoom + .25));
-    reset?.addEventListener('click', () => { centre = { x: .5, y: .5 }; apply(1, false); frame.scrollTo({ left: 0, top: 0, behavior: 'smooth' }); finishCentreChoice(); });
-    centreButton?.addEventListener('click', () => { choosingCentre = !choosingCentre; frame.classList.toggle('choose-zoom-centre', choosingCentre); centreButton.setAttribute('aria-pressed', String(choosingCentre)); });
-    frame.addEventListener('click', (event) => {
-      if (!choosingCentre) return;
-      const image = svg();
-      if (!image) return;
-      const box = image.getBoundingClientRect();
-      centre = { x: Math.max(0, Math.min(1, (event.clientX - box.left) / box.width)), y: Math.max(0, Math.min(1, (event.clientY - box.top) / box.height)) };
-      if (zoom === 1) apply(1.5, false);
-      window.requestAnimationFrame(() => scrollToCentre());
-      finishCentreChoice();
-      event.preventDefault();
-      event.stopPropagation();
+    input.addEventListener('change', () => apply(input.value));
+    find('[data-zoom-out]', 'sky-zoom-out')?.addEventListener('click', () => apply(zoom / 2));
+    find('[data-zoom-in]', 'sky-zoom-in')?.addEventListener('click', () => apply(zoom * 2));
+    reset?.addEventListener('click', () => { cx = cy = .5; choosing = false; centreButton?.setAttribute('aria-pressed','false'); frame.classList.remove('choose-zoom-centre'); apply(1); });
+    centreButton?.addEventListener('click', () => { choosing = !choosing; frame.classList.toggle('choose-zoom-centre', choosing); centreButton.setAttribute('aria-pressed', String(choosing)); });
+    frame.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      dragged = false; drag = {x:event.clientX,y:event.clientY,cx,cy};
+    });
+    frame.addEventListener('pointermove', event => {
+      if (!drag || !event.buttons || choosing) return;
+      const box = frame.getBoundingClientRect();
+      const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
+      if (Math.hypot(dx,dy) < 4) return;
+      dragged = true; frame.setPointerCapture?.(event.pointerId);
+      cx = drag.cx-dx/box.width/zoom; cy = drag.cy-dy/box.height/zoom; apply();
+    });
+    frame.addEventListener('pointerup', () => { drag = null; });
+    frame.addEventListener('pointercancel', () => { drag = null; });
+    frame.addEventListener('click', event => {
+      if (dragged) { event.preventDefault(); event.stopPropagation(); dragged = false; return; }
+      if (!choosing) return;
+      const d = dimensions(); if (!d) return;
+      const point = d.svg.createSVGPoint(); point.x=event.clientX; point.y=event.clientY;
+      const transformed = point.matrixTransform(d.svg.getScreenCTM().inverse());
+      cx=(transformed.x-d.x)/d.w; cy=(transformed.y-d.y)/d.h;
+      choosing=false; frame.classList.remove('choose-zoom-centre'); centreButton?.setAttribute('aria-pressed','false'); apply(zoom === 1 ? 2 : zoom);
+      event.preventDefault(); event.stopPropagation();
     }, true);
-    frame.addEventListener('skyward:map-replaced', () => apply(zoom, false));
-    apply(1, false);
+    frame.addEventListener('skyward:map-replaced', () => apply(zoom,false));
+    document.addEventListener('skyward:language-change', () => apply(zoom,false));
+    apply(1,false);
   };
 
   const updateTelescopeContext = (telescope = null) => {
@@ -718,94 +795,108 @@
     if (fovNode) fovNode.textContent = name + ' FoV ' + Number(fov).toFixed(2) + '°';
   };
 
+  // The hidden native select is only a form transport; the popup owns search.
+  const sourceRows = new Map();
+  let renderSourcePicker = () => {};
   const replaceSourceOptions = (sources) => {
-    const select = document.querySelector('[data-source-select]');
-    if (!select) return;
+    const select = document.querySelector('[data-source-select]'); if (!select) return;
     const previous = select.value;
-    const sorted = [...sources].sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' }) || Number(a.index) - Number(b.index));
-    const option = '<option value="region">' + escapeHtml(translate('addTargetOption')) + '</option>';
-    select.innerHTML = option + sorted.map((source) => '<option value="' + source.index + '">' + escapeHtml(source.display_name) + ' | RA ' + Number(source.ra).toFixed(3) + '° | Dec ' + Number(source.dec).toFixed(3) + '°</option>').join('');
-    select.value = [...select.options].some((item) => item.value === previous) ? previous : 'region';
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-
-  const filterSourceOptions = () => {
-    const input = document.getElementById('source-search');
-    const select = document.querySelector('[data-source-select]');
-    if (!input || !select) return;
-    const needle = input.value.trim().toLocaleLowerCase();
-    [...select.options].forEach((option) => {
-      option.hidden = option.value !== 'region' && needle !== '' && !option.textContent.toLocaleLowerCase().includes(needle);
+    sources.forEach(source => {
+      const id = String(source.index); sourceRows.set(id, source);
+      let option = [...select.options].find(item => item.value === id);
+      if (!option) { option = new Option('', id); select.add(option); }
+      option.textContent = `${source.display_name || source.name} | RA ${Number(source.ra).toFixed(3)}° | Dec ${Number(source.dec).toFixed(3)}°`;
+      option.dataset.sourceId = source.source_key || source.source_id || id;
+      option.dataset.sourceKey = source.source_key || '';
     });
-    if (select.value !== 'region' && select.selectedOptions[0]?.hidden) {
-      select.value = 'region';
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    select.value = previous;
   };
+  const filterSourceOptions = () => renderSourcePicker();
 
   const initialiseCatalogueControls = () => {
-    const select = document.getElementById('catalogue-select');
-    const upload = document.getElementById('catalogue-upload');
-    const status = document.getElementById('catalogue-upload-status');
-    const token = document.getElementById('catalog-token-input');
-    if (!select || !upload) return;
-    const catalogueSources = new Map();
-    const refreshSky = () => document.getElementById('sky-mode')?.dispatchEvent(new Event('change'));
-    fetch('/api/v1/catalogues').then(response => response.json()).then(data => (data.catalogues || []).filter(item => item.identifier !== '2lhaaso').forEach(item => select.add(new Option(item.label, item.identifier)))).catch(() => {});
-    const loadSources = async (catalogueTokens) => {
-      const tokens = (Array.isArray(catalogueTokens) ? catalogueTokens : [catalogueTokens])
-        .filter(Boolean).filter(value => value !== 'gaia-dr3');
-      const selectedTokens = tokens.length ? tokens : ['2lhaaso'];
-      const cacheKey = selectedTokens.join(',');
-      if (catalogueSources.has(cacheKey)) return catalogueSources.get(cacheKey);
-      const query = new URLSearchParams({ limit: '190' });
-      query.set('catalog_tokens', cacheKey);
-      const response = await fetch('/api/v1/sources?' + query.toString());
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      const rows = (await response.json()).sources || [];
-      catalogueSources.set(cacheKey, rows);
-      return rows;
+    const panel = document.querySelector('[data-catalogue-panel]'); if (!panel) return;
+    const status = document.getElementById('catalogue-status');
+    const select = document.querySelector('[data-source-select]');
+    const input = document.getElementById('source-search');
+    const popup = document.getElementById('source-picker-popup');
+    const toggle = document.getElementById('source-picker-toggle');
+    const list = document.getElementById('source-options');
+    const more = document.getElementById('source-load-more');
+    const searchStatus = document.getElementById('source-search-status');
+    let rows = [], nextOffset = null, generation = 0, controller, active = -1, debounce;
+    const setOpen = open => { if (!popup) return; popup.hidden = !open; toggle.setAttribute('aria-expanded',String(open)); input.setAttribute('aria-expanded',String(open)); if (open) input.focus(); else input.removeAttribute('aria-activedescendant'); };
+    const syncLabel = () => { const label = document.getElementById('source-picker-value'); if (label && select) label.textContent = select.selectedOptions[0]?.textContent || translate('targetSource'); };
+    const choose = value => { select.value=value; select.dispatchEvent(new Event('change',{bubbles:true})); syncLabel(); setOpen(false); toggle.focus(); };
+    renderSourcePicker = () => {
+      if (!list) return;
+      const items = [{index:'region',display_name:translate('addTargetOption')}, ...rows];
+      list.replaceChildren(...items.map((source,index) => {
+        const option = document.createElement('div'); option.id='source-option-'+index; option.role='option'; option.tabIndex=-1; option.dataset.value=String(source.index);
+        option.setAttribute('aria-selected',String(select.value===String(source.index)));
+        option.textContent = source.display_name || source.name; option.addEventListener('click',()=>choose(String(source.index))); return option;
+      }));
+      active=-1; input.removeAttribute('aria-activedescendant'); syncLabel();
     };
-    upload.addEventListener('change', async () => {
-      const file = upload.files?.[0];
-      if (!file) return;
-      if (status) status.textContent = translate('catalogueUploading');
-      const body = new FormData();
-      body.append('file', file);
+    const load = async (append = false) => {
+      if (!select) return;
+      controller?.abort(); controller = new AbortController(); const current=++generation;
+      const offset=append ? nextOffset : 0;
+      const ids=selectedCatalogueTokens().filter(id=>id!=='gaia-dr3');
+      if (!ids.length) { rows=[]; nextOffset=null; more.hidden=true; searchStatus.textContent=translate('emptyLayers'); renderSourcePicker(); return; }
+      const query=new URLSearchParams({catalog_tokens:ids.join(','),q:input.value.trim(),limit:'100',offset:String(offset || 0)});
+      searchStatus.textContent=translate('loading');
       try {
-        const response = await fetch('/api/v1/catalogues/upload', { method: 'POST', body });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || ('HTTP ' + response.status));
-        const option = new Option(data.label + ' (' + data.count + ')', data.token, true, true);
-        select.add(option);
-        option.selected = true;
-        catalogueSources.set(data.token, data.sources || []);
-        const selected = selectedCatalogueTokens();
-        if (token) token.value = selected.find(value => value !== '2lhaaso') || '';
-        const rows = await loadSources(selected);
-        replaceSourceOptions(rows);
-        if (status) status.textContent = translate('catalogueUploaded');
-        refreshSky();
-      } catch (error) {
-        if (status) status.textContent = translate('catalogueUploadFailed') + ': ' + error.message;
+        const response=await fetch('/api/v1/sources?'+query,{signal:controller.signal});
+        const data=await response.json(); if (!response.ok) throw new Error(typeof data.detail==='string' ? data.detail : 'HTTP '+response.status);
+        if (current!==generation) return;
+        rows=append ? [...rows,...data.sources] : data.sources || []; replaceSourceOptions(rows);
+        nextOffset=data.next_offset ?? (data.has_more ? (offset || 0)+(data.sources || []).length : null);
+        more.hidden=nextOffset===null; searchStatus.textContent=`${rows.length} / ${data.total ?? data.total_count ?? rows.length}`; renderSourcePicker();
+      } catch(error) { if (current===generation && error.name!=='AbortError') searchStatus.textContent=translate('searchFailed')+': '+error.message; }
+    };
+    toggle?.addEventListener('click',()=>{ setOpen(popup.hidden); if (!popup.hidden) load(); });
+    input?.addEventListener('input',()=>{ clearTimeout(debounce); controller?.abort(); generation++; rows=[]; more.hidden=true; renderSourcePicker(); searchStatus.textContent=translate('loading'); debounce=setTimeout(()=>load(),180); });
+    input?.addEventListener('keydown',event=>{
+      const options=[...list.children];
+      if (event.key==='Escape') { setOpen(false); toggle.focus(); }
+      if (event.key==='ArrowDown' || event.key==='ArrowUp') {
+        event.preventDefault(); active=Math.max(0,Math.min(options.length-1,active+(event.key==='ArrowDown'?1:-1)));
+        options.forEach((option,index)=>option.classList.toggle('active',index===active));
+        if (options[active]) { input.setAttribute('aria-activedescendant',options[active].id); options[active].scrollIntoView({block:'nearest'}); }
       }
+      if (event.key==='Enter') { event.preventDefault(); if (options[active]) choose(options[active].dataset.value); }
     });
-    select.addEventListener('change', async () => {
-      if (selectedCatalogueTokens().includes('gaia-dr3')) {
-        document.getElementById('include-gaia')?.click();
-        if (status) status.textContent = translate('includeGaia');
-      }
-      const requestedTokens = selectedCatalogueTokens();
+    popup?.addEventListener('keydown',event=>{ if(event.key==='Escape'){setOpen(false);toggle.focus();} });
+    document.addEventListener('click',event=>{if(popup && !event.target.closest('.source-combobox'))setOpen(false);});
+    select?.addEventListener('change',syncLabel); more?.addEventListener('click',()=>load(true));
+    const changed = () => {
+      const selectedSet=new Set(selectedCatalogueTokens());
+      document.querySelectorAll('.map-frame [data-source-key]').forEach(marker=>{if(!selectedSet.has(marker.dataset.sourceKey.split(':')[0]))marker.remove();});
+      const hidden=document.getElementById('catalog-tokens-input'); if(hidden)hidden.value=selectedCatalogueTokens().join(',');
+      status.textContent=selectedCatalogueTokens().length ? '' : translate('emptyLayers');
+      // Calculated context and local pointing are intentionally never mutated here.
+      document.dispatchEvent(new Event('skyward:catalogues-change')); load();
+    };
+    panel.addEventListener('change',event=>{if(event.target.matches('[data-catalogue-id]'))changed();});
+    fetch('/api/v1/catalogues').then(response=>response.json()).then(data=>{
+      (data.catalogues || []).forEach(item=>{
+        const checkbox=[...panel.querySelectorAll('[data-catalogue-id]')].find(input=>input.value===item.identifier);
+        if(checkbox)checkbox.parentElement.querySelector('span').textContent=item.label;
+        if(checkbox && item.available===false){checkbox.disabled=true;checkbox.title=item.error || translate('unavailable');}
+      });
+    }).catch(error=>{status.textContent=translate('catalogueLoadFailed')+': '+error.message;});
+    document.getElementById('catalogue-upload')?.addEventListener('change',async event=>{
+      const file=event.target.files?.[0]; if(!file)return;
+      const uploadStatus=document.getElementById('catalogue-upload-status'); uploadStatus.textContent=translate('catalogueUploading');
       try {
-        const rows = await loadSources(requestedTokens);
-        replaceSourceOptions(rows);
-        const firstToken = requestedTokens.find(value => value !== '2lhaaso' && value !== 'gaia-dr3') || '2lhaaso';
-        if (token) token.value = firstToken === '2lhaaso' ? '' : firstToken;
-        refreshSky();
-      } catch (error) {
-        if (status) status.textContent = translate('catalogueUploadFailed') + ': ' + error.message;
-      }
+        const body=new FormData();body.append('file',file);const response=await fetch('/api/v1/catalogues/upload',{method:'POST',body});const data=await response.json();if(!response.ok)throw new Error(data.detail || 'HTTP '+response.status);
+        const label=document.createElement('label'); label.className='catalogue-choice'; const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=data.token;checkbox.dataset.catalogueId=data.token;checkbox.checked=true;
+        const text=document.createElement('span');text.textContent=data.label;label.append(checkbox,text);document.getElementById('catalogue-checkboxes').append(label);
+        replaceSourceOptions(data.sources || []);uploadStatus.textContent=translate('catalogueUploaded');changed();
+      } catch(error){uploadStatus.textContent=translate('catalogueUploadFailed')+': '+error.message;}
     });
+    document.addEventListener('skyward:language-change',()=>{renderSourcePicker();});
+    syncLabel(); renderSourcePicker(); load();
   };
 
   const liveTimestamp = (date) => {
@@ -821,6 +912,55 @@
     stampLiveOption(option, new Date(option.dataset.liveRefreshedAt || Date.now()));
   });
 
+  const gaiaRequests = new Map();
+  const gaiaDetails = new Map();
+  const gaiaSelected = () => selectedCatalogueTokens().includes('gaia-dr3');
+  const renderGaiaStatus = () => {
+    const panel=document.querySelector('[data-gaia-status]'); if(!panel)return;
+    if(!gaiaSelected()){panel.textContent=translate('gaiaUnselected');return;}
+    panel.replaceChildren(...[...gaiaRequests.values()].map(state=>{
+      const row=document.createElement('div');
+      const meta=state.meta || {};
+      const key=state.state==='loading'?'gaiaLoading':state.state==='error'?'gaiaError':meta.count===0?'gaiaZero':(meta.cached || meta.cache_hit)?'gaiaCached':'gaiaSuccess';
+      row.textContent=`${state.kind==='local-fov'?translate('localFovTitle'):translate('allSky')}: ${translate(key)}`;
+      if(state.state!=='loading') {
+        const info=document.createElement('p');info.textContent=`${translate('gaiaCount')}: ${meta.count ?? '-'} / ${meta.drawn_count ?? '-'}; ${translate('gaiaLimits')}: ${meta.radius_deg ?? 5}° / ${meta.max_mag ?? meta.magnitude_limit ?? 18} mag / ${meta.limit ?? meta.row_limit ?? 500}`;row.append(info);
+        if(meta.truncated || meta.limit_reached){const note=document.createElement('p');note.textContent=translate('gaiaTruncated');row.append(note);}
+        if(meta.selection==='bounded_unordered_subset' || meta.ordering==='unspecified' || meta.brightest_n===false){const note=document.createElement('p');note.dataset.gaiaSelectionWarning='true';note.textContent=translate('gaiaUnorderedSubset');row.append(note);}
+      }
+      if(state.error){const error=document.createElement('p');error.textContent=state.error;row.append(error);}
+      return row;
+    }));
+  };
+  const invalidateGaia = frame => {
+    const previous=gaiaRequests.get(frame);previous?.controller?.abort();
+    frame.querySelector('[data-gaia-layer]')?.remove();
+    gaiaRequests.set(frame,{generation:(previous?.generation || 0)+1,state:gaiaSelected()?'loading':'unselected',kind:frame.hasAttribute('data-local-fov-map')?'local-fov':'current'});
+    renderGaiaStatus();
+  };
+  const refreshGaiaLayer = async (frame, mapParams, kind) => {
+    if(!gaiaSelected())return;
+    const state=gaiaRequests.get(frame) || {generation:0}; const generation=state.generation;
+    const controller=new AbortController();Object.assign(state,{controller,state:'loading',kind});gaiaRequests.set(frame,state);renderGaiaStatus();
+    const params=new URLSearchParams(mapParams); params.set('map_kind',kind);params.set('radius_deg','5');params.set('limit','500');params.set('max_mag','18');
+    if(params.has('trajectory_display_time'))params.set('at_time',params.get('trajectory_display_time'));
+    try {
+      const response=await fetch('/api/v1/gaia?'+params,{signal:controller.signal});const data=await response.json();
+      if(controller.signal.aborted || gaiaRequests.get(frame)?.generation!==generation || !gaiaSelected())return;
+      const meta=data.gaia || data; if(!response.ok || meta.error)throw new Error(meta.error || data.detail || 'HTTP '+response.status);
+      const svg=frame.querySelector('svg'); if(!svg)return;
+      const parsed=new DOMParser().parseFromString(data.overlay_svg || data.svg || '<svg/>','image/svg+xml');
+      const layer=document.createElementNS('http://www.w3.org/2000/svg','g');layer.dataset.gaiaLayer='true';
+      layer.dataset.renderZoom=params.get('zoom') || '1';
+      layer.style.setProperty('--map-icon-scale', String(Number(layer.dataset.renderZoom) / (Number(frame.dataset.zoom) || 1)));
+      parsed.querySelectorAll('.source-type-gaia, [data-gaia-source-id]').forEach(marker=>{ if(!marker.parentElement?.closest('.source-type-gaia, [data-gaia-source-id]'))layer.append(document.importNode(marker,true)); });
+      svg.append(layer);
+      (data.sources || []).forEach(source=>{gaiaDetails.set(String(source.source_key || source.source_id || source.index),source);gaiaDetails.set(String(source.source_id || source.index),source);});
+      Object.assign(state,{state:'success',meta:{...meta,drawn_count:meta.drawn_count ?? layer.children.length}});renderGaiaStatus();
+    }catch(error){if(error.name==='AbortError' || gaiaRequests.get(frame)?.generation!==generation)return;Object.assign(state,{state:'error',error:error.message});renderGaiaStatus();}
+  };
+  document.addEventListener('skyward:language-change',renderGaiaStatus);
+
   const initialiseSkyControls = () => {
     const mapFrame = document.querySelector('[data-map-frame]');
     const mode = document.getElementById('sky-mode');
@@ -830,7 +970,7 @@
     const sun = document.getElementById('sun-coordinates');
     const moon = document.getElementById('moon-coordinates');
     if (!mapFrame || !mode || !timeInput) return;
-    let activeDate = new Date();
+    let activeDate = new Date(), requestGeneration = 0, requestController;
     installZoomControls(mapFrame, null, document.getElementById('sky-zoom-centre'));
     const renderReadout = (data, date) => {
       // The global header always represents real time; fixed maps do not own it.
@@ -843,12 +983,17 @@
     const refresh = async (date) => {
       activeDate = date;
       activeSkyInstant = date;
+      const generation=++requestGeneration; requestController?.abort(); requestController=new AbortController();
+      const params=appendCameraParameters(skyQueryParameters(date),mapFrame);
+      invalidateGaia(mapFrame);
       try {
-        const response = await fetch('/api/v1/sky/current?' + skyQueryParameters(date).toString(), { headers: { Accept: 'application/json' } });
+        const response = await fetch('/api/v1/sky/current?' + params.toString(), { signal:requestController.signal, headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const data = await response.json();
+        if(generation!==requestGeneration)return;
         mapFrame.innerHTML = data.svg;
         mapFrame.dispatchEvent(new Event('skyward:map-replaced'));
+        refreshGaiaLayer(mapFrame,params,'current');
         renderReadout(data, date);
         if (mode.value === 'live') stampLiveOption(mode.querySelector('[data-live-option]'), date);
       } catch (error) { console.warn('Sky refresh failed', error); }
@@ -862,8 +1007,10 @@
         refresh(now);
       } else refresh(selectedInputDate(timeInput));
     };
+    mapFrame.addEventListener('skyward:camera-change',()=>refresh(activeDate));
     mode.addEventListener('change', configure);
     applyButton?.addEventListener('click', () => { if (mode.value === 'fixed' && timeInput.value) refresh(selectedInputDate(timeInput)); });
+    document.addEventListener('skyward:catalogues-change', () => refresh(activeDate));
     document.addEventListener('skyward:language-change', () => refresh(activeDate));
     document.addEventListener('skyward:coordinate-change', () => refresh(activeDate));
     document.addEventListener('skyward:timezone-change', () => { timeInput.value = localDatetimeValue(activeDate); updateClock(activeDate); if (mode.value === 'fixed') refresh(activeDate); });
@@ -873,22 +1020,27 @@
     configure();
   };
 
+  let zenithOverlayGeneration = 0, zenithOverlayController;
   const refreshZenithOverlays = async () => {
     const context = document.getElementById('detail-query-context');
     const target = document.querySelector('[data-plan-source-name]');
     const plot = document.querySelector('.scientific-plot');
     if (!context || !target || !plot) return;
+    const generation = ++zenithOverlayGeneration;
+    zenithOverlayController?.abort();
+    zenithOverlayController = new AbortController();
+    const requestedSources = [...zenithOverlayIndexes].join('\n');
     const params = activeParameters();
     params.set('catalog_token', context.dataset.catalogToken || '');
     [...zenithOverlayIndexes].forEach((sourceIndex) => {
       const style = overlayStyle(sourceIndex);
-      params.append('comparison_source_index', String(sourceIndex));
+      params.append('comparison_source_key', String(sourceIndex));
       params.append('comparison_colour', style.colour);
       params.append('comparison_line_style', style.lineStyle);
     });
     params.set('start_time', context.dataset.resultStart);
     params.set('end_time', context.dataset.resultEnd);
-    if (Number(context.dataset.resultSourceIndex) >= 0) params.set('target_source_index', context.dataset.resultSourceIndex);
+    if (Number(context.dataset.resultSourceIndex) >= 0) params.set('target_source_key', context.dataset.resultSourceKey || context.dataset.resultSourceIndex);
     else {
       params.set('target_ra_deg', context.dataset.resultSourceRa);
       params.set('target_dec_deg', context.dataset.resultSourceDec);
@@ -899,14 +1051,21 @@
     const requestedTimezone = getTimezonePreference();
     params.set('theme', requestedTheme);
     params.set('timezone_label', requestedTimezone === 'utc' ? 'UTC' : observerTimezoneLabel());
-    const response = await fetch('/api/v1/windows/plot-overlay?' + params.toString());
-    if (!response.ok) return;
-    const payload = await response.json();
+    let payload;
+    try {
+      const response = await fetch('/api/v1/windows/plot-overlay?' + params.toString(), {signal: zenithOverlayController.signal});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      payload = await response.json();
+    } catch (error) {
+      if (error.name !== 'AbortError' && generation === zenithOverlayGeneration) console.warn('Comparison plot refresh failed', error);
+      return;
+    }
+    if (generation !== zenithOverlayGeneration || requestedSources !== [...zenithOverlayIndexes].join('\n')) return;
     if (requestedTheme !== (document.documentElement.dataset.resolvedTheme || 'light') || requestedTimezone !== getTimezonePreference()) return;
     plot.innerHTML = payload.svg;
     const preferences = document.getElementById('result-display-preferences');
     if (preferences) { preferences.dataset.plotTheme = requestedTheme; preferences.dataset.plotTimezoneLabel = requestedTimezone === 'utc' ? 'UTC' : observerTimezoneLabel(); preferences.dataset.plotOffsetHours = String(requestedTimezone === 'utc' ? 0 : observerOffsetHours()); }
-    payload.comparison_sources?.forEach((source) => { overlayStyle(source.index).label = source.display_name; });
+    payload.comparison_sources?.forEach((source) => { const style=overlayStyle(source.source_key || String(source.index)); style.label = source.display_name; style.svgId = 'zenith-overlay-' + source.index; });
     renderZenithCurveControls();
   };
 
@@ -922,7 +1081,7 @@
       const colour = document.createElement('input'); colour.type = 'color'; colour.value = style.colour; colour.setAttribute('aria-label', translate('curveColour'));
       const line = document.createElement('select'); [['solid','—'],['dotted','··'],['dashdot','-·']].forEach(([value,label]) => line.add(new Option(label, value))); line.value = style.lineStyle; line.setAttribute('aria-label', translate('curveLineStyle'));
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'secondary-button'; remove.textContent = translate('removeCurve');
-      const curveGroup = () => document.getElementById('zenith-overlay-' + sourceIndex);
+      const curveGroup = () => document.getElementById(style.svgId || ('zenith-overlay-' + sourceIndex));
       const applyVisualStyle = () => {
         const path = curveGroup()?.querySelector('path'); if (!path) return;
         path.style.stroke = style.colour;
@@ -930,7 +1089,7 @@
       };
       const update = () => { style.colour = colour.value; style.lineStyle = line.value; applyVisualStyle(); };
       colour.addEventListener('input', update); colour.addEventListener('change', update); line.addEventListener('change', update);
-      remove.addEventListener('click', () => { curveGroup()?.remove(); zenithOverlayIndexes.delete(sourceIndex); zenithOverlayStyles.delete(Number(sourceIndex)); renderZenithCurveControls(); });
+      remove.addEventListener('click', () => { zenithOverlayGeneration++; zenithOverlayController?.abort(); curveGroup()?.remove(); zenithOverlayIndexes.delete(sourceIndex); zenithOverlayStyles.delete(String(sourceIndex)); renderZenithCurveControls(); });
       name.addEventListener('click', () => { row.classList.toggle('editing'); colour.focus(); });
       row.append(name, colour, line, remove); return row;
     }));
@@ -942,17 +1101,18 @@
     if (!context || !allSky) return;
     document.querySelectorAll('[data-map-zoom-controls]').forEach((controls) => installZoomControls(controls.closest('.sky-panel')?.querySelector('.map-frame'), controls));
     const mode = document.getElementById('result-status-mode');
-    let allSkyRequestGeneration = 0;
+    let allSkyRequestGeneration = 0, allSkyController;
     const refresh = async () => {
       const generation = ++allSkyRequestGeneration;
+      allSkyController?.abort(); allSkyController=new AbortController(); invalidateGaia(allSky);
       const requestMode = mode?.value || 'instant';
-      const params = activeParameters();
+      const params = appendCameraParameters(appendLayerParameters(activeParameters()),allSky);
       params.set('language', getLanguage());
       params.set('display_frame', getCoordinateFrame());
       if (requestMode === 'trajectory' && context.dataset.highlightIndexes) {
         params.set('highlight_indexes', context.dataset.highlightIndexes);
       }
-      if (Number(context.dataset.resultSourceIndex) >= 0) params.set('selected_source_index', context.dataset.resultSourceIndex);
+      if (Number(context.dataset.resultSourceIndex) >= 0) params.set('selected_source_key', context.dataset.resultSourceKey || context.dataset.resultSourceIndex);
       if (requestMode === 'trajectory') {
         activeSkyInstant = new Date(context.dataset.windowDisplayTime || context.dataset.resultStart);
         params.set('at_time', context.dataset.resultStart);
@@ -965,30 +1125,45 @@
         activeSkyInstant = new Date();
         params.set('at_time', activeSkyInstant.toISOString());
       }
-      const response = await fetch('/api/v1/sky/current?' + params.toString());
+      try {
+      const response = await fetch('/api/v1/sky/current?' + params.toString(),{signal:allSkyController.signal});
+      const payload=await response.json();
+      if(!response.ok)throw new Error('HTTP '+response.status);
       const timeLabel = document.querySelector('[data-result-map-time]');
       if (timeLabel) { timeLabel.dataset.utc = activeSkyInstant.toISOString(); timeLabel.textContent = formatDisplayTime(activeSkyInstant); }
       if (response.ok && generation === allSkyRequestGeneration && mode?.value === requestMode) {
-        allSky.innerHTML = (await response.json()).svg;
+        allSky.innerHTML = payload.svg;
         if (requestMode !== 'trajectory') stampLiveOption(mode?.querySelector('[data-live-option]'), activeSkyInstant);
         allSky.dispatchEvent(new Event('skyward:map-replaced'));
+        refreshGaiaLayer(allSky,params,'current');
       }
+      } catch(error) { if(error.name!=='AbortError')console.warn('All-sky refresh failed',error); }
     };
     const localMode = document.getElementById('local-fov-mode');
     const localTimeControl = document.getElementById('local-fov-time-control');
     const localTimeInput = document.getElementById('local-fov-time');
-    let localRequestGeneration = 0;
+    let localRequestGeneration = 0, localController;
     const refreshLocal = async (explicitDate = null) => {
       const generation = ++localRequestGeneration;
       const requestMode = localMode?.value || 'live';
       const local = document.querySelector('[data-local-fov-map]'); if (!local) return;
+      localController?.abort(); localController=new AbortController(); invalidateGaia(local);
       const date = explicitDate || (localMode?.value === 'fixed' && localTimeInput?.value ? selectedInputDate(localTimeInput) : new Date());
-      const params = activeParameters(); params.set('language', getLanguage()); params.set('at_time', date.toISOString());
-      if (Number(context.dataset.resultSourceIndex) >= 0) params.set('target_source_index', context.dataset.resultSourceIndex);
+      const params = appendCameraParameters(appendLayerParameters(activeParameters()),local); params.set('language', getLanguage()); params.set('at_time', date.toISOString());
+      if (Number(context.dataset.resultSourceIndex) >= 0) params.set('target_source_key', context.dataset.resultSourceKey || context.dataset.resultSourceIndex);
       else { params.set('target_ra_deg', context.dataset.resultSourceRa); params.set('target_dec_deg', context.dataset.resultSourceDec); params.set('target_radius_deg', context.dataset.resultSourceRadius); }
-      const response = await fetch('/api/v1/sky/local-fov?' + params.toString());
-      if (response.ok && generation === localRequestGeneration && localMode?.value === requestMode) { local.innerHTML = (await response.json()).svg; if (requestMode !== 'fixed') stampLiveOption(localMode?.querySelector('[data-live-option]'), date); local.dispatchEvent(new Event('skyward:map-replaced')); }
+      try {
+        const response = await fetch('/api/v1/sky/local-fov?' + params.toString(),{signal:localController.signal});
+        const payload=await response.json(); if(!response.ok)throw new Error('HTTP '+response.status);
+        if (generation === localRequestGeneration && localMode?.value === requestMode) {
+          local.innerHTML = payload.svg;
+          if (requestMode !== 'fixed') stampLiveOption(localMode?.querySelector('[data-live-option]'), date);
+          local.dispatchEvent(new Event('skyward:map-replaced')); refreshGaiaLayer(local,params,'local-fov');
+        }
+      } catch(error) { if(error.name!=='AbortError')console.warn('Local FoV refresh failed',error); }
     };
+    allSky.addEventListener('skyward:camera-change',()=>refresh());
+    document.querySelector('[data-local-fov-map]')?.addEventListener('skyward:camera-change',()=>refreshLocal());
     const configureLocalMode = () => {
       const live = localMode?.value !== 'fixed'; if (localTimeControl) localTimeControl.hidden = live;
       if (live) refreshLocal(new Date()); else { if (localTimeInput && !localTimeInput.value) localTimeInput.value = localDatetimeValue(new Date()); refreshLocal(selectedInputDate(localTimeInput)); }
@@ -1007,11 +1182,12 @@
     };
     mode?.addEventListener('change', () => { refreshExplanation(); refresh(); });
     document.addEventListener('skyward:refresh-realtime', () => { if (mode?.value !== 'trajectory') refresh(); });
-    document.addEventListener('skyward:language-changed', refreshExplanation);
+    document.addEventListener('skyward:language-change', refreshExplanation);
     refreshExplanation();
     window.queueMicrotask(() => { refresh(); configureLocalMode(); });
     document.addEventListener('skyward:language-change', () => { refresh(); refreshLocal(); });
-    document.addEventListener('skyward:coordinate-change', () => { refresh(); });
+    document.addEventListener('skyward:coordinate-change', () => { refresh(); refreshLocal(); });
+    document.addEventListener('skyward:catalogues-change', () => { refresh(); refreshLocal(); });
     document.addEventListener('skyward:timezone-will-change', () => { if (localMode?.value === 'fixed' && localTimeInput?.value) localFixedInstant = selectedInputDate(localTimeInput); });
     document.addEventListener('skyward:timezone-change', () => {
       if (localMode?.value === 'fixed' && localTimeInput?.value && localFixedInstant) localTimeInput.value = localDatetimeValue(localFixedInstant);
@@ -1168,6 +1344,39 @@
     dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
   };
 
+  const initialiseCalculationSubmission = () => {
+    const modal = document.getElementById('calculation-dialog'); if (!modal) return;
+    let busy = false, controller = null, submittingForm = null;
+    const restore = () => { busy=false; controller?.abort(); controller=null; submittingForm?.removeAttribute('aria-busy'); submittingForm?.querySelectorAll('[data-calculation-disabled]').forEach(button=>{button.disabled=false;delete button.dataset.calculationDisabled;}); if(modal.open)modal.close(); };
+    modal.addEventListener('cancel',event=>{event.preventDefault();if(!busy)restore();});
+    document.getElementById('calculation-cancel')?.addEventListener('click',()=>{if(!busy)restore();});
+    window.addEventListener('pageshow',restore);
+    document.querySelectorAll('#planner-form, #replace-source-form').forEach(form=>form.addEventListener('submit',async event=>{
+      event.preventDefault(); if(busy || !form.reportValidity())return;
+      busy=true; submittingForm=form; controller=new AbortController(); const requestController=controller;
+      syncSubmissionPreferences();
+      const body=new FormData(form); // Capture before disabling submit controls.
+      form.setAttribute('aria-busy','true');
+      form.querySelectorAll('[type="submit"]:not(:disabled)').forEach(button=>{button.dataset.calculationDisabled='true';button.disabled=true;});
+      document.getElementById('calculation-error').hidden=true; document.getElementById('calculation-cancel').hidden=true; modal.showModal();
+      // Two animation frames give the modal a paint opportunity before work begins.
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      if(requestController.signal.aborted)return;
+      try {
+        const response=await fetch(form.action,{method:'POST',body,signal:requestController.signal,headers:{Accept:'text/html'}});
+        const html=await response.text(); if(requestController.signal.aborted)return;
+        if(!response.ok && !response.headers.get('content-type')?.includes('text/html'))throw new Error('HTTP '+response.status);
+        // Server validation pages are rendered normally and carry their own errors.
+        history.pushState(null,'',response.url || form.action);
+        document.open();document.write(html);document.close();
+      } catch(error){
+        if(error.name==='AbortError')return;
+        restore(); const message=document.getElementById('calculation-error');message.textContent=translate('calculationFailed')+': '+error.message;message.hidden=false;document.getElementById('calculation-cancel').hidden=false;modal.showModal();
+      }
+    }));
+    window.addEventListener('popstate',()=>{restore();window.location.reload();});
+  };
+
   const initialiseRealtimeHeader = () => {
     const button = document.getElementById('refresh-realtime');
     const tick = () => updateClock(new Date());
@@ -1200,5 +1409,6 @@
   initialiseRealtimeHeader();
   initialiseResultMaps();
   initialiseObservationPlan();
+  initialiseCalculationSubmission();
   refreshTimeDisplays();
 })();

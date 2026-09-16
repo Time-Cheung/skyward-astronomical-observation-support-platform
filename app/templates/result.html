@@ -8,7 +8,8 @@
          The result header has no replacement action. The form preserves every
          constraint, display setting and telescope field across that choice. -->
     <form id="replace-source-form" method="post" action="/result" hidden>
-      <input name="source_index"><input name="catalog_token" value="{{ form_values.catalog_token }}"><input name="catalog_tokens" value="{{ form_values.catalog_tokens }}"><input name="start_time" value="{{ result_dict.start }}"><input name="end_time" value="{{ result_dict.end }}">
+      <input name="source_index"><input name="source_key"><input name="catalog_token" value="{{ form_values.catalog_token }}"><input name="catalog_tokens" value="{{ form_values.catalog_tokens }}"><input name="start_time" value="{{ result_dict.start }}"><input name="end_time" value="{{ result_dict.end }}">
+      <input name="nominal_radius_deg" value="{{ form_values.nominal_radius_deg if form_values.nominal_radius_deg is defined and form_values.nominal_radius_deg is not none else '' }}">
       <input name="region_name" value=""><input name="region_ra_deg" value=""><input name="region_dec_deg" value=""><input name="region_radius_deg" value="">
       <input name="telescope_mode" value="{{ form_values.telescope_mode }}"><input name="custom_longitude_deg" value="{{ form_values.custom_longitude_deg }}"><input name="custom_latitude_deg" value="{{ form_values.custom_latitude_deg }}"><input name="custom_altitude_m" value="{{ form_values.custom_altitude_m }}"><input name="custom_timezone_offset_hours" value="{{ form_values.custom_timezone_offset_hours }}"><input name="custom_fov_diameter_deg" value="{{ form_values.custom_fov_diameter_deg }}">
       <input name="display_theme" value="{{ form_values.display_theme }}"><input name="plot_theme" value="{{ form_values.plot_theme }}"><input name="display_timezone" value="{{ form_values.display_timezone }}">
@@ -19,6 +20,7 @@
     <div id="result-display-preferences" hidden data-theme="{{ form_values.display_theme }}" data-plot-theme="{{ form_values.plot_theme }}" data-timezone="{{ form_values.display_timezone }}"></div>
     <div id="detail-query-context" hidden
          data-at-time="{{ result_dict.start }}"
+         data-nominal-radius-deg="{{ form_values.nominal_radius_deg if form_values.nominal_radius_deg is defined and form_values.nominal_radius_deg is not none else '' }}"
          data-sun-max-altitude-deg="{{ constraints.sun_max_altitude_deg if constraints.sun_max_altitude_deg is not none else '' }}"
          data-moon-min-separation-deg="{{ constraints.moon_min_separation_deg if constraints.moon_min_separation_deg is not none else '' }}"
          data-target-min-zenith-deg="{{ constraints.target_min_zenith_deg if constraints.target_min_zenith_deg is not none else '' }}"
@@ -31,10 +33,12 @@
          data-custom-timezone-offset-hours="{{ form_values.custom_timezone_offset_hours }}"
          data-custom-fov-diameter-deg="{{ form_values.custom_fov_diameter_deg }}"
          data-catalog-token="{{ form_values.catalog_token }}"
+         data-catalog-tokens="{{ form_values.catalog_tokens }}"
          data-result-source-index="{{ source.index }}"
+         data-result-source-key="{{ source.source_key }}"
          data-result-source-ra="{{ source.ra }}"
          data-result-source-dec="{{ source.dec }}"
-         data-result-source-radius="{{ source.ext }}"
+         data-result-source-radius="{{ source.ext if source.footprint_known else '' }}"
          data-result-start="{{ result_dict.start }}"
          data-result-end="{{ result_dict.end }}"
          data-full-window-ranges='{{ full_window_ranges_json }}'
@@ -42,7 +46,7 @@
          data-highlight-indexes="{{ highlighted_indexes|join(',') }}"></div>
     <p class="section-label" data-i18n="windowResult">WINDOW RESULT</p>
     <h1 class="result-source-title">{{ source.display_name }}</h1>
-    <p><span data-i18n="j2000Coordinates">J2000 coordinates</span>: RA {{ '%.3f'|format(source.ra) }}°, Dec {{ '%+.3f'|format(source.dec) }}°. <span data-i18n="nominalExtension">Nominal extension</span> {{ '%.3f'|format(source.ext) }}° ± {{ '%.3f'|format(source.ext_err) ~ '°' if source.ext_err is not none else 'not provided' }}.</p>
+    <p><span data-i18n="j2000Coordinates">J2000 coordinates</span>: RA {{ '%.3f'|format(source.ra) }}°, Dec {{ '%+.3f'|format(source.dec) }}°. <span data-i18n="nominalExtension">Nominal extension</span> {% if source.footprint_known %}{{ '%.3f'|format(source.ext) }}° ± {{ '%.3f'|format(source.ext_err) ~ '°' if source.ext_err is not none else 'not provided' }}{% if form_values.nominal_radius_deg %} <span data-i18n="operatorNominalAssumption">Operator-supplied nominal assumption</span>{% endif %}{% else %}<span data-i18n="unknownFootprint">Not provided; full footprint not evaluated</span>{% endif %}.</p>
   </div>
   <div class="status-block status-{{ status.status|lower }}">
     <span data-i18n="startingStatus">Starting status</span>
@@ -58,10 +62,12 @@
   <div><span data-i18n="enabledConstraints">Enabled constraints</span><strong>{{ constraints.enabled_labels()|length }}</strong></div>
 </section>
 
+<div class="catalogue-map-layout">
+{% include "_catalogue_panel.html" %}
 <div class="result-map-grid">
   <section class="sky-panel compact-panel">
     <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="startTime">START TIME</p><h2 data-i18n="allSky">All-sky map</h2></div><label class="heading-mode-control"><span data-i18n="resultStatusMode">Map status</span><select id="result-status-mode"><option value="instant" data-live-option data-i18n="statusInstant">Real-time</option><option value="trajectory" data-i18n="statusTrajectory">Observation window</option></select></label></div>
-    <div class="result-map-controls"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="5"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div>
+    <div class="result-map-controls"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div>
     <div class="map-frame" data-result-sky-map data-map-frame>{{ sky_svg|safe }}</div>
     <div class="legend"><span><i class="legend-star green"></i><b data-i18n="legendGreenMeaning">Full source observable</b></span><span><i class="legend-star yellow"></i><b data-i18n="legendYellowMeaning">Centre only</b></span><span><i class="legend-star red"></i><b data-i18n="legendRedMeaning">Centre unavailable</b></span><span id="tracked-fov-legend" hidden><i class="legend-star purple"></i><b data-i18n="trackedFovSource">Tracked-FoV source</b></span></div>
     <p class="map-note" id="result-status-explanation" data-i18n="instantStatusExplanation">Real-time: colours describe observability at the current instant and shown positions are simultaneous.</p>
@@ -69,13 +75,14 @@
   <section class="sky-panel compact-panel">
     <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="pointingCentre">POINTING CENTRE</p><h2>{{ telescope.name }} {{ '%.2f'|format(telescope.fov_diameter_deg) }}° <span data-i18n="localFovTitle">local FoV</span></h2></div><label class="heading-mode-control"><span data-i18n="localFovMode">Local FoV mode</span><select id="local-fov-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label></div>
     <div class="local-fov-time-controls"><label id="local-fov-time-control" hidden><span data-i18n="skyTime">Sky time</span><input id="local-fov-time" type="datetime-local"><button id="local-fov-time-apply" class="secondary-button" type="button" data-i18n="applySkyTime">Apply</button></label></div>
-    <div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="3"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>
+    <div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>
     <div class="map-frame" data-local-fov-map>{{ fov_svg|safe }}</div>
     <p class="map-note" data-i18n="localFovNote">The grey solid circle is the local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension can be hidden beneath the central target marker.</p>
   </section>
 </div>
+</div>
 
-<section class="plot-panel" data-plan-source-name="{{ source.display_name }}" data-plan-ra="{{ '%.6f'|format(source.ra) }}" data-plan-dec="{{ '%.6f'|format(source.dec) }}" data-plan-radius="{{ '%.6f'|format(source.ext) }}" data-plan-constraints="Sun altitude ≤ {{ constraints.sun_max_altitude_deg if constraints.sun_max_altitude_deg is not none else 'disabled' }}°; Moon separation ≥ {{ constraints.moon_min_separation_deg if constraints.moon_min_separation_deg is not none else 'disabled' }}°; Zenith {{ constraints.target_min_zenith_deg if constraints.target_min_zenith_deg is not none else 'disabled' }}°-{{ constraints.target_max_zenith_deg if constraints.target_max_zenith_deg is not none else 'disabled' }}°; minimum {{ constraints.minimum_duration }} s">
+<section class="plot-panel" data-plan-source-name="{{ source.display_name }}" data-plan-ra="{{ '%.6f'|format(source.ra) }}" data-plan-dec="{{ '%.6f'|format(source.dec) }}" data-plan-radius="{{ '%.6f'|format(source.ext) if source.footprint_known else 'not evaluated' }}" data-plan-constraints="Sun altitude ≤ {{ constraints.sun_max_altitude_deg if constraints.sun_max_altitude_deg is not none else 'disabled' }}°; Moon separation ≥ {{ constraints.moon_min_separation_deg if constraints.moon_min_separation_deg is not none else 'disabled' }}°; Zenith {{ constraints.target_min_zenith_deg if constraints.target_min_zenith_deg is not none else 'disabled' }}°-{{ constraints.target_max_zenith_deg if constraints.target_max_zenith_deg is not none else 'disabled' }}°; minimum {{ constraints.minimum_duration }} s">
   <div class="panel-heading"><div><p class="section-label" data-i18n="conditionsOverTime">CONDITIONS OVER TIME</p><h2 data-i18n="plotTitle">Geometry and full-footprint windows</h2></div><span class="helper" data-i18n="plotHelp">Green shading marks full-footprint windows</span></div>
     <div id="zenith-curve-controls" class="zenith-curve-controls" hidden><strong data-i18n="zenithCurveManagement">Zenith-Time curve management</strong><div id="zenith-curve-list"></div></div>
     <div class="scientific-plot" data-plot-timezone="{{ 'UTC' if form_values.display_timezone == 'utc' else telescope.timezone_label }}">{{ plot_svg|safe }}</div>

@@ -31,6 +31,7 @@ class SourceStatus:
             "status": self.status,
             "center_pass": self.center_pass,
             "footprint_pass": self.footprint_pass,
+            "full_footprint_evaluated": self.source.footprint_known,
             # Reason values intentionally remain stable machine codes in API
             # responses. The local client maps them to bilingual human labels.
             "reasons": self.reasons,
@@ -122,15 +123,17 @@ def _from_series(
         point_now = bool(point_eval.center_pass[0])
         full_now = bool(full_eval.footprint_pass[0])
         center_pass = point_now and bool(np.all(point_eval.center_pass))
-        footprint_pass = full_now and bool(np.all(full_eval.footprint_pass))
+        footprint_pass = source.footprint_known and full_now and bool(np.all(full_eval.footprint_pass))
         reasons = _reasons(
             center_pass,
             footprint_pass,
             point_eval.failure_labels("center", 0),
-            full_eval.failure_labels("footprint", 0),
+            full_eval.failure_labels("footprint", 0) if source.footprint_known else [],
             minimum_window_failed_center=point_now and not center_pass,
-            minimum_window_failed_footprint=full_now and not footprint_pass,
+            minimum_window_failed_footprint=source.footprint_known and full_now and not footprint_pass,
         )
+        if not source.footprint_known:
+            reasons = [reason for reason in reasons if reason != "all_enabled_geometry_conditions_pass"] + ["full_footprint_not_evaluated"]
         statuses.append(
             SourceStatus(
                 source=source,
@@ -139,7 +142,7 @@ def _from_series(
                 footprint_pass=footprint_pass,
                 reasons=reasons,
                 geometry=series.source_at(index, 0),
-                extension_inside_fov=source.ext <= telescope.fov_radius_deg,
+                extension_inside_fov=source.footprint_known and source.ext <= telescope.fov_radius_deg,
                 minimum_window_seconds=constraints.minimum_duration,
                 telescope=telescope,
                 current_pointing_enforced=enforce_current_pointing,
@@ -183,6 +186,9 @@ def sky_snapshot(
     """Return all-sky geometry and current-telescope red/yellow/green states."""
     at_time = _utc(at_time)
     sources = list(sources)
+    if len(sources) > 256:
+        parts = [sky_snapshot(sources[start:start + 256], at_time, constraints, telescope) for start in range(0, len(sources), 256)]
+        return {**parts[0], "sources": [row for part in parts for row in part["sources"]], "warnings": sorted({warning for part in parts for warning in part["warnings"]})}
     series = compute_catalog_geometry(sources, _status_times(at_time, constraints), telescope)
     statuses = _from_series(sources, series, constraints, telescope, enforce_current_pointing=True)
     return {
@@ -226,6 +232,9 @@ def sky_trajectory_snapshot(
     end = _utc(end_time)
     display_time = _utc(display_time) if display_time is not None else start
     sources = list(sources)
+    if len(sources) > 256:
+        parts = [sky_trajectory_snapshot(sources[first:first + 256], start_time, end_time, constraints, telescope, max_samples, enforce_current_pointing, time_ranges, display_time) for first in range(0, len(sources), 256)]
+        return {**parts[0], "sources": [row for part in parts for row in part["sources"]], "warnings": sorted({warning for part in parts for warning in part["warnings"]})}
     ranges = [(start, end)] if time_ranges is None else [(_utc(begin), _utc(finish)) for begin, finish in time_ranges]
     if any(finish <= begin for begin, finish in ranges):
         raise ValueError("trajectory ranges must contain forward intervals")
@@ -289,12 +298,14 @@ def sky_trajectory_snapshot(
         # one sampled instant happens to pass.
         center_any, center_index = holds_for_duration(centre.center_pass)
         full_any, full_index = holds_for_duration(footprint.footprint_pass)
+        full_any = full_any and source.footprint_known
         del center_index, full_index
         items.append({
             **source.to_dict(),
             "status": "GREEN" if full_any else "YELLOW" if center_any else "RED",
             "center_pass": center_any,
             "footprint_pass": full_any,
+            "reasons": [] if source.footprint_known else ["full_footprint_not_evaluated"],
             # Every source and solar-system body is drawn at one common
             # display instant; status colours still summarize the full ranges.
             "geometry": display_series.source_at(index, 0),

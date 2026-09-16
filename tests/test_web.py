@@ -543,7 +543,9 @@ def test_result_keeps_custom_telescope_context_and_human_reason_markup():
     assert "appendTelescopeParameters" in script
     assert "initialiseTelescopeControls" in script
     assert "skyQueryParameters" in script
-    assert "image.style.width = (zoom * 100) + '%'" in script
+    assert "Math.min(1000" in script
+    assert "setAttribute('viewBox'" in script
+    assert "image.style.width = (zoom * 100)" not in script
     assert "formatReason" in script
 
 
@@ -648,13 +650,16 @@ def test_empty_full_window_ranges_classify_every_source_red():
     assert len(payload["sources"]) == 190
     assert all(item["status"] == "RED" for item in payload["sources"])
     assert payload["svg"].count('class="source-marker ') == 190
-    assert "trajectory-highlight" not in payload["svg"]  # selected target is never purple
+    import xml.etree.ElementTree as ET
+    assert not any("trajectory-highlight" in node.get("class", "").split()
+                   for node in ET.fromstring(payload["svg"]).iter())  # no highlighted marker; CSS rules are allowed
     instant = client.get(
         "/api/v1/sky/current",
         params={"at_time": "2026-12-15T16:00:00Z", "highlight_indexes": "11"},
     )
     assert instant.status_code == 200
-    assert "trajectory-highlight" not in instant.json()["svg"]
+    assert not any("trajectory-highlight" in node.get("class", "").split()
+                   for node in ET.fromstring(instant.json()["svg"]).iter())
 
 
 def test_result_map_exposes_full_windows_and_fixed_size_symbol_controls():
@@ -726,7 +731,8 @@ def test_custom_offset_plot_uses_physical_local_clock_and_client_passes_label():
     assert "17:30" in svg or "17:45" in svg
     script = (Path(__file__).resolve().parents[1] / "app" / "static" / "app.js").read_text(encoding="utf-8")
     assert "observerTimezoneLabel()" in script
-    assert "catalogueSources.set(data.token" in script
+    assert "checkbox.dataset.catalogueId=data.token" in script
+    assert "replaceSourceOptions(data.sources || [])" in script
 
 
 def test_conditional_fields_zoom_and_result_modes_have_explicit_client_contracts():
@@ -737,9 +743,11 @@ def test_conditional_fields_zoom_and_result_modes_have_explicit_client_contracts
     stylesheet = (Path(__file__).resolve().parents[1] / "app" / "static" / "styles.css").read_text(encoding="utf-8")
     script = (Path(__file__).resolve().parents[1] / "app" / "static" / "app.js").read_text(encoding="utf-8")
     assert '[hidden] { display: none !important; }' in stylesheet
-    assert "image.style.width = (zoom * 100) + '%'" in script
-    assert "initialViewportHeight" in script
-    assert "event.clientX - box.left" in script and "event.clientY - box.top" in script
+    assert "Math.min(1000" in script
+    assert "setAttribute('viewBox'" in script
+    assert "image.style.width = (zoom * 100)" not in script
+    assert "frame.getBoundingClientRect()" in script
+    assert "getScreenCTM().inverse()" in script and "setPointerCapture" in script
     assert "skyward:map-replaced" in script
 
     result = client.post(
@@ -778,7 +786,7 @@ def test_plot_overlay_supports_multiple_additions_and_empty_removal_state():
     assert "zenithOverlayIndexes = new Set()" in script
     assert "zenithOverlayIndexes.delete(sourceIndex)" in script
     assert "renderZenithCurveControls" in script
-    assert "params.append('comparison_source_index'" in script
+    assert "params.append('comparison_source_key'" in script
 
 
 def test_latest_result_map_realtime_and_curve_controls_contracts():
@@ -796,7 +804,7 @@ def test_latest_result_map_realtime_and_curve_controls_contracts():
     text = response.text
     assert 'class="result-source-title"' in text
     assert 'data-window-display-time=' in text
-    assert 'data-zoom-max="5"' in text and 'data-zoom-max="3"' in text
+    assert text.count('data-zoom-max="1000"') >= 2
     assert 'id="local-fov-mode"' in text and 'id="local-fov-time"' in text
     assert 'id="zenith-curve-controls"' in text
     assert 'id="refresh-realtime"' in text
@@ -805,7 +813,8 @@ def test_latest_result_map_realtime_and_curve_controls_contracts():
     script = (Path(__file__).resolve().parents[1] / "app" / "static" / "app.js").read_text(encoding="utf-8")
     assert "trajectory_display_time" in script
     assert "comparison_colour" in script and "comparison_line_style" in script
-    assert "configuredMaximum" in script
+    assert "Math.min(1000" in script
+    assert "appendCameraParameters" in script
     assert "skyward:refresh-realtime" in script
 
 

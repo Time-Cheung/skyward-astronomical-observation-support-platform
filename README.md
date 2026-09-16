@@ -1,205 +1,113 @@
 # Skyward | 天文观测辅助平台
 
-[English guide](docs/en/user-and-deployment-guide.md) | [中文手册](docs/zh/使用与部署手册.md)
+[中文完整手册](docs/zh/使用与部署手册.md) · [English guide](docs/en/user-and-deployment-guide.md) · [离线安装 / Offline](docs/offline-deployment.md)
 
-Skyward 是一个 Python-first、只读、无账号的局域网 FastAPI 原型，面向可扩展的天文观测辅助场景。当前已完成 LACT/LHAASO 站点适配，载入 `data/2LHAASO.txt` 的 190 个源，计算目标、太阳和月亮的几何位置，并根据可选约束生成中心窗口和完整 extension 窗口。
+## 专业人员最简操作 / Operator quick start
 
-> 结果只表示几何候选窗口，不是正式观测批准。当前版本仅供受控局域网访问；天气、实时设备状态、机械限位、跟踪误差、实际灵敏度和联合观测条件均未评估。
+默认使用项目 **`.venv`**，已验证环境为 Linux + **Python 3.9.21、NumPy 1.26.4、Astropy 6.0.1**。下方解释器路径用于复现已验证环境，不表示 Python 3.9.21 是唯一可部署补丁版本；其他兼容版本需在保留固定依赖的前提下重新运行完整测试。固定依赖以未改动的 `requirements.txt` 为准；不要混入全局 NumPy 2.x。Conda 仅作为完整手册中的可选替代。
 
-## 显示与语言
+**以下所有路径、用户、IP、CIDR、服务名均为需要替换的示例，不是当前机器信息。** 示例项目 `/opt/skyward`、用户/组 `skyward`、Python `/opt/python-3.9.21/bin/python3`、服务器 IP `192.168.50.10`、批准网段 `192.168.50.0/24`。Only the server installs dependencies and needs optional IERS/Gaia egress; clients need only a browser and access to the server.
 
-Skyward 使用黑、白与品牌蓝 `#3333FF` 的仪器化视觉系统；绿色、黄色和红色只保留给源状态。主页面顶部右侧支持：
+先获取代码，以下二选一。`REPOSITORY_URL` 必须替换为维护者确认的仓库地址；目标父目录需由管理员授权部署用户写入。已有生产副本的更新应在维护窗口按完整手册进行，优先独立候选目录；**先备份本地修改，有修改就停止，不自动 stash、reset 或覆盖**。
 
-- **语言**：中文 / English；
-- **主题**：自动 / 亮色 / 暗色；
-- **时区**：默认北京 `UTC+8`，可切换 UTC；所有网页日期、时钟、窗口表和后续生成的图表统一按所选时区显示；
-- **全新暂态目标**：默认“添加新目标”，填写 RA、Dec、半径；名称空白时生成 `TMP JHHMM±DDMM`，不写入 2LHAASO 源表；
-- **观测计划 TXT**：完整源窗口可加入本地计划并下载，不在服务器存储；
-
-设置保存在每台客户端浏览器的 `localStorage`，不在服务端持久化、不需要账号；计算时为生成对应 SVG 图表会随该次请求传递显示设置。完整操作说明见中英双语手册。
-
-## 已实现范围
-
-- 站点：`100°01′36″ E`、`29°21′27″ N`、海拔 `4410 m`；
-- 当前 LACT 适配：FoV 直径 `8.3°`、半径 `4.15°`，理想圆形硬边界；
-- 2LHAASO 源：190 条，RA/Dec 按 FK5 J2000 处理；源名排序、检索和临时 CSV 源表导入；
-- 可选参数：太阳最大高度、月亮最小角距、目标天顶角范围、最短连续窗口；
-- GREEN/YELLOW/RED 当前几何状态；
-- 当前 LACT 适配下的地平坐标全天图、固定天顶的实时 FoV 圆、小型橙色太阳/月亮图标、实时/指定时刻切换和可点击源标记；支持 AltAz/Horizon、J2000 赤道和银道显示坐标系；
-- 选定源的 8.3°局部 FoV、extension 空心圆、附近源、太阳/月亮方向；Gaia DR3 定标星可按需在线查询并以星形叠加；
-- 完整源窗口本地观测计划编辑与 TXT 下载（仅当窗口内存在两个有效整秒时提供）；
-- 秒级候选扫描和亚秒边界细化；单次窗口请求最多 1 天；
-- HTML 页面及 `/api/v1` JSON API；
-- 多源表选择与叠加；
-- IERS 在线优先、超时、用户缓存和项目内置文件回退；Gaia 查询失败时保留基础源表天图；
-
-## 软件要求
-
-- Linux；
-- Python 3.9 或更新版本；
-- 项目运行目录可读；
-- 推荐至少 2 GB 内存。
-
-当前已验证环境为 Python 3.9.21。依赖版本固定在 `requirements.txt`；特别是 Astropy 6.0.1 搭配 NumPy 1.26.4，避免系统级 NumPy 2.x 的兼容问题。
-
-> 推荐按 [`docs/zh/使用与部署手册.md`](docs/zh/使用与部署手册.md) 或 [`docs/en/user-and-deployment-guide.md`](docs/en/user-and-deployment-guide.md) 中的 Conda 流程部署，以隔离服务器全局 Python、ROOT 和其他科学软件。
-
-## 首次安装
+First acquire the checkout; choose one branch below. Replace `REPOSITORY_URL` with the maintainer-approved URL. Preserve local changes, and use the maintenance procedure for an existing production checkout.
 
 ```bash
-cd /home/lact/wz/lact-window-planner
-python3 -m venv .venv
+# 首次获取 / First checkout (destination must not already exist)
+git clone REPOSITORY_URL /opt/skyward
+```
+
+```bash
+# 已有副本 / Existing checkout: inspect before updating
+cd /opt/skyward
+git status --short
+# 有输出就停止并先备份/人工处理；仅干净副本允许快进
+# Stop and preserve edits if status is nonempty; do not merge divergent history
+if [ -z "$(git status --porcelain)" ]; then git pull --ff-only; else echo 'STOP: preserve local changes first'; fi
+```
+
+仅获取/更新成功后继续；离线服务器改用受控传输的版本包。Continue only after success; use an approved transferred release on an offline server.
+
+```bash
+# 共同准备 / Common preparation: on the server, as project owner
+cd /opt/skyward
+/opt/python-3.9.21/bin/python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip check
+.venv/bin/python -c 'import sys,numpy,astropy; print(sys.version); assert numpy.__version__=="1.26.4"; assert astropy.__version__=="6.0.1"; print(sys.executable)'
+mkdir -p .runtime/matplotlib .runtime/cache
+export MPLCONFIGDIR="$PWD/.runtime/matplotlib" SKYWARD_CACHE_DIR="$PWD/.runtime/cache"
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider -q
 ```
 
-不应直接使用服务器全局 Python 环境。
+选择以下一条，不同时运行 / Choose one:
 
-## 直接启动
-
-仅本机检查：
+**A — 仅服务器本机 / Server-local only**
 
 ```bash
-cd /home/lact/wz/lact-window-planner
-MPLCONFIGDIR=/tmp/lact-matplotlib \
-  .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+# 第二个服务器终端 / Second server terminal
+curl -fsS http://127.0.0.1:8000/api/v1/health
 ```
 
-局域网访问（必须再用防火墙限制允许网段）：
+仅服务器本机浏览器访问 `http://127.0.0.1:8000/`，不开放 LAN 防火墙端口。Service template: [`deploy/skyward-local.service`](deploy/skyward-local.service).
+
+**B — 受控局域网 / Controlled LAN**
+
+先确认真实服务器内网 IP，按完整手册配置**只允许受信 CIDR、拒绝其他来源**的防火墙，再运行：
 
 ```bash
-cd /home/lact/wz/lact-window-planner
-MPLCONFIGDIR=/tmp/lact-matplotlib \
-  .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+.venv/bin/python -m uvicorn app.main:app --host 192.168.50.10 --port 8000
+# 服务器和授权客户端 / Server and authorized client
+curl -fsS http://192.168.50.10:8000/api/v1/health
 ```
 
-服务器当前内网地址若仍为 `10.2.101.152`，同网段浏览器访问：
+客户端浏览器使用 `http://192.168.50.10:8000/`，替换为**服务器真实内网 IP**，不能用 `0.0.0.0` 或客户端的 `127.0.0.1`。优先具体内网 IP；只有可信网段防火墙已验证时，监听才可选 `0.0.0.0`。Service template: [`deploy/skyward-lan.service`](deploy/skyward-lan.service).
+
+完整手册各含共同准备、独立完整 A/B 手工和 systemd 流程、监听/防火墙/VLAN 排错及验收。先手工验证，再由管理员审阅模板并安装；**本次文档修改没有安装服务、修改防火墙或改变现有部署**。旧 `deploy/lact-window-planner.service` 模板默认已改为 `127.0.0.1`，不是对已安装服务的修改。
+
+## 安全与科学边界 / Boundaries
+
+Skyward 是无账号、无授权隔离的天文观测辅助原型。**不允许公网暴露、全网放行或端口映射。** 能连接端口的客户端可访问全部页面/API；仅绑定私有 IP 不能替代防火墙。
+
+当前适配 LACT/LHAASO 站点（东经 `100.0266666667°`、北纬 `29.3575°`、海拔 `4410 m`），理想圆形 FoV 直径 `8.3°`，遥测接入前固定天顶参考。结果是 **geometry-only 几何候选**，未评估天气、实时设备状态、机械限位、跟踪误差、真实灵敏度和联合观测条件，不能作为正式观测批准。
+
+## 已实现功能 / Implemented features
+
+以下源表已实际接入，应用测试及浏览器验收结果见 [升级验收记录 / Acceptance record](docs/upgrade-acceptance-20260916.md)。该记录不代表生产安装或实际局域网隔离已验收：
+
+| Catalogue | Records | Snapshot / caveat |
+|---|---:|---|
+| 2LHAASO | 190 | Preserve original field semantics |
+| FL16Y | 7224 | Verify units and provenance |
+| 3FHL | 1556 | Do not equate positional error with physical extension |
+| TeVCat (`tevcat`) | 361 | Cutoff **2026-09-16**; includes candidate groups, **not all confirmed** |
+
+- 源表备注保留 units/provenance、核验状态、版本/引用和缺失信息；未知 footprint/extension 不得假装为测量为零或已完整容纳。TeVCat `unverified_excerpts` 不是测量；当前全表 footprint 未知，与 2LHAASO **0 verified、186 候选**，不复制参数或把近邻当同一天体。采集依据见 [TeVCat 说明](docs/tevcat-acquisition.md)。
+- Gaia DR3 是**候选定标星**；浏览器独立请求 `GET /api/v1/gaia` 并异步等待 HTTP 响应，**不是服务端 job 轮询**。参数含 `target_source_key`、`map_kind=current|local-fov`、`radius_deg/limit/max_mag`；成功返回 `sources/overlay_svg/gaia` 及 `count/drawn_count/cached/error/zero/limit/truncated`。错误可能仍为 HTTP 200，需检查顶层 `status/error`；详情及缺省字段处理见完整手册。默认 **5° / 500 行 / G≤18** 不变；查询无 `ORDER BY`，`selection=bounded_unordered_subset`，**不是最亮 N 颗，也不是代表性抽样**。独立 Gaia 查询配置为 **20 秒**有限超时（不保证整条 HTTP 请求严格在 20 秒内结束），上限为 2 并发、2 MiB 响应、32 个进程缓存查询。
+- 已支持 **1000× 缩放**，它不增加物理分辨率、角分辨率或定位精度，只是显示放大。
+- 网页支持中/英、自动/亮/暗主题、北京 UTC+8/UTC、坐标显示切换、临时目标和本地观测计划；下载 **ZIP 内含 TXT + 选配 SVG**。设置/计划位于客户端浏览器，不是服务端账号数据。
+- 单次窗口最多 1 天，逐秒候选扫描与已发现边界细化不保证发现所有亚秒窗口。完整源计划需至少两个几何复核有效整秒；未知 footprint 不能据此声称完整源通过。
+
+## 健康、离线与验收 / Health and acceptance
+
+`/api/v1/health` 的 HTTP 200 不代表部署、科学计算或在线查询全部正常。读取 JSON 的 `status` 与 IERS 覆盖；`source_kind=bundled` 表示活动回退表，`online_cache` 可能来自旧缓存，**不证明本次联网成功**，还要看 `last_attempt`、`last_success`、`last_error`。
+
+`app/astronomy.py` 在启动时选择新鲜缓存或 bundled，并启动后台刷新。配置的 7 天是新鲜度/到期指标，**不是保证每周执行的定时任务**。`auto_download=False` 只关闭 Astropy 隐式下载，应用自己的启动刷新仍会尝试外联。严格离线由服务器出站策略控制；本地源表与覆盖内几何可用，新 Gaia 查询不能保证可用。IERS-A 未来部分是预测值，当前健康不代表任意未来日期覆盖。
+
+发布前必须运行上方**完整 pytest**，并分别做 A/B 连通性/隔离验收、源表数量与 provenance/候选分组检查、Gaia 各状态、浏览器及窗口/ZIP 计划验收。这里仅提供命令和清单，不声明本次已完成全部验收。
+
+升级使用 `git pull --ff-only`，检查固定依赖、`pip check`、完整 pytest 后才重启**实际使用的示例服务名**（A `skyward-local.service`，B `skyward-lan.service`；安装名不同则替换）。回滚需代码、数据、依赖和 unit 一起恢复；详见完整手册。升级后客户端硬刷新静态资源（Ctrl+Shift+R）。
+
+## API 与目录 / API and layout
+
+API reference `/api/v1`；schema `/openapi.json`；常用 `/api/v1/config`、`/api/v1/catalogues`、`/api/v1/sources`、`/api/v1/sky/current`、`GET /api/v1/gaia`、`POST /api/v1/windows/calculate`。Swagger/ReDoc 默认关闭，网页静态资源不使用外部 CDN。API 时间请带 `Z` 或明确 offset，计算必须在活动 IERS 表覆盖内。
 
 ```text
-http://10.2.101.152:8000/
-```
-
-健康检查：
-
-```bash
-curl http://127.0.0.1:8000/api/v1/health
-```
-
-## systemd 部署
-
-1. 检查 `deploy/lact-window-planner.service` 的用户、组、目录和端口；
-2. 由有管理员权限的人员复制并启用：
-
-```bash
-sudo cp deploy/lact-window-planner.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now lact-window-planner.service
-sudo systemctl status lact-window-planner.service
-```
-
-实时日志：
-
-```bash
-journalctl -u lact-window-planner.service -f
-```
-
-本次交付只提供 unit 文件，不擅自修改系统服务或防火墙。
-
-## 局域网与防火墙边界
-
-应用没有认证。**任何能连接服务端口的客户端都能访问全部页面和 API。** 必须由服务器防火墙或上游网络设备将端口限制到可信内网 CIDR，不要做公网端口映射，不要配置公网域名。
-
-以 firewalld 为例（将网段替换为实际批准的管理网段）：
-
-```bash
-sudo firewall-cmd --permanent \
-  --add-rich-rule='rule family="ipv4" source address="10.2.0.0/16" port protocol="tcp" port="8000" accept'
-sudo firewall-cmd --reload
-```
-
-在网络管理人员确认前，不建议盲目执行示例规则。
-
-## API
-
-- `GET /api/v1/health`
-- `GET /api/v1/config`
-- `GET /api/v1/catalogues`、`POST /api/v1/catalogues/upload`
-- `GET /api/v1/sources?q=&limit=&catalog_tokens=`
-- `GET /api/v1/sources/{index}`
-- `GET /api/v1/sky/current`（支持显示坐标系、Gaia 和多源表参数）
-- `POST /api/v1/windows/calculate`
-- API 参考页：`GET /api/v1`；
-- OpenAPI schema：`GET /openapi.json`。
-
-交互式 Swagger/ReDoc 页面默认禁用，以保证浏览器端不尝试加载外部 CDN。
-
-计算时间必须落在随部署提供的 IERS 表覆盖范围内；超出范围的计算接口返回 422。
-
-窗口请求示例：
-
-```json
-{
-  "source_index": 11,
-  "start_time": "2026-12-15T10:00:00Z",
-  "end_time": "2026-12-16T10:00:00Z",
-  "constraints": {
-    "sun_max_altitude_deg": -18,
-    "moon_min_separation_deg": 30,
-    "target_min_zenith_deg": null,
-    "target_max_zenith_deg": 50,
-    "minimum_window_seconds": 1800
-  }
-}
-```
-
-无时区的 HTML `datetime-local` 输入按 `Asia/Shanghai` 解释；API 最好显式传 `Z` 或 UTC offset。
-
-## 测试
-
-```bash
-cd /home/lact/wz/lact-window-planner
-MPLCONFIGDIR=/tmp/lact-mpl-test .venv/bin/python -m pytest
-```
-
-测试覆盖：源表/哈希、站点和 FoV、J2000 坐标、Astropy 向量化一致性、中天高度、IERS 覆盖、约束 margin、GREEN/YELLOW/RED、秒级边界、跨 10 分钟批次边界的目录批量窗口一致性、最短窗口、完整源窗口的物理有效整秒计划端点、Crab 代表场景、HTML/API 契约。
-
-## 后续发展方向
-
-当前版本已完成 LACT 适配和几何观测窗口计算，但平台定位不局限于单一望远镜或单一源表。后续可在受控局域网边界内逐步接入：
-
-- 其他望远镜的实时运行状态和指向/运行轨迹；
-- 更多源表、天体实时位置与站点天气信息；
-- 基于天气、天体位置、望远镜轨迹和设备约束的综合观测时段判断；
-- 面向多设施的可解释观测窗口与联合观测支持。
-
-这些项目均属于后续能力，不能与当前几何计算结果混同。
-
-## 数据更新
-
-### 2LHAASO 源表
-
-应用启动时严格检查 190 行、表头、连续 index、唯一名称和数值范围。当前文件 SHA-256：
-
-```text
-83bbd6bf48c9f5d95b94db6495688471dfbe644d3047f39d4baf12dfcab69842
-```
-
-替换源表后必须同步测试和版本记录，不能静默改变字段语义。
-
-### IERS
-
-运行时优先使用联网刷新得到的用户缓存；网络请求有明确短超时，失败时回退到用户缓存或项目内置 `data/iers/finals2000A.all`，不会阻塞首屏。`/api/v1/health` 会报告来源、覆盖区间、缓存年龄、更新周期和最近错误。IERS-A 的未来部分是预测值。
-
-### TeVCat / 补充字段
-
-`data/source_enrichment.json` 仅接受本地、可追溯的数据。未核验字段必须保持 `null`/空列表和 `verification_status: "unverified"`，不得按相近名字推测或在服务运行时联网补全。
-
-## 项目结构
-
-```text
-app/                 FastAPI、计算、状态、图形和模板
-data/                源表、enrichment、离线 IERS
-scripts/             维护脚本
-tests/               自动化测试
-deploy/              systemd 模板
-docs/                运维说明
+app/       Application, geometry and UI
+data/      Catalogues, provenance and bundled IERS
+scripts/   Maintenance tools
+tests/     Automated tests
+deploy/    Reviewed-before-install systemd examples
+docs/      Bilingual deployment, usage and acquisition documentation
 ```

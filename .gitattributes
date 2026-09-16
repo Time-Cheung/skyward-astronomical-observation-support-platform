@@ -1,0 +1,3 @@
+# FITS has long ASCII headers followed by binary data; preserve exact bytes.
+*.fit binary
+*.fits binary

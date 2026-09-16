@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 import json
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
@@ -14,12 +16,13 @@ import astropy.units as u
 
 from fastapi import Depends, File, FastAPI, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
 from .astronomy import compute_catalog_geometry, compute_geometry, format_ra_dec, iers_status
-from .catalog import CatalogError, CatalogCollection, Source, TemporaryCatalog, catalog, enrichment_store, temporary_catalogues
+from .catalog import BUILTIN_CATALOGUES, installed_catalogue, resolve_source, CatalogError, CatalogCollection, Source, TemporaryCatalog, catalog, enrichment_store, temporary_catalogues
 from .gaia import GaiaQueryError, query_gaia_stars
 from .config import (
     BASE_DIR,
@@ -52,6 +55,7 @@ app = FastAPI(
     docs_url=None,
     redoc_url=None,
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "app" / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "app" / "templates")
 
@@ -61,15 +65,15 @@ def _resolve_catalogue(catalog_token: Optional[str] = None):
     if not catalog_token or catalog_token == catalog.identifier:
         return catalog
     try:
-        return temporary_catalogues.get(catalog_token)
-    except KeyError as exc:
+        return installed_catalogue(catalog_token) if catalog_token in BUILTIN_CATALOGUES else temporary_catalogues.get(catalog_token)
+    except (KeyError, CatalogError) as exc:
         raise ValueError(str(exc)) from exc
 
 
 def _resolve_catalogues(catalog_token: Optional[str] = None, catalog_tokens: Optional[str] = None):
     raw = catalog_tokens if catalog_tokens is not None else catalog_token
     tokens = [item.strip() for item in (raw or "").split(",") if item.strip()]
-    selected = [catalog] if not tokens else []
+    selected = [catalog] if raw is None else []
     for token in tokens:
         if token == "gaia-dr3":
             continue
@@ -81,6 +85,30 @@ def _resolve_catalogues(catalog_token: Optional[str] = None, catalog_tokens: Opt
     return selected
 
 
+def _resolve_target_identity(identity, catalog_token=None, catalog_tokens=None):
+    """Keep legacy single-upload numeric rows without reinterpreting new keys.
+
+    A singular token and no plural selection is the historical request-scoped
+    numeric API. Explicit plural selection is a display layer only. Once a
+    stable key/global index is returned, clients should always use that value.
+    """
+    if isinstance(identity, str) and ":" in identity:
+        if len(identity) > 256:
+            raise ValueError("source_key must not exceed 256 characters")
+        return resolve_source(identity)
+    index = int(identity)
+    if catalog_token and catalog_tokens is None and catalog_token != "2lhaaso":
+        table = _resolve_catalogue(catalog_token)
+        try:
+            return table.get(index)
+        except KeyError:
+            for source in table.sources:
+                if source.original_row == index:
+                    return source
+            raise KeyError(f"Unknown source index {index} in catalogue {catalog_token}")
+    return resolve_source(index)
+
+
 def _catalogue_collection(catalogues):
     return CatalogCollection(catalogues)
 
@@ -89,7 +117,8 @@ def _catalogue_metadata(selected) -> dict:
     """Expose selected-table provenance without exposing operator upload bytes."""
     return {
         "token": getattr(selected, "token", ""),
-        "identifier": getattr(selected, "identifier", "upload"),
+        "identifier": getattr(selected, "identifier", getattr(selected, "token", "upload")),
+        "provenance": getattr(selected, "provenance", {}),
         "label": selected.label,
         "sha256": selected.sha256,
         "count": len(selected.sources),
@@ -343,6 +372,8 @@ def _planner_target(
     region_radius_deg: Optional[str],
     region_name: Optional[str] = None,
     selected_catalogue=catalog,
+    catalog_token: Optional[str] = None,
+    catalog_tokens: Optional[str] = None,
 ) -> tuple[str, Optional[Source], bool]:
     """Resolve one immutable catalogue or transient operator-defined target.
 
@@ -369,7 +400,7 @@ def _planner_target(
             False,
         )
     try:
-        source = selected_catalogue.get(int(source_selection))
+        source = _resolve_target_identity(source_selection, catalog_token, catalog_tokens)
         return source.display_name, source, False
     except (ValueError, KeyError) as exc:
         raise ValueError("select a catalogue source, current LACT FoV, or custom region") from exc
@@ -465,10 +496,13 @@ def _source_detail(
     selected_catalogue=catalog,
     *,
     enforce_current_pointing: bool = False,
+    catalog_token: Optional[str] = None,
+    catalog_tokens: Optional[str] = None,
+    nominal_radius_deg: Optional[float] = None,
 ) -> dict:
     try:
-        source = selected_catalogue.get(source_index)
-    except KeyError as exc:
+        source = _nominal_source(_resolve_target_identity(source_index, catalog_token, catalog_tokens), nominal_radius_deg)
+    except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     status = source_status(
         source, at_time, constraints, telescope,
@@ -481,7 +515,8 @@ def _source_detail(
         **format_ra_dec(source),
         "coordinate_frame": COORDINATE_FRAME_LABEL,
         "status": status.to_dict(),
-        "enrichment": enrichment_store.get(source.index) if source.catalogue_label == catalog.label and source.source_type == "catalogue" else {"verification_status": "not_available_for_temporary_catalogue"},
+        "enrichment": enrichment_store.get(source.original_row if source.original_row is not None else source.index) if source.catalogue_id == "2lhaaso" and source.source_type == "catalogue" else (source.notes or {"verification_status": "not_available_for_temporary_catalogue"}),
+        "notes": source.notes or {},
         "geometry_only": True,
     }
 
@@ -537,7 +572,9 @@ def index(request: Request) -> HTMLResponse:
 @app.post("/result", response_class=HTMLResponse)
 def result_page(
     request: Request,
-    source_index: str = Form(...),
+    source_index: str = Form("region"),
+    source_key: Optional[str] = Form(None),
+    nominal_radius_deg: Optional[float] = Form(None, gt=0, le=90),
     start_time: str = Form(...),
     end_time: str = Form(...),
     region_ra_deg: Optional[str] = Form(None),
@@ -562,6 +599,7 @@ def result_page(
     minimum_window_seconds: Optional[str] = Form(None),
 ) -> HTMLResponse:
     """Render either one selected target or all sources crossing the fixed zenith FoV."""
+    source_index = source_key or source_index
     telescope: TelescopeConfig = LACT_TELESCOPE
     selected_catalogue = catalog
     observer_timezone = _observer_timezone(telescope)
@@ -580,8 +618,10 @@ def result_page(
         telescope_error_message = str(telescope_error)
     form_values = {
         "source_index": source_index,
+        "source_key": source_key or (source_index if ":" in source_index else ""),
+        "nominal_radius_deg": nominal_radius_deg if nominal_radius_deg is not None else "",
         "catalog_token": catalog_token or "",
-        "catalog_tokens": catalog_tokens or (catalog_token or "2lhaaso"),
+        "catalog_tokens": catalog_tokens if catalog_tokens is not None else (catalog_token if catalog_token is not None else "2lhaaso"),
         "start_time": start_time,
         "end_time": end_time,
         "planner_start_utc": _canonical_form_time(start_time, display_timezone, observer_timezone),
@@ -614,7 +654,9 @@ def result_page(
             target_max_zenith_deg, minimum_window_seconds, require_all=True,
         )
         request_model = WindowRequest(
-            source_index=int(source_index) if source_index not in {"none", "region"} else None,
+            source_index=int(source_index) if source_index not in {"none", "region"} and ":" not in source_index else None,
+            source_key=source_index if ":" in source_index else None,
+            nominal_radius_deg=nominal_radius_deg,
             all_sources=source_index == "none",
             region_ra_deg=_parse_optional_float(region_ra_deg) if source_index == "region" else None,
             region_dec_deg=_parse_optional_float(region_dec_deg) if source_index == "region" else None,
@@ -627,7 +669,8 @@ def result_page(
         form_values["planner_start_utc"] = request_model.start_utc.isoformat().replace("+00:00", "Z")
         form_values["planner_end_utc"] = request_model.end_utc.isoformat().replace("+00:00", "Z")
         target_label, source, all_sources = _planner_target(
-            source_index, region_ra_deg, region_dec_deg, region_radius_deg, region_name, selected_catalogue
+            source_index, region_ra_deg, region_dec_deg, region_radius_deg, region_name, selected_catalogue,
+            catalog_token, catalog_tokens,
         )
         _validate_iers_range(request_model.start_utc, request_model.end_utc)
         if all_sources:
@@ -671,6 +714,12 @@ def result_page(
             return templates.TemplateResponse(request, "bulk_result.html", context)
 
         assert source is not None
+        source = _nominal_source(source, nominal_radius_deg)
+        # Promote legacy local numeric identity before storing result controls;
+        # subsequent display-layer changes must never rebind this target.
+        if source.index >= 0:
+            form_values["source_key"] = source.source_key
+            form_values["source_index"] = str(source.index)
         result = calculate_windows(
             source, request_model.start_utc, request_model.end_utc, constraints, telescope=telescope
         )
@@ -678,10 +727,8 @@ def result_page(
         highlighted_indexes = _highlighted_window_fov_sources(
             selected_catalogue.sources, result.full_footprint_windows, telescope, source
         )
-        result_map_sources = list(selected_catalogue.sources)
-        if source.index < 0:
-            # A temporary coordinate target is not part of the catalogue but
-            # still needs the same enlarged selected marker on its result map.
+        result_map_sources = [source if item.source_key == source.source_key else item for item in selected_catalogue.sources]
+        if not any(item.source_key == source.source_key for item in result_map_sources):
             result_map_sources.append(source)
         sky_svg, snapshot = render_all_sky_svg(
             result_map_sources, request_model.start_utc, constraints,
@@ -700,7 +747,8 @@ def result_page(
         )
         result_dict = result.to_dict()
         source_detail = _source_detail(
-            source.index, request_model.start_utc, constraints, telescope, selected_catalogue
+            source.source_key, request_model.start_utc, constraints, telescope, selected_catalogue,
+            nominal_radius_deg=nominal_radius_deg,
         ) if source.index >= 0 else None
         context.update({
             "sources": selected_catalogue.sources, "catalogue": _catalogue_metadata(selected_catalogue), "source": source, "source_detail": source_detail, "result": result,
@@ -807,10 +855,14 @@ def config() -> dict:
 @app.get("/api/v1/catalogues")
 def catalogue_options() -> dict:
     """List installed catalogue choices; uploads remain operator-session local."""
-    return {"catalogues": [
-        {**_catalogue_metadata(catalog), "available": True},
-        {"identifier": "gaia-dr3", "label": "Gaia DR3", "available": True, "online": True, "temporary": False},
-    ]}
+    choices = [{**_catalogue_metadata(catalog), "available": True}]
+    for identifier, (label, _, count) in BUILTIN_CATALOGUES.items():
+        try:
+            choices.append({**_catalogue_metadata(installed_catalogue(identifier)), "available": True})
+        except (ValueError, OSError) as exc:
+            choices.append({"identifier": identifier, "label": label, "count": count, "available": False, "error": str(exc)})
+    choices.append({"identifier": "gaia-dr3", "label": "Gaia DR3", "available": True, "online": True, "temporary": False})
+    return {"catalogues": choices}
 
 
 @app.post("/api/v1/catalogues/upload")
@@ -829,6 +881,7 @@ async def upload_catalogue(file: UploadFile = File(...)) -> dict:
 def sources(
     q: str = Query(default="", max_length=80),
     limit: int = Query(default=190, ge=1, le=2000),
+    offset: int = Query(default=0, ge=0),
     catalog_token: Optional[str] = Query(None),
     catalog_tokens: Optional[str] = Query(None, max_length=4000),
 ) -> dict:
@@ -836,18 +889,23 @@ def sources(
         selected = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    matches = selected.search(q, limit)
+    all_matches = selected.search(q, None)
+    matches = all_matches[offset:offset + limit]
     return {
         "count": len(matches),
+        "total": len(all_matches),
+        "offset": offset,
+        "next_offset": offset + len(matches) if offset + len(matches) < len(all_matches) else None,
         "catalogue": _catalogue_metadata(selected),
         "catalogue_sha256": selected.sha256,
         "sources": [source.to_dict() for source in matches],
     }
 
 
-@app.get("/api/v1/sources/{source_index}")
+@app.get("/api/v1/sources/{source_index:path}")
 def source_detail(
-    source_index: int,
+    source_index: str,
+    nominal_radius_deg: Optional[float] = Query(None, gt=0, le=90),
     at_time: Optional[datetime] = None,
     catalog_token: Optional[str] = Query(None),
     catalog_tokens: Optional[str] = Query(None, max_length=4000),
@@ -868,6 +926,8 @@ def source_detail(
     return _source_detail(
         source_index, moment, constraints, telescope, selected,
         enforce_current_pointing=enforce_current_pointing,
+        catalog_token=catalog_token, catalog_tokens=catalog_tokens,
+        nominal_radius_deg=nominal_radius_deg,
     )
 
 
@@ -905,16 +965,87 @@ def current_bodies(
     }
 
 
+def _map_bounds(value: Optional[str]):
+    if value is None or value == "":
+        return None
+    try:
+        parsed = json.loads(value) if value.startswith("[") else [float(part) for part in value.split(",")]
+        if len(parsed) != 4 or not all(np.isfinite(float(part)) for part in parsed) or float(parsed[2]) <= 0 or float(parsed[3]) <= 0:
+            raise ValueError
+        return tuple(float(part) for part in parsed)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(status_code=422, detail="bounds must be finite SVG x,y,width,height with positive size") from exc
+
+
+@app.get("/api/v1/gaia")
+def gaia_stars(
+    at_time: Optional[datetime] = None,
+    map_kind: str = Query("current", pattern="^(current|local-fov)$"),
+    selected_source_key: Optional[str] = Query(None, max_length=256),
+    target_source_key: Optional[str] = Query(None, max_length=256),
+    target_radius_deg: float = Query(0.1, gt=0, le=90),
+    target_name: Optional[str] = Query(None, max_length=80),
+    display_frame: str = Query(DEFAULT_DISPLAY_COORDINATE_FRAME, pattern="^(altaz|j2000|galactic)$"),
+    language: str = Query("en", pattern="^(en|zh)$"),
+    zoom: float = Query(1.0, ge=1, le=1000),
+    bounds: Optional[str] = Query(None, max_length=200),
+    target_ra_deg: Optional[float] = Query(None, ge=0, lt=360),
+    target_dec_deg: Optional[float] = Query(None, ge=-90, le=90),
+    radius_deg: float = Query(5.0, ge=0.1, le=15.0),
+    limit: int = Query(500, ge=1, le=2000),
+    max_mag: float = Query(18.0, ge=5.0, le=22.0),
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    """Independent bounded online layer; failures do not block the base sky."""
+    target = None
+    target_source_key = target_source_key or selected_source_key
+    if target_source_key is not None:
+        try:
+            target = resolve_source(target_source_key)
+            target_ra_deg, target_dec_deg = target.ra, target.dec
+        except (KeyError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if (target_ra_deg is None) != (target_dec_deg is None):
+        raise HTTPException(status_code=422, detail="both target coordinates are required")
+    moment = at_time or _now_utc()
+    if target_ra_deg is None:
+        _validate_iers_range(moment, moment)
+    try:
+        rows, metadata = query_gaia_stars(moment, telescope, radius_deg, limit, max_mag, target_ra_deg, target_dec_deg)
+        map_bounds = _map_bounds(bounds)
+        if map_kind == "local-fov":
+            if target is None:
+                if target_ra_deg is None:
+                    raise HTTPException(status_code=422, detail="local Gaia layer requires a target")
+                target = Source(-1, target_name or "Target", target_radius_deg, None, target_ra_deg, target_dec_deg, 0, 0, None)
+            svg = render_local_fov_svg(target, rows, moment, None, telescope, language, display_frame, zoom, map_bounds)
+        else:
+            svg, _ = render_all_sky_svg(rows, moment, ConstraintSet(), telescope=telescope, language=language, display_frame=display_frame, zoom=zoom, bounds=map_bounds)
+        root = ET.fromstring(svg)
+        markers = [element for element in root.iter() if "source-type-gaia" in element.attrib.get("class", "").split()]
+        overlay = '<svg xmlns="http://www.w3.org/2000/svg">' + ''.join(ET.tostring(element, encoding="unicode") for element in markers) + '</svg>'
+        metadata["drawn_count"] = len(markers)
+        return {**metadata, "gaia": metadata, "overlay_svg": overlay, "sources": [{**row.to_dict(), "source_id": row.original_id} for row in rows]}
+    except GaiaQueryError as exc:
+        return {"sources": [], "status": "error", "count": 0, "cached": False,
+                "error": str(exc), "zero": False, "limit": limit, "truncated": False}
+
+
 @app.get("/api/v1/sky/current")
 def current_sky(
     at_time: Optional[datetime] = None,
     selected_source_index: Optional[int] = Query(None, ge=0),
+    selected_source_key: Optional[str] = Query(None, max_length=256),
+    nominal_radius_deg: Optional[float] = Query(None, gt=0, le=90),
     catalog_token: Optional[str] = Query(None),
     catalog_tokens: Optional[str] = Query(None, max_length=4000),
     include_gaia: bool = Query(False),
     gaia_radius_deg: float = Query(5.0, ge=0.1, le=15.0),
     gaia_limit: int = Query(500, ge=1, le=2000),
     gaia_max_mag: float = Query(18.0, ge=5.0, le=22.0),
+    zoom: float = Query(1.0, ge=1, le=1000),
+    bounds: Optional[str] = Query(None, max_length=200),
+    grid_step_deg: Optional[float] = Query(None, gt=0, le=90),
     display_frame: str = Query(DEFAULT_DISPLAY_COORDINATE_FRAME, pattern="^(altaz|j2000|galactic)$"),
     language: str = Query("en", pattern="^(en|zh)$"),
     status_mode: str = Query("instant", pattern="^(instant|trajectory)$"),
@@ -932,19 +1063,17 @@ def current_sky(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if catalog_tokens and "gaia-dr3" in {item.strip() for item in catalog_tokens.split(",")}:
         include_gaia = True
-    gaia_status = {"requested": include_gaia, "loaded": False, "error": None, "count": 0}
+    gaia_status = {"requested": include_gaia, "loaded": False, "deferred": include_gaia, "endpoint": "/api/v1/gaia", "error": None, "count": 0}
     render_sources = list(selected.sources)
-    if include_gaia:
+    if selected_source_key is not None or selected_source_index is not None:
         try:
-            gaia_sources, gaia_meta = query_gaia_stars(at_time or _now_utc(), telescope, gaia_radius_deg, gaia_limit, gaia_max_mag)
-            gaia_catalogue = type("GaiaCatalogue", (), {
-                "sources": gaia_sources, "label": "Gaia DR3", "identifier": "gaia-dr3",
-                "sha256": "online",
-            })()
-            render_sources = _catalogue_collection([*selected.catalogues, gaia_catalogue]).sources
-            gaia_status.update({"loaded": True, "count": len(gaia_sources), **gaia_meta})
-        except GaiaQueryError as exc:
-            gaia_status["error"] = str(exc)
+            target = _nominal_source(_resolve_target_identity(selected_source_key if selected_source_key is not None else selected_source_index, catalog_token, catalog_tokens), nominal_radius_deg)
+        except (KeyError, ValueError) as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        selected_source_index = target.index
+        render_sources = [target if source.source_key == target.source_key else source for source in render_sources]
+        if not any(source.source_key == target.source_key for source in render_sources):
+            render_sources.append(target)
     sky_request = SkyRequest(
         at_time=at_time,
         selected_source_index=selected_source_index,
@@ -1004,6 +1133,7 @@ def current_sky(
         trajectory_ranges=parsed_ranges,
         trajectory_display_time=trajectory_display_time,
         display_frame=display_frame,
+        zoom=zoom, bounds=_map_bounds(bounds), grid_step_deg=grid_step_deg,
     )
     snapshot.update({
         "geometry_only": True,
@@ -1016,13 +1146,29 @@ def current_sky(
     return snapshot
 
 
+def _source_catalogue_sha256(source: Source):
+    if source.index < 0:
+        return None  # An operator-defined target has no source catalogue.
+    return _resolve_catalogue(source.catalogue_id).sha256
+
+
+def _nominal_source(source: Source, radius: Optional[float]) -> Source:
+    if radius is None:
+        return source
+    if not np.isfinite(radius) or not 0 < radius <= 90:
+        raise ValueError("nominal_radius_deg must be in (0, 90]")
+    return replace(source, ext=radius, footprint_known=True, footprint_kind="operator_nominal_radius")
+
+
 def _api_target(
     selected_catalogue, target_source_index: Optional[int], target_ra_deg: Optional[float],
     target_dec_deg: Optional[float], target_radius_deg: Optional[float], target_name: Optional[str],
+    target_source_key: Optional[str] = None, nominal_radius_deg: Optional[float] = None,
+    catalog_token: Optional[str] = None, catalog_tokens: Optional[str] = None,
 ) -> Source:
-    """Resolve a catalogue row or ephemeral target for display-only API routes."""
-    if target_source_index is not None:
-        return selected_catalogue.get(target_source_index)
+    """Resolve stable targets, with explicit singular-token numeric legacy support."""
+    if target_source_key is not None or target_source_index is not None:
+        return _nominal_source(_resolve_target_identity(target_source_key if target_source_key is not None else target_source_index, catalog_token, catalog_tokens), nominal_radius_deg)
     if None in {target_ra_deg, target_dec_deg, target_radius_deg}:
         raise HTTPException(status_code=422, detail="target source index or complete target coordinates are required")
     return Source(
@@ -1033,7 +1179,8 @@ def _api_target(
 
 @app.get("/api/v1/windows/zenith-overlay")
 def zenith_overlay(
-    source_index: int = Query(..., ge=0),
+    source_index: Optional[int] = Query(None, ge=0),
+    source_key: Optional[str] = Query(None, max_length=256),
     start_time: datetime = Query(...),
     end_time: datetime = Query(...),
     catalog_token: Optional[str] = Query(None),
@@ -1056,7 +1203,10 @@ def zenith_overlay(
     _validate_iers_range(start, end)
     samples = min(1441, max(2, int((end - start).total_seconds() // 60) + 1))
     times = [datetime.fromtimestamp(value, timezone.utc) for value in np.linspace(start.timestamp(), end.timestamp(), samples)]
-    source = selected.get(source_index)
+    try:
+        source = _resolve_target_identity(source_key if source_key is not None else source_index, catalog_token)
+    except (KeyError, ValueError, TypeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     series = compute_geometry(source, times, telescope)
     return {
         "source": source.to_dict(),
@@ -1069,16 +1219,20 @@ def zenith_overlay(
 @app.get("/api/v1/windows/plot-overlay")
 def plot_overlay(
     comparison_source_index: List[int] = Query(default=[]),
+    comparison_source_key: List[str] = Query(default=[]),
     comparison_colour: List[str] = Query(default=[]),
     comparison_line_style: List[str] = Query(default=[]),
     start_time: datetime = Query(...),
     end_time: datetime = Query(...),
     target_source_index: Optional[int] = Query(None, ge=0),
+    target_source_key: Optional[str] = Query(None, max_length=256),
+    nominal_radius_deg: Optional[float] = Query(None, gt=0, le=90),
     target_ra_deg: Optional[float] = Query(None, ge=0, lt=360),
     target_dec_deg: Optional[float] = Query(None, ge=-90, le=90),
     target_radius_deg: Optional[float] = Query(None, gt=0, le=90),
     target_name: Optional[str] = Query(None, max_length=80),
     catalog_token: Optional[str] = Query(None),
+    catalog_tokens: Optional[str] = Query(None, max_length=4000),
     theme: str = Query("light", pattern="^(light|dark)$"),
     timezone_label: str = Query("UTC", max_length=40),
     constraints: ConstraintSet = Depends(_query_constraints),
@@ -1091,12 +1245,15 @@ def plot_overlay(
     changing the selected target, windows or observing plan.
     """
     try:
-        selected = _resolve_catalogue(catalog_token)
-        target = _api_target(selected, target_source_index, target_ra_deg, target_dec_deg, target_radius_deg, target_name)
+        selected = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
+        target = _api_target(selected, target_source_index, target_ra_deg, target_dec_deg, target_radius_deg, target_name, target_source_key, nominal_radius_deg, catalog_token, catalog_tokens)
         comparison_indexes = list(dict.fromkeys(comparison_source_index))
         if any(index < 0 for index in comparison_indexes):
             raise ValueError("comparison source indexes must be non-negative")
-        comparisons = [selected.get(index) for index in comparison_indexes]
+        identities = comparison_source_key or comparison_indexes
+        if len(identities) > 32:
+            raise ValueError("at most 32 comparison sources are allowed")
+        comparisons = [_resolve_target_identity(identity, catalog_token, catalog_tokens) for identity in dict.fromkeys(identities)]
         default_colours = ["#ff8c42", "#8b5cf6", "#00a6a6", "#d14f9b", "#8a9a22", "#7a6ff0"]
         colours = [
             value if re.fullmatch(r"#[0-9A-Fa-f]{6}", value) else default_colours[index % len(default_colours)]
@@ -1136,19 +1293,26 @@ def plot_overlay(
 def local_fov(
     at_time: datetime = Query(...),
     target_source_index: Optional[int] = Query(None, ge=0),
+    target_source_key: Optional[str] = Query(None, max_length=256),
+    nominal_radius_deg: Optional[float] = Query(None, gt=0, le=90),
     target_ra_deg: Optional[float] = Query(None, ge=0, lt=360),
     target_dec_deg: Optional[float] = Query(None, ge=-90, le=90),
     target_radius_deg: Optional[float] = Query(None, gt=0, le=90),
     target_name: Optional[str] = Query(None, max_length=80),
     catalog_token: Optional[str] = Query(None),
+    catalog_tokens: Optional[str] = Query(None, max_length=4000),
     language: str = Query("en", pattern="^(en|zh)$"),
+    display_frame: str = Query(DEFAULT_DISPLAY_COORDINATE_FRAME, pattern="^(altaz|j2000|galactic)$"),
+    zoom: float = Query(1.0, ge=1, le=1000),
+    bounds: Optional[str] = Query(None, max_length=200),
+    grid_step_deg: Optional[float] = Query(None, gt=0, le=90),
     constraints: ConstraintSet = Depends(_query_constraints),
     telescope: TelescopeConfig = Depends(_telescope_query),
 ) -> dict:
     """Render the selected target's local FoV in the requested UI language."""
     try:
-        selected = _resolve_catalogue(catalog_token)
-        target = _api_target(selected, target_source_index, target_ra_deg, target_dec_deg, target_radius_deg, target_name)
+        selected = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
+        target = _api_target(selected, target_source_index, target_ra_deg, target_dec_deg, target_radius_deg, target_name, target_source_key, nominal_radius_deg, catalog_token, catalog_tokens)
     except (ValueError, KeyError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     moment = at_time.replace(tzinfo=SITE_TIMEZONE) if at_time.tzinfo is None else at_time
@@ -1156,7 +1320,7 @@ def local_fov(
     _validate_iers_range(moment, moment)
     status = source_status(target, moment, constraints, telescope)
     return {
-        "svg": render_local_fov_svg(target, selected.sources, moment, status.to_dict(), telescope, language),
+        "svg": render_local_fov_svg(target, selected.sources, moment, status.to_dict(), telescope, language, display_frame, zoom, _map_bounds(bounds), grid_step_deg),
         "source": target.to_dict(),
     }
 
@@ -1170,11 +1334,15 @@ def windows_calculate(payload: WindowRequest) -> dict:
     after the operator selects a concrete source.
     """
     _validate_iers_range(payload.start_utc, payload.end_utc)
+    try:
+        selected = _catalogue_collection(_resolve_catalogues(payload.catalog_token, payload.catalog_tokens))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     if payload.all_sources:
         fov_constraints = _current_fov_constraints(payload.constraints, LACT_TELESCOPE)
-        _, start_snapshot = render_all_sky_svg(catalog.sources, payload.start_utc, ConstraintSet())
+        _, start_snapshot = render_all_sky_svg(selected.sources, payload.start_utc, ConstraintSet())
         candidates = [
-            catalog.get(item["index"])
+            selected.get(item["index"])
             for item in start_snapshot["sources"]
             if item["geometry"]["target_pointing_separation_deg"] <= LACT_TELESCOPE.fov_radius_deg
         ]
@@ -1193,11 +1361,15 @@ def windows_calculate(payload: WindowRequest) -> dict:
             "target_mode": "current_lact_fov_fixed_zenith",
             "pointing": {"altitude_deg": 90.0, "azimuth_deg": 0.0},
             "constraints": fov_constraints.model_dump(), "results": results,
-            "fov_diameter_deg": FOV_DIAMETER_DEG, "catalogue_sha256": catalog.sha256,
+            "fov_diameter_deg": FOV_DIAMETER_DEG, "catalogue_sha256": selected.sha256,
+            "catalogues": [_catalogue_metadata(table) for table in selected.catalogues],
             "geometry_only": True,
         }
-    if payload.source_index is not None:
-        source = catalog.get(payload.source_index)
+    if payload.source_index is not None or payload.source_key is not None:
+        try:
+            source = _nominal_source(_resolve_target_identity(payload.source_key if payload.source_key is not None else payload.source_index, payload.catalog_token, payload.catalog_tokens), payload.nominal_radius_deg)
+        except (KeyError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
     else:
         assert payload.region_ra_deg is not None and payload.region_dec_deg is not None and payload.region_radius_deg is not None
         source = Source(
@@ -1217,6 +1389,6 @@ def windows_calculate(payload: WindowRequest) -> dict:
         "target_mode": "catalogue_source" if source.index >= 0 else "custom_region",
         "fov_diameter_deg": FOV_DIAMETER_DEG, "fov_radius_deg": FOV_RADIUS_DEG,
         "joint_observation_evaluated": False, "weather_evaluated": False,
-        "telemetry_evaluated": False, "catalogue_sha256": catalog.sha256,
+        "telemetry_evaluated": False, "catalogue_sha256": _source_catalogue_sha256(source),
     })
     return response

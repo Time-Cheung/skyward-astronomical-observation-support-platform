@@ -1,16 +1,23 @@
+# EXAMPLE ONLY: replace user/group, project and cache paths before installation.
+# Local-only default. For controlled LAN access use skyward-lan.service instead.
+# Reviewing this repository file does not change an already installed service.
+# Create cache directories owned by the service user before starting (see guides).
 [Unit]
-Description=LACT geometry observation window planner
+Description=Skyward LACT geometry planner (legacy name, local only)
 After=network.target
 
 [Service]
 Type=simple
-User=lact
-Group=lact
-WorkingDirectory=/home/lact/wz/lact-window-planner
+User=skyward
+Group=skyward
+WorkingDirectory=/opt/skyward
 Environment=MPLCONFIGDIR=/var/cache/lact-window-planner/matplotlib
-ExecStart=/home/lact/wz/lact-window-planner/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Environment=SKYWARD_CACHE_DIR=/var/cache/lact-window-planner/data
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/skyward/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=on-failure
 RestartSec=5
+UMask=0027
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full

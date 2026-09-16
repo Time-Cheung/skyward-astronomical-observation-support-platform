@@ -1,0 +1,27 @@
+# EXAMPLE A: server-local only. Replace user/group, project and cache paths.
+# Before starting, create both cache subdirectories owned by this service user.
+# Do not also run the LAN example on port 8000. See bilingual deployment guides.
+[Unit]
+Description=Skyward geometry-only planner (server-local)
+After=network.target
+
+[Service]
+Type=simple
+User=skyward
+Group=skyward
+WorkingDirectory=/opt/skyward
+Environment=MPLCONFIGDIR=/var/cache/skyward-local/matplotlib
+Environment=SKYWARD_CACHE_DIR=/var/cache/skyward-local/data
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/skyward/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/var/cache/skyward-local
+
+[Install]
+WantedBy=multi-user.target

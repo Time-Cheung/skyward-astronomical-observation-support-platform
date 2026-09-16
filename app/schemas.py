@@ -55,6 +55,10 @@ class WindowRequest(BaseModel):
     # A source index, an all-catalogue request, or a custom J2000 circular
     # region is accepted. Exactly one target selection is required.
     source_index: Optional[int] = Field(default=None, ge=0)
+    source_key: Optional[str] = Field(default=None, min_length=1, max_length=256)
+    catalog_token: Optional[str] = None
+    catalog_tokens: Optional[str] = None
+    nominal_radius_deg: Optional[float] = Field(default=None, gt=0, le=90)
     all_sources: bool = False
     region_ra_deg: Optional[float] = Field(default=None, ge=0, lt=360)
     region_dec_deg: Optional[float] = Field(default=None, ge=-90, le=90)
@@ -84,7 +88,7 @@ class WindowRequest(BaseModel):
             raise ValueError("region_ra_deg, region_dec_deg and region_radius_deg must be supplied together")
         if self.region_name is not None and not region_requested:
             raise ValueError("region_name may only be supplied with a custom region")
-        target_count = int(self.source_index is not None) + int(self.all_sources) + int(region_requested)
+        target_count = int(self.source_index is not None or self.source_key is not None) + int(self.all_sources) + int(region_requested)
         if target_count != 1:
             raise ValueError("select exactly one of source_index, all_sources or a custom region")
         return self
