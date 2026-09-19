@@ -74,8 +74,8 @@
     <p data-i18n="footerDisclaimer">LAN prototype. Weather, device state, mechanical safety and LHAASO joint observation are not evaluated.</p>
   </footer>
 
-  <dialog id="calculation-dialog" class="source-dialog calculation-dialog" aria-labelledby="calculation-title" aria-describedby="calculation-help">
-    <div class="dialog-body"><h2 id="calculation-title">正在计算中 / Calculating…</h2><p id="calculation-help" data-i18n="calculationHelp">Please wait. No progress estimate is available.</p><p id="calculation-error" role="alert" hidden></p><button type="button" id="calculation-cancel" class="secondary-button" data-i18n="cancelCalculation" hidden>Close</button></div>
+  <dialog id="calculation-dialog" class="source-dialog calculation-dialog" aria-labelledby="calculation-title" aria-describedby="calculation-error">
+    <div class="calculation-dialog-content"><span class="calculation-spinner" aria-hidden="true"></span><h2 id="calculation-title" data-i18n="calculationInProgress">Calculating observation windows</h2><p id="calculation-error" class="dialog-error" role="alert" hidden></p><button type="button" id="calculation-cancel" class="secondary-button" data-i18n="returnToForm" hidden>Return to edit conditions</button></div>
   </dialog>
   <dialog id="source-dialog" class="source-dialog" aria-labelledby="dialog-title">
       <div class="dialog-head">

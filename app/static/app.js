@@ -18,7 +18,7 @@
       site: "站点", altitude: "海拔", geometryOnly: "仅几何判断", calculationContext: "计算上下文", footerDisclaimer: "局域网原型。未评估天气、设备状态、机械安全或 LHAASO 联合观测条件。",
       currentSky: "当前天区", homeTitle: "从源表到可解释的几何窗口。", homeLead: "浏览 190 个 2LHAASO 源，设置日月与天顶角约束，并比较中心与完整源窗口。",
       skySummary: "天区摘要", catalogue: "源表", aboveHorizon: "地平线上", belowHorizon: "地平线下", inputValidation: "输入校验", calculationConditions: "计算条件", windowPlanner: "观测窗口规划", blankDisables: "不可留空",
-      targetSource: "目标源", sourceSearchPlaceholder: "输入源名筛选，例如 J0534 或 Geminga", startTime: "开始时间", endTime: "结束时间", maximum31Days: "最长 1 天", optionalConstraints: "几何约束",
+      targetSource: "目标源", sourceSearchPlaceholder: "输入源名筛选，例如 J0534 或 Geminga", startTime: "开始时间", endTime: "结束时间", maximum31Days: "最长 30 天", optionalConstraints: "几何约束",
       sunMaxAltitude: "太阳最大高度角", sunPlaceholder: "例如 -18", sunConstraintHelp: "要求太阳高度 ≤ 此值", moonMinSeparation: "月亮最小角距", moonPlaceholder: "例如 30", moonConstraintHelp: "目标中心与月心角距",
       targetMinZenith: "目标最小天顶角", optional: "可留空", minZenithHelp: "避免过近天顶", targetMaxZenith: "目标最大天顶角", maxZenithPlaceholder: "例如 50", maxZenithHelp: "避免过近地平线",
       minimumWindow: "最短连续窗口", minimumWindowPlaceholder: "例如 1800", minimumWindowHelp: "0 表示不按持续时间筛除", calculateWindows: "计算窗口",
@@ -45,7 +45,7 @@
       site: "Site", altitude: "Altitude", geometryOnly: "GEOMETRY ONLY", calculationContext: "Calculation context", footerDisclaimer: "LAN prototype. Weather, device state, mechanical safety and LHAASO joint observation are not evaluated.",
       currentSky: "CURRENT SKY", homeTitle: "Turn a source catalogue into observable geometry.", homeLead: "Browse 190 2LHAASO sources, apply optional solar, lunar and zenith constraints, then compare centre and full-footprint windows.",
       skySummary: "Sky summary", catalogue: "Catalogue", aboveHorizon: "Above horizon", belowHorizon: "Below horizon", inputValidation: "Input validation", calculationConditions: "CALCULATION CONDITIONS", windowPlanner: "Window planner", blankDisables: "Cannot be blank",
-      targetSource: "Target source", sourceSearchPlaceholder: "Filter by source name, e.g. J0534 or Geminga", startTime: "Start time", endTime: "End time", maximum31Days: "Maximum 1 day", optionalConstraints: "Geometric constraints",
+      targetSource: "Target source", sourceSearchPlaceholder: "Filter by source name, e.g. J0534 or Geminga", startTime: "Start time", endTime: "End time", maximum31Days: "Maximum 30 days", optionalConstraints: "Geometric constraints",
       sunMaxAltitude: "Maximum Sun altitude", sunPlaceholder: "e.g. -18", sunConstraintHelp: "Require Sun altitude ≤ value", moonMinSeparation: "Minimum Moon separation", moonPlaceholder: "e.g. 30", moonConstraintHelp: "Between target centre and Moon",
       targetMinZenith: "Minimum target zenith angle", optional: "optional", minZenithHelp: "Avoid pointing too near zenith", targetMaxZenith: "Maximum target zenith angle", maxZenithPlaceholder: "e.g. 50", maxZenithHelp: "Avoid pointing too near horizon",
       minimumWindow: "Minimum continuous window", minimumWindowPlaceholder: "e.g. 1800", minimumWindowHelp: "0 keeps all durations", calculateWindows: "Calculate windows",
@@ -71,27 +71,27 @@
 
   // API contracts keep machine codes; the local UI maps them to readable bilingual labels.
   Object.assign(translations.zh, {
-    coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
-    homeTitle: 'V0版本：仅几何判断', homeLead: '目前仅导入2LHAASO源表。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
+    mapSymbolLegend: '地图符号', nonGaiaSource: '非 Gaia 源', gaiaSource: 'Gaia 定标星', trueExtension: '真实 extension', selectedTarget: '已选目标', calculationInProgress: '正在计算观测窗口', calculationFailed: '计算未能完成', returnToForm: '返回修改条件', coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
+    homeTitle: 'V0版本：仅几何判断', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
     allSkyNote: '颜色由当前指向、望远镜硬视场和默认几何约束共同判定。实时指向尚未接入，当前固定为天顶；点击源标记查看源详情。',
     telescopeSettings: '望远镜设置', telescope: '望远镜', lactTelescope: 'LACT', customTelescope: '自定义望远镜',
     telescopeFutureHelp: '当前已接入 LACT；后续可扩展其他望远镜。', customTelescopeHelp: '本次计算临时使用 WGS-84 配置，不会保存到服务器。',
     customLongitude: '经度（WGS-84）', customLatitude: '纬度（WGS-84）', customAltitude: '海拔', customTimezone: '本地 UTC 偏移', customFov: '望远镜视场直径',
     skyZoom: '全天图缩放', zoomIn: '放大', zoomOut: '缩小', zoomReset: '重置缩放',
     reasonAllPass: '所有已启用的几何条件均满足', reasonRangeStart: '请求时间范围起点', reasonRangeEnd: '请求时间范围终点', reasonBoundary: '约束边界', reasonBecameValid: '在以下条件恢复有效后', reasonBecameInvalid: '在以下条件失效后', reasonCentre: '源中心', reasonExtension: '源边缘',
-    altAz: '高度 / 方位', addZenithOverlay: '添加 Zenith - Time 曲线', removeZenithOverlay: '撤回 Zenith - Time 曲线', savePlot: '保存几何量与完整源窗口图（SVG）', chooseZoomCentre: '指定缩放中心', resultStatusMode: '全天图状态', statusInstant: '实时', statusTrajectory: '观测窗口', instantStatusExplanation: '实时：绿色表示完整源在当前时刻可观测，黄色表示仅源中心可观测，红色表示源中心不可观测。', trajectoryStatusExplanation: '观测窗口：目标源完整源窗口内的可观测性；所有源、太阳和月亮统一显示在目标源第一个完整源窗口的起始时刻（无完整源窗口时使用计算开始时刻）的位置。', trackedFovSource: '跟踪视场内源', refreshRealtime: '更新实时全天图/视场图', localFovMode: '局部视场模式', zenithCurveManagement: 'Zenith-Time 曲线管理', curveColour: '曲线颜色', curveLineStyle: '曲线线形', removeCurve: '删除曲线', confirmAddPlan: '确认添加', downloadObservationPlan: '下载观测计划', duplicatePlanPrompt: '该源已存在计划记录。请选择覆盖之前的记录、作为新条目添加，或放弃本次添加。', duplicatePlanKicker: '重复计划', duplicatePlanTitle: '该源已有保存的观测计划', overwritePrevious: '覆盖', addAsNewEntry: '作为新条目添加', cancelAddition: '放弃添加', noSavedPlan: '尚未保存观测计划。', legendGreenMeaning: '完整源可观测', legendYellowMeaning: '仅源中心可观测', legendRedMeaning: '源中心不可观测', uploadCatalogue: '上传源表（CSV）', catalogueUploadHelp: 'UTF-8 CSV：必须包含 name、ra、dec；可选 ext。上传仅临时保存在内存中。', catalogueUploading: '正在上传源表', catalogueUploaded: '源表已加载', catalogueUploadFailed: '源表上传失败',
+    altAz: '高度 / 方位', addZenithOverlay: '添加 Zenith - Time 曲线', removeZenithOverlay: '撤回 Zenith - Time 曲线', savePlot: '保存几何量与完整源窗口图（SVG）', chooseZoomCentre: '指定缩放中心', resultStatusMode: '全天图状态', statusInstant: '实时', statusTrajectory: '观测窗口', instantStatusExplanation: '实时：绿色表示完整源在当前时刻可观测，黄色表示仅源中心可观测，红色表示源中心不可观测。', trajectoryStatusExplanation: '观测窗口：目标源完整源窗口内的可观测性；所有源、太阳和月亮统一显示在目标源第一个完整源窗口的起始时刻（无完整源窗口时使用计算开始时刻）的位置。', trackedFovSource: '跟踪视场内源', refreshRealtime: '更新实时全天图/视场图', localFovMode: '局部视场模式', zenithCurveManagement: 'Zenith-Time 曲线管理', curveColour: '曲线颜色', curveLineStyle: '曲线线形', removeCurve: '删除曲线', confirmAddPlan: '确认添加', downloadObservationPlan: '下载观测计划', duplicatePlanPrompt: '该源已存在计划记录。请选择覆盖之前的记录、作为新条目添加，或放弃本次添加。', duplicatePlanKicker: '重复计划', duplicatePlanTitle: '该源已有保存的观测计划', overwritePrevious: '覆盖', addAsNewEntry: '作为新条目添加', cancelAddition: '放弃添加', noSavedPlan: '尚未保存观测计划。', legendGreenMeaning: '完整源可观测', legendYellowMeaning: '仅源中心可观测', legendRedMeaning: '源中心不可观测', uploadCatalogue: '上传源表（CSV）', chooseFile: '选择文件', catalogueUploadHelp: 'UTF-8 CSV：必须包含 name、ra、dec；可选 ext。上传仅临时保存在内存中。', catalogueUploading: '正在上传源表', catalogueUploaded: '源表已加载', catalogueUploadFailed: '源表上传失败',
     target_above_horizon: '目标高于地平线', target_inside_current_fov: '目标在当前视场内', sun_altitude: '太阳高度角', moon_separation: '月亮角距', target_min_zenith: '目标最小天顶角', target_max_zenith: '目标最大天顶角', extension_inside_fov: '源扩展落入视场', extension_inside_current_fov: '源扩展落入当前视场', extension_above_horizon: '源扩展高于地平线', extension_max_zenith: '源扩展不超出地平线限制', minimum_window: '最短连续窗口',
   });
   Object.assign(translations.en, {
-    coordinateFrame: "Coordinate frame", coordAltAz: "AltAz / Horizon", coordJ2000: "Equatorial (J2000)", coordGalactic: "Galactic", includeGaia: "Gaia DR3 calibration stars", iersSourceKind: "Active source", iersUpdate: "Update policy", iersLastError: "Last online error",
-    homeTitle: 'V0: geometry assessment only', homeLead: 'Currently imported: the 2LHAASO source catalogue.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
+    mapSymbolLegend: 'Map symbols', nonGaiaSource: 'Non-Gaia source', gaiaSource: 'Gaia calibration star', trueExtension: 'True extension', selectedTarget: 'Selected target', calculationInProgress: 'Calculating observation windows', calculationFailed: 'Calculation could not be completed', returnToForm: 'Return to edit conditions', coordinateFrame: "Coordinate frame", coordAltAz: "AltAz / Horizon", coordJ2000: "Equatorial (J2000)", coordGalactic: "Galactic", includeGaia: "Gaia DR3 calibration stars", iersSourceKind: "Active source", iersUpdate: "Update policy", iersLastError: "Last online error",
+    homeTitle: 'V0: geometry assessment only', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
     allSkyNote: 'Colours use the current pointing, telescope hard FoV and default geometric constraints. Pointing is fixed to zenith until telemetry is connected; select a star for details.',
     telescopeSettings: 'Telescope settings', telescope: 'Telescope', lactTelescope: 'LACT', customTelescope: 'Custom telescope',
     telescopeFutureHelp: 'LACT is active now; additional observatories can be connected later.', customTelescopeHelp: 'This temporary WGS-84 configuration is used only by this calculation and is not saved.',
     customLongitude: 'Longitude (WGS-84)', customLatitude: 'Latitude (WGS-84)', customAltitude: 'Altitude', customTimezone: 'Local UTC offset', customFov: 'Telescope FoV diameter',
     skyZoom: 'Sky map zoom', zoomIn: 'Zoom in', zoomOut: 'Zoom out', zoomReset: 'Reset zoom',
     reasonAllPass: 'All enabled geometry conditions pass', reasonRangeStart: 'Requested-range start', reasonRangeEnd: 'Requested-range end', reasonBoundary: 'Constraint boundary', reasonBecameValid: 'Became valid after', reasonBecameInvalid: 'Became invalid after', reasonCentre: 'Target centre', reasonExtension: 'Source edge',
-    altAz: 'Alt / Az', addZenithOverlay: 'Add Zenith - Time curve', removeZenithOverlay: 'Remove Zenith - Time curve', savePlot: 'Save geometry and full-footprint plot (SVG)', chooseZoomCentre: 'Choose centre', resultStatusMode: 'Map status', statusInstant: 'Real-time', statusTrajectory: 'Observation window', instantStatusExplanation: 'Real-time: green means the full source is observable now, yellow means only its centre is observable, and red means its centre is unavailable.', trajectoryStatusExplanation: 'Observation window: observability inside the target full-footprint windows; all sources, Sun and Moon are shown at the target first full-footprint-window start, or the calculation start when none exists.', trackedFovSource: 'Tracked-FoV source', refreshRealtime: 'Refresh live all-sky / FoV maps', localFovMode: 'Local FoV mode', zenithCurveManagement: 'Zenith-Time curve management', curveColour: 'Curve colour', curveLineStyle: 'Curve line style', removeCurve: 'Remove curve', confirmAddPlan: 'Confirm addition', downloadObservationPlan: 'Download observing plan', duplicatePlanPrompt: 'A plan for this source already exists. Choose overwrite, add as a new entry, or cancel this addition.', duplicatePlanKicker: 'Duplicate plan', duplicatePlanTitle: 'This source already has a saved plan', overwritePrevious: 'Overwrite', addAsNewEntry: 'Add as new entry', cancelAddition: 'Cancel addition', noSavedPlan: 'No observing plan has been saved.', legendGreenMeaning: 'Full source observable', legendYellowMeaning: 'Centre only', legendRedMeaning: 'Centre unavailable', uploadCatalogue: 'Upload source catalogue (CSV)', catalogueUploadHelp: 'UTF-8 CSV: name, ra, dec are required; ext is optional. Uploads are temporary and stored only in memory.', catalogueUploading: 'Uploading catalogue', catalogueUploaded: 'Catalogue loaded', catalogueUploadFailed: 'Catalogue upload failed',
+    altAz: 'Alt / Az', addZenithOverlay: 'Add Zenith - Time curve', removeZenithOverlay: 'Remove Zenith - Time curve', savePlot: 'Save geometry and full-footprint plot (SVG)', chooseZoomCentre: 'Choose centre', resultStatusMode: 'Map status', statusInstant: 'Real-time', statusTrajectory: 'Observation window', instantStatusExplanation: 'Real-time: green means the full source is observable now, yellow means only its centre is observable, and red means its centre is unavailable.', trajectoryStatusExplanation: 'Observation window: observability inside the target full-footprint windows; all sources, Sun and Moon are shown at the target first full-footprint-window start, or the calculation start when none exists.', trackedFovSource: 'Tracked-FoV source', refreshRealtime: 'Refresh live all-sky / FoV maps', localFovMode: 'Local FoV mode', zenithCurveManagement: 'Zenith-Time curve management', curveColour: 'Curve colour', curveLineStyle: 'Curve line style', removeCurve: 'Remove curve', confirmAddPlan: 'Confirm addition', downloadObservationPlan: 'Download observing plan', duplicatePlanPrompt: 'A plan for this source already exists. Choose overwrite, add as a new entry, or cancel this addition.', duplicatePlanKicker: 'Duplicate plan', duplicatePlanTitle: 'This source already has a saved plan', overwritePrevious: 'Overwrite', addAsNewEntry: 'Add as new entry', cancelAddition: 'Cancel addition', noSavedPlan: 'No observing plan has been saved.', legendGreenMeaning: 'Full source observable', legendYellowMeaning: 'Centre only', legendRedMeaning: 'Centre unavailable', uploadCatalogue: 'Upload source catalogue (CSV)', chooseFile: 'Choose file', catalogueUploadHelp: 'UTF-8 CSV: name, ra, dec are required; ext is optional. Uploads are temporary and stored only in memory.', catalogueUploading: 'Uploading catalogue', catalogueUploaded: 'Catalogue loaded', catalogueUploadFailed: 'Catalogue upload failed',
     target_above_horizon: 'target above horizon', target_inside_current_fov: 'target inside current FoV', sun_altitude: 'Sun altitude', moon_separation: 'Moon separation', target_min_zenith: 'minimum target zenith angle', target_max_zenith: 'maximum target zenith angle', extension_inside_fov: 'extension inside FoV', extension_inside_current_fov: 'extension inside current FoV', extension_above_horizon: 'extension above horizon', extension_max_zenith: 'extension within horizon limit', minimum_window: 'minimum continuous window',
   });
   Object.assign(translations.zh, {
@@ -368,8 +368,38 @@
 
   const statusClass = (status) => ['GREEN','YELLOW','RED','UNKNOWN'].includes(status) ? status.toLowerCase() : 'unknown';
 
+  const tevcatDetailMarkup = (data) => {
+    const notes=data.notes || {}, physical=notes.physical_fields || {}, discovery=notes.discovery || {}, state=value => value?.value ?? value ?? translate('noData');
+    const aliases=Array.isArray(notes.aliases) && notes.aliases.length ? notes.aliases.join(', ') : translate('noData');
+    const source=safeExternalUrl(notes.source_url);
+    return `<section class="detail-section"><h3>TeVCat</h3><dl class="detail-grid">
+      <div><dt>Catalogue ID</dt><dd>${escapeHtml(displayValue(notes.catalogue_source_id))}</dd></div>
+      <div><dt>Category</dt><dd>${escapeHtml(displayValue(notes.catalogue_group))}</dd></div>
+      <div><dt>Aliases</dt><dd>${escapeHtml(aliases)}</dd></div>
+      <div><dt>Discovery</dt><dd>${escapeHtml(displayValue(state(discovery.date)))} / ${escapeHtml(displayValue(state(discovery.observatory)))}</dd></div>
+      <div><dt>Reported extension</dt><dd>${escapeHtml(displayValue(state(physical.reported_extent)))}</dd></div>
+      <div><dt>Flux / spectral index</dt><dd>${escapeHtml(displayValue(state(physical.reported_flux)))} / ${escapeHtml(displayValue(state(physical.spectral_index)))}</dd></div>
+      <div><dt>Distance / variability</dt><dd>${escapeHtml(displayValue(state(physical.distance_or_redshift)))} / ${escapeHtml(displayValue(state(physical.variability)))}</dd></div>
+      <div><dt>Source</dt><dd>${source ? `<a href="${escapeHtml(source)}" rel="noreferrer">www.tevcat.org</a>` : escapeHtml(translate('noData'))}</dd></div>
+    </dl><p>${escapeHtml(notes.public_notes?.summary || (notes.public_notes?.available ? 'Public notes are available at the source site; raw HTML is not redistributed.' : 'No public note was provided for this record.'))}</p></section>`;
+  };
+  const gaiaDetailMarkup = (data) => {
+    const fields=data.notes?.query_fields || {}, distance=data.notes?.distance || {}, val=(value, unit='') => value === null || value === undefined ? escapeHtml(translate('noData')) : escapeHtml(String(value)) + unit;
+    return `<section class="detail-section"><h3>Gaia DR3</h3><dl class="detail-grid">
+      <div><dt>Source ID</dt><dd>${escapeHtml(String(data.source_id || data.original_id || data.name || ''))}</dd></div>
+      <div><dt>G / BP / RP</dt><dd>${val(fields.phot_g_mag,' mag')} / ${val(fields.phot_bp_mag,' mag')} / ${val(fields.phot_rp_mag,' mag')}</dd></div>
+      <div><dt>BP-RP</dt><dd>${val(fields.bp_rp_mag,' mag')}</dd></div>
+      <div><dt>Parallax</dt><dd>${val(fields.parallax_mas,' mas')} ± ${val(fields.parallax_error_mas,' mas')}</dd></div>
+      <div><dt>Inverse-parallax distance</dt><dd>${val(distance.inverse_parallax_distance_pc,' pc')}</dd></div>
+      <div><dt>PM RA / Dec</dt><dd>${val(fields.pmra_mas_per_year,' mas/yr')} / ${val(fields.pmdec_mas_per_year,' mas/yr')}</dd></div>
+      <div><dt>RUWE / visibility periods</dt><dd>${val(fields.ruwe)} / ${val(fields.visibility_periods_used)}</dd></div>
+      <div><dt>Reference epoch</dt><dd>${escapeHtml(displayValue(data.notes?.reference_epoch))}</dd></div>
+    </dl><p>Inverse-parallax distance is a simple 1/parallax estimate without a prior or uncertainty correction.</p></section>`;
+  };
+
   const detailMarkup = (data) => {
     const status = data.status || {}, geometry = status.geometry || {}, enrichment = data.enrichment || {}, reasons = status.reasons || [];
+    const catalogueSpecific = data.catalogue_id === "tevcat" ? tevcatDetailMarkup(data) : data.source_type === "gaia" ? gaiaDetailMarkup(data) : "";
     const centreLabel = status.center_pass ? translate("centrePass") : translate("centreFail");
     const footprintLabel = status.footprint_pass ? translate("footprintPass") : translate("footprintFail");
     const measured = (value, digits = 3) => (value === null || value === undefined || value === "")
@@ -389,7 +419,8 @@
         <div><dt>${escapeHtml(translate("sunAltitude"))}</dt><dd>${Number(geometry.sun_altitude_deg).toFixed(2)}°</dd></div>
       </dl>
       <section class="detail-section"><h3>${escapeHtml(translate("statusReasons"))}</h3><ul class="reason-list">${reasons.map((reason) => `<li>${escapeHtml(formatReason(reason))}</li>`).join("")}</ul></section>
-      <section class="detail-section"><h3>${escapeHtml(translate("enrichment"))}</h3><dl class="detail-grid">
+      ${catalogueSpecific}
+      <section class="detail-section" ${data.catalogue_id === "2lhaaso" ? "" : "hidden"}><h3>${escapeHtml(translate("enrichment"))}</h3><dl class="detail-grid">
         <div><dt>Spectral model</dt><dd>${escapeHtml(displayValue(enrichment.spectral_model))}</dd></div>
         <div><dt>Spatial model</dt><dd>${escapeHtml(displayValue(enrichment.spatial_model))}</dd></div>
         <div><dt>Distance</dt><dd>${escapeHtml(displayValue(enrichment.distance))}</dd></div>
@@ -931,15 +962,18 @@
     picker?.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); cancelDraft(); } });
     document.addEventListener('click', event => { if (!picker?.hidden && !event.target.closest('[data-catalogue-panel]')) cancelDraft(); });
     fetch('/api/v1/catalogues').then(response=>response.json()).then(data=>{
-      (data.catalogues || []).forEach(item=>{
+      window.skywardCatalogues=data.catalogues || [];
+      (window.skywardCatalogues).forEach(item=>{
         const checkbox=catalogueCheckboxes().find(input=>input.value===item.identifier);
-        if(checkbox)checkbox.parentElement.querySelector('span').textContent=item.label;
+        if(checkbox)checkbox.parentElement.querySelector('span').textContent=item.display?.[getLanguage()] || item.label;
         if(checkbox && item.available===false){checkbox.disabled=true;checkbox.title=item.error || translate('unavailable');}
       });
       syncCatalogueSummary();
     }).catch(error=>{if(status)status.textContent=translate('catalogueLoadFailed')+': '+error.message;});
+    document.getElementById('catalogue-upload-trigger')?.addEventListener('click',()=>document.getElementById('catalogue-upload')?.click());
     document.getElementById('catalogue-upload')?.addEventListener('change',async event=>{
       const file=event.target.files?.[0]; if(!file)return;
+      const uploadName=document.getElementById('catalogue-upload-name'); if(uploadName)uploadName.textContent=file.name;
       const uploadStatus=document.getElementById('catalogue-upload-status'); uploadStatus.textContent=translate('catalogueUploading');
       try {
         const body=new FormData();body.append('file',file);const response=await fetch('/api/v1/catalogues/upload',{method:'POST',body});const data=await response.json();if(!response.ok)throw new Error(data.detail || 'HTTP '+response.status);
@@ -948,7 +982,13 @@
         uploadStatus.textContent=translate('catalogueUploaded'); setCatalogueOpen(true); checkbox.checked=true; if(status)status.textContent=translate('catalogueDraftChanged');
       } catch(error){uploadStatus.textContent=translate('catalogueUploadFailed')+': '+error.message;}
     });
-    document.addEventListener('skyward:language-change',()=>{renderSourcePicker();syncCatalogueSummary();});
+    document.addEventListener('skyward:language-change',()=>{
+      document.querySelectorAll('[data-catalogue-id]').forEach(checkbox=>{
+        const item=(window.skywardCatalogues || []).find(row=>row.identifier===checkbox.value);
+        if(item)checkbox.parentElement.querySelector('span').textContent=item.display?.[getLanguage()] || item.label;
+      });
+      renderSourcePicker();syncCatalogueSummary();
+    });
     syncCatalogueSummary(); syncLabel(); renderSourcePicker(); load();
   };
 
@@ -995,7 +1035,15 @@
     if(!gaiaSelected())return;
     const state=gaiaRequests.get(frame) || {generation:0}; const generation=state.generation;
     const controller=new AbortController();Object.assign(state,{controller,state:'loading',kind});gaiaRequests.set(frame,state);renderGaiaStatus();
-    const params=new URLSearchParams(mapParams); params.set('map_kind',kind);params.set('radius_deg','5');params.set('limit','500');params.set('max_mag','18');
+    const params=new URLSearchParams(mapParams); params.set('map_kind',kind);params.set('limit','500');params.set('max_mag','18');
+    if(kind === 'current') {
+      // All-sky Gaia follows its own camera centre. It must not inherit the
+      // result target, which belongs exclusively to the local FoV layer.
+      params.delete('selected_source_key'); params.delete('target_source_key');
+      params.delete('target_ra_deg'); params.delete('target_dec_deg');
+      const zoom=Math.max(1, Number(frame.dataset.zoom) || 1);
+      params.set('radius_deg', String(Math.max(.1, Math.min(15, 15 / Math.sqrt(zoom)))));
+    } else params.set('radius_deg','5');
     if(params.has('trajectory_display_time'))params.set('at_time',params.get('trajectory_display_time'));
     try {
       const response=await fetch('/api/v1/gaia?'+params,{signal:controller.signal});const data=await response.json();

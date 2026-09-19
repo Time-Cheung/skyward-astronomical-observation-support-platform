@@ -406,15 +406,16 @@ class EnrichmentStore:
 class JSONCatalog:
     """Reviewed normalized table, preserving original identity and notes."""
 
-    def __init__(self, path: Path, identifier: str, offset: int, expected: int):
+    def __init__(self, path: Path, identifier: str, offset: int, expected: int | None):
         raw = path.read_bytes()
         payload = json.loads(raw)
-        if payload.get("schema_version") != 1 or payload.get("catalogue_id") != identifier:
+        if payload.get("schema_version") not in (1, 2) or payload.get("catalogue_id") != identifier:
             raise CatalogError(f"Invalid catalogue envelope: {path}")
         self.identifier, self.label = identifier, payload["label"]
+        self.display = payload.get("display", {}) if isinstance(payload.get("display", {}), dict) else {}
         self.sha256, self.provenance = _hash_bytes(raw), payload.get("provenance", {})
         rows = payload["sources"]
-        if len(rows) != expected:
+        if expected is not None and len(rows) != expected:
             raise CatalogError(f"Expected {expected} {identifier} rows, found {len(rows)}")
         self.sources = []
         seen = set()
@@ -450,7 +451,7 @@ class JSONCatalog:
 BUILTIN_CATALOGUES = {
     "fermi-fl16y": ("Fermi FL16Y", 10_000, 7224),
     "fermi-3fhl": ("Fermi 3FHL", 30_000, 1556),
-    "tevcat": ("TeVCat", 40_000, 361),
+    "tevcat": ("TeVCat", 40_000, None),
 }
 _BUILTIN_CACHE = {}
 
@@ -483,7 +484,7 @@ def resolve_source(identity: int | str) -> Source:
     if 0 <= index < CATALOG_EXPECTED_ROWS:
         return catalog.get(index)
     for identifier, (_, offset, count) in BUILTIN_CATALOGUES.items():
-        if offset <= index < offset + count:
+        if count is not None and offset <= index < offset + count:
             return installed_catalogue(identifier).get(index)
     temporary_catalogues._purge()
     for table in list(temporary_catalogues._catalogues.values()):

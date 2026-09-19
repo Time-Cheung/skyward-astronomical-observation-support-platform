@@ -255,10 +255,11 @@ def _styles(zoom: float) -> str:
 .sky-map-svg .coordinate-grid,.fov-map-svg .coordinate-grid{{fill:none;stroke:var(--line,#667085);stroke-width:1;stroke-opacity:.5;vector-effect:non-scaling-stroke;stroke-dasharray:3 7}}
 .sky-map-svg .source-marker,.fov-map-svg .source-marker{{color:var(--blue,#608fea);cursor:pointer}}
 .sky-map-svg .status-green{{color:var(--green,#47a976)}} .sky-map-svg .status-yellow{{color:var(--yellow,#c9a200)}} .sky-map-svg .status-red{{color:var(--red,#d45962)}}
-.sky-map-svg .trajectory-highlight{{color:#8b5cf6}}
-.sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol{{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
-.sky-map-svg .source-type-gaia polygon,.fov-map-svg .source-type-gaia polygon{{fill:currentColor;stroke:currentColor;stroke-width:1.5;vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
-.sky-map-svg .extension-ring,.fov-map-svg .extension-ring{{fill:none;stroke:currentColor;stroke-width:1.35;stroke-opacity:.58;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;transform:none;filter:none;pointer-events:none}}
+.sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol,.sky-map-svg .source-marker .tracking-ring,.fov-map-svg .source-marker .tracking-ring{{vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
+.sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol{{fill:currentColor;stroke:var(--sky,#101827);stroke-width:1.2}}
+.sky-map-svg .source-marker.selected-source .source-symbol,.fov-map-svg .source-marker.selected-source .source-symbol{{stroke:var(--blue,#608fea);stroke-width:2.4}}
+.sky-map-svg .tracking-ring,.fov-map-svg .tracking-ring{{fill:none;stroke:#8b5cf6;stroke-width:2.2;pointer-events:none}}
+.sky-map-svg .extension-ring,.fov-map-svg .extension-ring{{fill:none;stroke:#00b8c6;stroke-width:1.6;stroke-opacity:.9;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;transform:none;filter:none;pointer-events:none}}
 .sky-map-svg .source-marker [data-hit-target="true"],.fov-map-svg .source-marker [data-hit-target="true"]{{fill:transparent!important;stroke:none!important;stroke-width:0!important;filter:none!important;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center;pointer-events:all}}
 .sky-map-svg .realtime-fov-ring,.fov-map-svg .fov-ring{{fill:none;stroke:var(--blue,#608fea);stroke-width:3;vector-effect:non-scaling-stroke;pointer-events:none}}
 .sky-map-svg .coordinate-tick,.fov-map-svg .coordinate-tick{{fill:var(--muted,#8993a7);fill-opacity:.66;font-weight:500;pointer-events:none;paint-order:stroke;stroke:var(--sky,#101827);stroke-opacity:.42;stroke-width:{1 / zoom:.9f}px}}
@@ -287,16 +288,23 @@ def _marker(source: Source, coordinate: Optional[SkyCoord], p: _Projection, zoom
     key = source.source_key
     kind = "gaia" if source.source_type == "gaia" else "catalogue"
     candidate = " calibration-candidate" if kind == "gaia" else ""
+    classes = extra.split()
+    selected = "selected-source" in classes
+    tracked = "trajectory-highlight" in classes and not selected
     attrs = f'data-source-index="{source.index}" data-source-key="{_esc(key)}"'
     pieces = [f'<g class="source-marker source-type-{kind}{candidate}{extra}" {attrs} data-x="{x:.9f}" data-y="{y:.9f}" data-below-horizon="{str(below).lower()}" role="button" tabindex="0" aria-label="{_esc(title)}"><title>{_esc(title)}</title>']
     if source.ext > 0 and getattr(source, "footprint_known", True) and not below and kind != "gaia":
         # ext is an angular radius, not a marker or a hit-test radius.
         pieces.append(f'<path class="extension-ring" data-angular-radius-deg="{source.ext:.9f}" d="{p.path(_boundary(source_coord(source), source.ext))}" />')
-    if kind == "gaia":
-        pieces.append(f'<polygon points="{_star_points(x, y, 8 / zoom, 3.2 / zoom)}" />')
+    if tracked:
+        pieces.append(f'<circle class="tracking-ring" cx="{x:.9f}" cy="{y:.9f}" r="{12 / zoom:.9f}" />')
+    if selected or kind != "gaia":
+        outer, inner = ((12 / zoom, 5 / zoom) if selected else (7 / zoom, 3 / zoom))
+        selected_symbol = " selected-symbol" if selected else ""
+        pieces.append(f'<polygon class="source-symbol source-star{selected_symbol}" points="{_star_points(x, y, outer, inner)}" data-symbol-only="true" />')
     else:
-        pieces.append(f'<circle cx="{x:.9f}" cy="{y:.9f}" r="{3.5 / zoom:.9f}" class="source-symbol" data-symbol-only="true" />')
-    pieces.append(f'<circle class="source-hit-target" cx="{x:.9f}" cy="{y:.9f}" r="{9 / zoom:.9f}" data-hit-target="true" style="fill:transparent;stroke:none;stroke-width:0;filter:none" /></g>')
+        pieces.append(f'<circle cx="{x:.9f}" cy="{y:.9f}" r="{4.5 / zoom:.9f}" class="source-symbol gaia-dot" data-symbol-only="true" />')
+    pieces.append(f'<circle class="source-hit-target" cx="{x:.9f}" cy="{y:.9f}" r="{14 / zoom:.9f}" data-hit-target="true" style="fill:transparent;stroke:none;stroke-width:0;filter:none" /></g>')
     return "".join(pieces)
 
 

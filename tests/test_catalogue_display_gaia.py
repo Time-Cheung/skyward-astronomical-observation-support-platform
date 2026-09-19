@@ -34,25 +34,27 @@ def test_catalogue_collection_search_is_sorted_and_preserves_identity():
     assert len(CatalogCollection([first, first, second]).sources) == 3
 
 
-def test_sky_map_uses_hollow_circles_and_gaia_stars():
+def test_sky_map_uses_catalogue_stars_and_gaia_solid_dots():
     ordinary = _source(0, "ordinary")
     gaia = Source(1, "123", 0.0, None, 11.0, 21.0, 0.0, 0.0, None, "Gaia DR3", "gaia", 12.3,
                   catalogue_id="gaia-dr3", original_id="123")
     svg, snapshot = render_all_sky_svg([ordinary, gaia], datetime(2026, 12, 15, 16, tzinfo=timezone.utc), ConstraintSet())
-    assert 'source-type-catalogue' in svg and '<circle cx=' in svg
-    assert 'source-type-gaia' in svg and '<polygon points=' in svg
+    assert 'source-type-catalogue' in svg and 'source-star' in svg
+    assert 'source-type-gaia' in svg and 'gaia-dot' in svg
     assert 'data-source-key="gaia-dr3:123"' in svg
     assert snapshot["display_frame"] == "altaz"
 
 
 def test_gaia_csv_parser_keeps_magnitude_and_rejects_bad_schema():
-    payload = b"source_id,ra,dec,phot_g_mean_mag\n3403822609273809792,10.0,20.0,13.2\n"
+    payload = b"source_id,ra,dec,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,bp_rp,ruwe,visibility_periods_used\n3403822609273809792,10.0,20.0,2,0.2,1,0.1,2,0.1,13.2,13.6,12.8,0.8,1.1,12\n"
     rows = _parse_csv(payload, 10)
     assert rows[0].is_calibration_star is True
     assert rows[0].gaia_mag == 13.2
     assert rows[0].source_key == "gaia-dr3:3403822609273809792"
     assert rows[0].to_dict()["source_id"] == "3403822609273809792"
     assert rows[0].notes["proper_motion_applied"] is False
+    assert rows[0].notes["query_fields"]["parallax_mas"] == 2
+    assert rows[0].notes["distance"]["inverse_parallax_distance_pc"] == 500
     with pytest.raises(GaiaQueryError, match="missing source_id/ra/dec"):
         _parse_csv(b"source_id,ra\n123,10\n", 10)
 
@@ -61,7 +63,7 @@ def test_gaia_query_success_and_network_failure_are_bounded(monkeypatch):
     import app.gaia as gaia
     gaia._CACHE.clear()
     calls = []
-    payload = b"source_id,ra,dec,phot_g_mean_mag\n456,10.0,20.0,14.1\n"
+    payload = b"source_id,ra,dec,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,bp_rp,ruwe,visibility_periods_used\n456,10.0,20.0,2,0.2,1,0.1,2,0.1,14.1,14.5,13.7,0.8,1.1,12\n"
 
     def online(request, timeout, context):
         assert timeout == QUERY_TIMEOUT_SECONDS == 20
@@ -74,6 +76,7 @@ def test_gaia_query_success_and_network_failure_are_bounded(monkeypatch):
     moment = datetime(2026, 12, 15, 16, tzinfo=timezone.utc)
     sources, meta = gaia.query_gaia_stars(moment, LACT_TELESCOPE, radius_deg=0.11, limit=3, max_mag=17)
     assert sources[0].gaia_mag == 14.1
+    assert sources[0].notes["query_context"]["map_query_boundary"].startswith("bounded cone")
     assert meta["cached"] is False
     assert meta["bytes"] == len(payload) and meta["count"] == 1
     assert meta["truncated"] is False and meta["zero"] is False
@@ -124,13 +127,13 @@ def test_multiple_catalogues_are_combined_by_sources_api():
 def test_gaia_original_ids_that_collided_under_modulo_have_unique_presentation_indexes():
     # These two original IDs share their final 15 digits. No numeric hash or
     # truncation may merge the markers; cross-query identity stays string-only.
-    payload = b"source_id,ra,dec,phot_g_mean_mag\n3403822609273809792,10,20,12\n3404822609273809792,11,21,13\n"
+    payload = b"source_id,ra,dec,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,bp_rp,ruwe,visibility_periods_used\n3403822609273809792,10,20,,,,,,,,12,,,,,\n3404822609273809792,11,21,,,,,,,,13,,,,,\n"
     rows = _parse_csv(payload, 10)
     assert len({row.index for row in rows}) == 2
     assert all(row.index < 2 ** 53 for row in rows)
     assert len({row.source_key for row in rows}) == 2
     assert [row.to_dict()["source_id"] for row in rows] == ["3403822609273809792", "3404822609273809792"]
-    reversed_payload = b"source_id,ra,dec,phot_g_mean_mag\n3404822609273809792,11,21,13\n3403822609273809792,10,20,12\n"
+    reversed_payload = b"source_id,ra,dec,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,bp_rp,ruwe,visibility_periods_used\n3404822609273809792,11,21,,,,,,,,13,,,,,\n3403822609273809792,10,20,,,,,,,,12,,,,,\n"
     reversed_rows = _parse_csv(reversed_payload, 10)
     assert reversed_rows[1].source_key == rows[0].source_key
     assert reversed_rows[1].index != rows[0].index  # query-local presentation only

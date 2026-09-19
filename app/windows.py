@@ -134,8 +134,8 @@ def _effective_grid_step(constraints: ConstraintSet, requested_step: int) -> int
     """Choose a complete one-second candidate grid for the bounded request."""
     del constraints, requested_step
     # A one-second cadence is intentionally used for the candidate grid. The
-    # request duration is bounded to one day, so 86,401 samples fit below the
-    # explicit MAX_GRID_POINTS guard. Vectorized Astropy evaluation makes each
+    # request duration is bounded to thirty days, so 2,592,001 samples fit below
+    # the explicit MAX_GRID_POINTS guard; geometry remains chunked. Vectorized Astropy evaluation makes each
     # retained short window observable rather than assuming it cannot occur
     # between coarse samples.
     return 1

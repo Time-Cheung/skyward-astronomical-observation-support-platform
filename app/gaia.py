@@ -50,7 +50,7 @@ def pointing_icrs(at_time: datetime, telescope) -> SkyCoord:
 
 def _adql(center: SkyCoord, radius_deg: float, limit: int, max_mag: float) -> str:
     return (
-        f"SELECT TOP {limit} source_id, ra, dec, phot_g_mean_mag "
+        f"SELECT TOP {limit} source_id, ra, dec, parallax, parallax_error, pmra, pmra_error, pmdec, pmdec_error, phot_g_mean_mag, phot_bp_mean_mag, phot_rp_mean_mag, bp_rp, ruwe, visibility_periods_used "
         "FROM gaiadr3.gaia_source WHERE phot_g_mean_mag IS NOT NULL "
         f"AND phot_g_mean_mag <= {max_mag:.3f} "
         "AND 1=CONTAINS(POINT('ICRS', ra, dec), "
@@ -59,6 +59,19 @@ def _adql(center: SkyCoord, radius_deg: float, limit: int, max_mag: float) -> st
         # thousands of eligible stars. Sorting it defeats the bounded TOP
         # query. This is an unordered subset, NOT the brightest N stars.
     )
+
+
+def _optional_number(row: dict, key: str) -> float | None:
+    value = row.get(key)
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Invalid Gaia {key}") from exc
+    if not math.isfinite(parsed):
+        raise ValueError(f"Invalid Gaia {key}")
+    return parsed
 
 
 def _parse_csv(payload: bytes, limit: int) -> List[Source]:
@@ -82,9 +95,33 @@ def _parse_csv(payload: bytes, limit: int) -> List[Source]:
         galactic = fk5.galactic
         sources = []
         for index, row in enumerate(rows):
-            magnitude = float(row["phot_g_mean_mag"]) if row.get("phot_g_mean_mag", "").strip() else None
-            if magnitude is not None and (not math.isfinite(magnitude) or not -100 < magnitude < 100):
+            values = {key: _optional_number(row, key) for key in (
+                "parallax", "parallax_error", "pmra", "pmra_error", "pmdec", "pmdec_error",
+                "phot_g_mean_mag", "phot_bp_mean_mag", "phot_rp_mean_mag", "bp_rp", "ruwe",
+                "visibility_periods_used",
+            )}
+            magnitude = values["phot_g_mean_mag"]
+            if magnitude is not None and not -100 < magnitude < 100:
                 raise ValueError("Invalid Gaia G magnitude")
+            parallax = values["parallax"]
+            inverse_distance = 1000.0 / parallax if parallax is not None and parallax > 0 else None
+            notes = {
+                "source_id": ids[index], "input_frame": "ICRS", "reference_epoch": "J2016.0",
+                "output_frame": "FK5 J2000", "proper_motion_applied": False,
+                "query_fields": {
+                    "parallax_mas": values["parallax"], "parallax_error_mas": values["parallax_error"],
+                    "pmra_mas_per_year": values["pmra"], "pmra_error_mas_per_year": values["pmra_error"],
+                    "pmdec_mas_per_year": values["pmdec"], "pmdec_error_mas_per_year": values["pmdec_error"],
+                    "phot_g_mag": values["phot_g_mean_mag"], "phot_bp_mag": values["phot_bp_mean_mag"],
+                    "phot_rp_mag": values["phot_rp_mean_mag"], "bp_rp_mag": values["bp_rp"],
+                    "ruwe": values["ruwe"], "visibility_periods_used": values["visibility_periods_used"],
+                },
+                "distance": {
+                    "inverse_parallax_distance_pc": inverse_distance,
+                    "method": "1000 / parallax_mas; no prior or uncertainty correction",
+                    "status": "estimate_from_positive_parallax" if inverse_distance is not None else "not_available",
+                },
+            }
             sources.append(Source(
                 # Query-local, collision-free presentation index only. Never
                 # persist it as Gaia identity; source_key/source_id are strings.
@@ -94,8 +131,7 @@ def _parse_csv(payload: bytes, limit: int) -> List[Source]:
                 l=float(galactic.l[index].deg), b=float(galactic.b[index].deg), p_err_95=None,
                 catalogue_label="Gaia DR3", catalogue_id="gaia-dr3", original_id=ids[index],
                 source_type="gaia", gaia_mag=magnitude, footprint_kind="point",
-                notes={"source_id": ids[index], "input_frame": "ICRS", "reference_epoch": "J2016.0",
-                       "output_frame": "FK5 J2000", "proper_motion_applied": False},
+                notes=notes,
             ))
         return sources
     except (UnicodeDecodeError, csv.Error, ValueError, KeyError, TypeError) as exc:
@@ -167,6 +203,15 @@ def query_gaia_stars(
             payload = b"".join(chunks)
         all_sources = _parse_csv(payload, int(limit) + 1)
         sources = all_sources[:int(limit)]
+        query_context = {
+            "at_time": _utc(at_time).isoformat().replace("+00:00", "Z"),
+            "center_ra_icrs_deg": float(center.ra.deg), "center_dec_icrs_deg": float(center.dec.deg),
+            "radius_deg": float(radius_deg), "max_mag": float(max_mag), "row_limit": int(limit),
+            "map_query_boundary": "bounded cone; not an all-sky completeness claim",
+        }
+        for source in sources:
+            if isinstance(source.notes, dict):
+                source.notes["query_context"] = query_context
     except (HTTPError, URLError, TimeoutError, OSError) as exc:
         raise GaiaQueryError(f"Gaia DR3 online query failed: {exc}") from exc
     finally:

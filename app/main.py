@@ -120,6 +120,7 @@ def _catalogue_metadata(selected) -> dict:
         "identifier": getattr(selected, "identifier", getattr(selected, "token", "upload")),
         "provenance": getattr(selected, "provenance", {}),
         "label": selected.label,
+        "display": getattr(selected, "display", {}),
         "sha256": selected.sha256,
         "count": len(selected.sources),
         "temporary": isinstance(selected, TemporaryCatalog),
@@ -1025,7 +1026,7 @@ def gaia_stars(
         markers = [element for element in root.iter() if "source-type-gaia" in element.attrib.get("class", "").split()]
         overlay = '<svg xmlns="http://www.w3.org/2000/svg">' + ''.join(ET.tostring(element, encoding="unicode") for element in markers) + '</svg>'
         metadata["drawn_count"] = len(markers)
-        return {**metadata, "gaia": metadata, "overlay_svg": overlay, "sources": [{**row.to_dict(), "source_id": row.original_id} for row in rows]}
+        return {**metadata, "gaia": metadata, "overlay_svg": overlay, "sources": [{**row.to_dict(include_notes=True), "source_id": row.original_id} for row in rows]}
     except GaiaQueryError as exc:
         return {"sources": [], "status": "error", "count": 0, "cached": False,
                 "error": str(exc), "zero": False, "limit": limit, "truncated": False}

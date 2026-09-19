@@ -22,7 +22,7 @@ ALL = "2lhaaso,fermi-fl16y,fermi-3fhl,tevcat"
 def test_installed_counts_and_original_identity_stable_under_selection():
     options = client.get("/api/v1/catalogues").json()["catalogues"]
     assert {r["identifier"]: r.get("count") for r in options if not r.get("online")} == {
-        "2lhaaso": 190, "fermi-fl16y": 7224, "fermi-3fhl": 1556, "tevcat": 361}
+        "2lhaaso": 190, "fermi-fl16y": 7224, "fermi-3fhl": 1556, "tevcat": 363}
     fl = installed_catalogue("fermi-fl16y")
     tv = installed_catalogue("tevcat")
     source = fl.sources[7223]
@@ -39,11 +39,11 @@ def test_complete_pagination_and_search_not_first_page_only():
     offset = 0
     while offset is not None:
         data = client.get("/api/v1/sources", params={"catalog_tokens": ALL, "limit": 2000, "offset": offset}).json()
-        assert data["total"] == 9331
+        assert data["total"] == 9333
         assert data["offset"] == offset
         keys.extend(row["source_key"] for row in data["sources"])
         offset = data["next_offset"]
-    assert len(keys) == len(set(keys)) == 9331
+    assert len(keys) == len(set(keys)) == 9333
     late = installed_catalogue("fermi-fl16y").sources[-1]
     result = client.get("/api/v1/sources", params={"catalog_tokens": ALL, "q": late.original_id, "limit": 1}).json()
     assert result["sources"][0]["source_key"] == late.source_key
@@ -224,7 +224,7 @@ def test_gaia_api_error_is_not_zero(monkeypatch):
 def test_gaia_limit_cache_byte_and_concurrency_bounds(monkeypatch):
     import app.gaia as gaia
     gaia._CACHE.clear()
-    payload = b"source_id,ra,dec,phot_g_mean_mag\n3403822609273809792,10,20,12\n3403818623544184064,10.01,20.01,13\n"
+    payload = b"source_id,ra,dec,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,bp_rp,ruwe,visibility_periods_used\n3403822609273809792,10,20,2,0.1,1,0.1,2,0.1,12,12.5,11.5,1,1.1,12\n3403818623544184064,10.01,20.01,,,,,,,,13,,,,,\n"
     class Response(io.BytesIO):
         pass
     monkeypatch.setattr(gaia, "urlopen", lambda *a, **k: Response(payload))
@@ -232,6 +232,8 @@ def test_gaia_limit_cache_byte_and_concurrency_bounds(monkeypatch):
     assert meta["truncated"] and not meta["cached"] and meta["bytes"] == len(payload)
     assert rows[0].original_id == "3403822609273809792"
     assert rows[0].notes["proper_motion_applied"] is False
+    assert rows[0].notes["query_fields"]["parallax_mas"] == 2
+    assert rows[0].notes["distance"]["inverse_parallax_distance_pc"] == 500
     assert gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 18, 10, 20)[1]["cached"]
     monkeypatch.setattr(gaia, "MAX_CACHE_ENTRIES", 2)
     for ra in (11, 12, 13):

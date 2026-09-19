@@ -181,18 +181,18 @@ DEFAULT_GRID_STEP_SECONDS = 60
 # unproven angular-rate bound for every possible future constraint.
 BOUNDARY_TOLERANCE_SECONDS = 1.0
 # Guaranteed one-second window discovery is intentionally memory bounded.
-# A one-day request has 86,401 samples and completes with a measured peak below
-# 200 MiB on the target LAN server. Longer horizons will be reintroduced only
-# with a validated, streaming/event-solver implementation.
-MAX_CALCULATION_DAYS = 1
+# A thirty-day request has 2,592,001 one-second samples. The solver evaluates
+# geometry in bounded chunks; plotting and response consumers must downsample
+# long series rather than treating the full cadence as a display resolution.
+MAX_CALCULATION_DAYS = 30
 # At 86,401 samples per requested day, 10-minute chunks reduce temporary
 # Astropy coordinate allocations while still sharing Sun/Moon ephemerides
 # across all fixed-FoV candidates.
 WINDOW_SCAN_CHUNK_SECONDS = 600
-# One-second candidate sampling covers the maximum one-day request range
-# (86,401 instants including both endpoints), while a 300,000-point safety
-# ceiling leaves room for explicitly appended endpoints and future diagnostics.
-MAX_GRID_POINTS = 300_000
+# One-second candidate sampling covers the maximum thirty-day request range
+# (2,592,001 instants including both endpoints), while the safety ceiling leaves
+# room for explicitly appended endpoints and future diagnostics.
+MAX_GRID_POINTS = 3_000_000
 CURRENT_STATUS_LOOKAHEAD_SECONDS = 7 * 24 * 3600
 MAX_STATUS_SAMPLES = 3_601
 

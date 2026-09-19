@@ -11,20 +11,20 @@ client = TestClient(app)
 
 
 def test_planner_duration_limit_matches_second_resolution_capacity():
-    assert MAX_CALCULATION_DAYS == 1
+    assert MAX_CALCULATION_DAYS == 30
     home = client.get("/")
-    assert 'Maximum 1 day' in home.text
+    assert 'Maximum 30 days' in home.text
     too_long = client.post(
         "/api/v1/windows/calculate",
         json={
             "source_index": 11,
             "start_time": "2026-12-15T10:00:00Z",
-            "end_time": "2026-12-16T10:00:01Z",
+            "end_time": "2027-01-14T10:00:01Z",
             "constraints": {"minimum_window_seconds": 0},
         },
     )
     assert too_long.status_code == 422
-    assert "cannot exceed 1 days" in too_long.text
+    assert "cannot exceed 30 days" in too_long.text
 
 
 def test_health_and_config_expose_provenance_and_scope_boundaries():
@@ -681,7 +681,7 @@ def test_result_map_exposes_full_windows_and_fixed_size_symbol_controls():
     assert "trajectory_enforce_current_pointing" in script
     assert "trajectory_ranges" in script
     assert "--map-icon-scale" in script and "--map-icon-scale" in stylesheet
-    assert ".source-marker.trajectory-highlight polygon { fill: #8b5cf6" in stylesheet
+    assert ".tracking-ring" in stylesheet and "#8b5cf6" in stylesheet
     assert 'data-i18n="legendGreenMeaning"' in response.text
     assert 'data-i18n="legendYellowMeaning"' in response.text
     assert 'data-i18n="legendRedMeaning"' in response.text

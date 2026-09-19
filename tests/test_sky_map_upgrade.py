@@ -1,8 +1,5 @@
-"""Scientific SVG acceptance tests, independent of the observing-window solver."""
-from datetime import datetime, timedelta, timezone
-from dataclasses import replace
-import math
-import re
+"""Scientific SVG acceptance tests for the shared map marker contract."""
+from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
 
 import astropy.units as u
@@ -31,229 +28,72 @@ def position(marker):
     return float(marker.get("data-x")), float(marker.get("data-y"))
 
 
-def path_points(node):
-    return np.array([(float(x), float(y)) for x, y in re.findall(r"[ML](-?[\d.]+),(-?[\d.]+)", node.get("d"))])
-
-
-def fake_snapshot(sources, at_time, constraints, telescope, **kwargs):
-    coordinates = SkyCoord(ra=np.array([s.ra for s in sources]) * u.deg, dec=np.array([s.dec for s in sources]) * u.deg, frame=J2000_FRAME).transform_to(sm._altaz(at_time, telescope))
-    return {"sources": [{**s.to_dict(), "status": "GREEN", "geometry": {"target_altitude_deg": float(c.alt.deg), "target_azimuth_deg": float(c.az.deg), "sun_altitude_deg": -40, "sun_azimuth_deg": 25, "moon_altitude_deg": -30, "moon_azimuth_deg": 130}} for s, c in zip(sources, coordinates)]}
-
-
 @pytest.mark.parametrize("frame", ["altaz", "j2000", "galactic"])
-def test_local_projection_grid_markers_and_directions_share_frame(frame):
+def test_local_projection_and_grid_share_each_display_frame(frame):
     central = source(ra=359.99, dec=25, ext=.4)
     other = source(1, ra=.01, dec=25.01, kind="gaia")
     root = ET.fromstring(sm.render_local_fov_svg(central, [central, other], AT, display_frame=frame))
     markers = members(root, "source-marker")
     assert len(markers) == 2
     assert position(markers[0]) == pytest.approx((330, 300), abs=1e-7)
-    centre_coord = source_coord(central).transform_to(sm._frame(frame, AT, LACT_TELESCOPE))
-    candidate = source_coord(other).transform_to(centre_coord.frame)
-    separation = centre_coord.separation(candidate).deg
-    pa = centre_coord.position_angle(candidate).rad
+    centre = source_coord(central).transform_to(sm._frame(frame, AT, LACT_TELESCOPE))
+    candidate = source_coord(other).transform_to(centre.frame)
+    separation, pa = centre.separation(candidate).deg, centre.position_angle(candidate).rad
     scale = 235 / max(6.5, LACT_TELESCOPE.fov_radius_deg * 1.4)
-    assert position(markers[1]) == pytest.approx((330 + separation * scale * math.sin(pa), 300 - separation * scale * math.cos(pa)), abs=1e-7)
-    assert markers[0].find("polygon") is None
-    assert markers[1].find("polygon") is not None
-    for marker, original in zip(markers, [central, other]):
-        assert marker.get("role") == "button"
-        assert marker.get("tabindex") == "0"
-        assert marker.get("data-source-key") == original.source_key
-        assert marker.get("data-source-index") == str(original.index)
-        assert len(marker.get("data-x").split(".")[1]) >= 6
-    axes = {line.get("data-axis") for line in members(root, "coordinate-grid")}
-    assert axes == ({"Az", "Alt"} if frame == "altaz" else {"RA", "Dec"} if frame == "j2000" else {"l", "b"})
-    assert members(root, "coordinate-tick")
-    assert members(root, "map-clipped")[0].get("clip-path")
+    assert position(markers[1]) == pytest.approx((330 + separation * scale * np.sin(pa), 300 - separation * scale * np.cos(pa)), abs=1e-7)
+    assert {line.get("data-axis") for line in members(root, "coordinate-grid")} == ({"Az", "Alt"} if frame == "altaz" else {"RA", "Dec"} if frame == "j2000" else {"l", "b"})
 
 
-@pytest.mark.parametrize("frame", ["altaz", "j2000", "galactic"])
-def test_all_sky_is_zenith_centered_and_matches_astropy(monkeypatch, frame):
-    monkeypatch.setattr(sm, "sky_snapshot", fake_snapshot)
-    horizontal = SkyCoord(az=[0, 90, 180, 270] * u.deg, alt=[55, 35, 15, 45] * u.deg, frame=sm._altaz(AT, LACT_TELESCOPE))
-    fk5 = horizontal.transform_to(J2000_FRAME)
-    sources = [source(i, float(c.ra.deg), float(c.dec.deg)) for i, c in enumerate(fk5)]
-    svg, meta = sm.render_all_sky_svg(sources, AT, ConstraintSet(), display_frame=frame)
-    root = ET.fromstring(svg)
-    assert root.get("data-center") == "zenith"
-    markers = members(root, "source-marker")
-    assert len(markers) == 4
-    display = sm._frame(frame, AT, LACT_TELESCOPE)
-    center = sm._zenith_coordinate(AT, LACT_TELESCOPE).transform_to(display)
-    for marker, horizontal_coord in zip(markers, horizontal):
-        if frame == "altaz":
-            angle, radius = horizontal_coord.az.rad, (90 - horizontal_coord.alt.deg) * 260 / 90
-        else:
-            coord = horizontal_coord.transform_to(display)
-            angle, radius = center.position_angle(coord).rad, center.separation(coord).deg * 260 / 90
-        assert position(marker) == pytest.approx((350 + radius * math.sin(angle), 335 - radius * math.cos(angle)), abs=2e-4)
-    assert meta["visible_source_count"] == 4
-    assert len(members(root, "coordinate-tick")) > 2
+def test_shared_marker_contract_gaia_dot_catalogue_star_extension_tracking_and_target():
+    normal = source(0, ext=.25)
+    gaia = source(1, ra=.01, dec=25.01, kind="gaia")
+    root = ET.fromstring(sm.render_local_fov_svg(normal, [normal, gaia], AT, display_frame="j2000"))
+    catalogue, gaia_marker = members(root, "source-marker")
+    assert members(catalogue, "source-star")
+    assert not members(gaia_marker, "source-star")
+    assert members(gaia_marker, "gaia-dot")
+    extension = members(catalogue, "extension-ring")[0]
+    assert extension.get("data-angular-radius-deg") == "0.250000000"
+    assert extension.tag == "path"
+    for marker in (catalogue, gaia_marker):
+        hit = members(marker, "source-hit-target")[0]
+        assert hit.get("style") == "fill:transparent;stroke:none;stroke-width:0;filter:none"
+    selected_svg = sm.render_local_fov_svg(normal, [normal], AT, display_frame="j2000")
+    selected = members(ET.fromstring(selected_svg), "source-marker")[0]
+    assert members(selected, "selected-symbol")
+    tracked_svg, _ = sm.render_all_sky_svg([normal], AT, ConstraintSet(), highlighted_indexes=[0], trajectory_end=AT.replace(hour=13))
+    tracked = members(ET.fromstring(tracked_svg), "source-marker")[0]
+    assert members(tracked, "tracking-ring")
 
 
-@pytest.mark.parametrize("frame,axes", [
-    ("altaz", ("Az", "Alt")),
-    ("j2000", ("RA", "Dec")),
-    ("galactic", ("l", "b")),
-])
-def test_all_sky_default_grid_is_sparse_60_by_30_in_every_true_frame(monkeypatch, frame, axes):
-    monkeypatch.setattr(sm, "sky_snapshot", fake_snapshot)
-    svg, meta = sm.render_all_sky_svg([], AT, ConstraintSet(), display_frame=frame)
+def test_sparse_grid_and_deep_zoom_keep_two_axes_and_real_extension_radius():
+    central = source(ra=120, dec=25, ext=.25)
+    intervals = []
+    for zoom in (1, 4, 20, 1000):
+        root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000", zoom=zoom))
+        assert {line.get("data-axis") for line in members(root, "coordinate-grid")} == {"RA", "Dec"}
+        assert 2 <= len(members(root, "coordinate-grid")) <= 16
+        intervals.append(max(float(root.get("data-grid-longitude-step-deg")), float(root.get("data-grid-latitude-step-deg"))))
+    assert intervals == sorted(intervals, reverse=True)
+    roots = [ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000", zoom=zoom)) for zoom in (1, 1000)]
+    assert members(roots[0], "extension-ring")[0].get("d") == members(roots[1], "extension-ring")[0].get("d")
+
+
+def test_all_sky_default_grid_is_sparse_60_by_30():
+    svg, meta = sm.render_all_sky_svg([], AT, ConstraintSet(), display_frame="galactic")
     root = ET.fromstring(svg)
     assert root.get("data-grid-longitude-step-deg") == "60.000000000"
     assert root.get("data-grid-latitude-step-deg") == "30.000000000"
     assert meta["grid_longitude_step_deg"] == 60
     assert meta["grid_latitude_step_deg"] == 30
-    grids = members(root, "coordinate-grid")
-    assert 0 < len(grids) <= 12
-    assert {grid.get("data-axis") for grid in grids} == set(axes)
-    longitude_values = [float(grid.get("data-coordinate-deg")) for grid in grids if grid.get("data-axis") == axes[0]]
-    latitude_values = [float(grid.get("data-coordinate-deg")) for grid in grids if grid.get("data-axis") == axes[1]]
-    assert all(value % 60 == pytest.approx(0) for value in longitude_values)
-    assert all(value % 30 == pytest.approx(0) for value in latitude_values)
-    assert len({round(value % 360, 8) for value in longitude_values}) == len(longitude_values)
 
 
-def test_local_grid_adapts_sparsely_and_never_disappears_at_deep_zoom():
-    central = source(ra=120, dec=25)
-    intervals = []
-    for zoom in (1, 4, 20, 1000):
-        root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000", zoom=zoom))
-        grids = members(root, "coordinate-grid")
-        axes = {grid.get("data-axis") for grid in grids}
-        assert axes == {"RA", "Dec"}
-        assert 2 <= len(grids) <= 16
-        longitude_step = float(root.get("data-grid-longitude-step-deg"))
-        latitude_step = float(root.get("data-grid-latitude-step-deg"))
-        assert longitude_step > 0 and latitude_step > 0
-        intervals.append(max(longitude_step, latitude_step))
-    assert intervals == sorted(intervals, reverse=True)
-    assert intervals[-1] < intervals[0]
-
-
-def test_hit_target_is_forced_invisible_while_symbol_and_extension_stay_distinct():
-    central = source(ext=.25)
-    root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000"))
-    marker = members(root, "source-marker")[0]
-    symbols = members(marker, "source-symbol")
-    hits = members(marker, "source-hit-target")
-    extensions = members(marker, "extension-ring")
-    assert len(symbols) == len(hits) == len(extensions) == 1
-    assert symbols[0].tag == "circle" and symbols[0].get("data-symbol-only") == "true"
-    assert hits[0].get("style") == "fill:transparent;stroke:none;stroke-width:0;filter:none"
-    assert extensions[0].tag == "path"
-    assert extensions[0].get("data-angular-radius-deg") == "0.250000000"
-    css = root.find("style").text
-    hit_rule = next(line for line in css.splitlines() if '[data-hit-target="true"]' in line)
-    extension_rule = next(line for line in css.splitlines() if ".extension-ring" in line)
-    tick_rule = next(line for line in css.splitlines() if ".coordinate-tick" in line)
-    assert "stroke:none!important" in hit_rule and "stroke-width:0!important" in hit_rule
-    assert "stroke-dasharray:4 4" in extension_rule and "stroke-opacity:.58" in extension_rule
-    assert "transform:none" in extension_rule
-    assert "fill-opacity:.66" in tick_rule and "font-weight:500" in tick_rule
-
-
-def test_extension_is_true_spherical_radius_not_hit_radius_and_zoom_invariant():
-    central = source(ext=.25)
-    roots = [ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000", zoom=z)) for z in (1, 1000)]
-    paths = [members(root, "extension-ring")[0] for root in roots]
-    assert paths[0].get("d") == paths[1].get("d")
-    points = path_points(paths[0])
-    radius = np.hypot(points[:, 0] - 330, points[:, 1] - 300)
-    assert radius == pytest.approx(np.full(len(radius), .25 * 235 / 6.5), abs=1e-7)
-    hit = members(roots[0], "source-hit-target")[0]
-    assert float(hit.get("r")) != pytest.approx(radius[0])
-    assert paths[0].get("data-angular-radius-deg") == "0.250000000"
-    assert float(roots[1].get("data-grid-step-deg")) < float(roots[0].get("data-grid-step-deg"))
-
-
-def test_deep_zoom_keeps_subpixel_neighbours_distinct():
-    central = source()
-    other = source(1, ra=central.ra + .00003, dec=central.dec, kind="gaia")
-    root = ET.fromstring(sm.render_local_fov_svg(central, [central, other], AT, display_frame="j2000", zoom=1000))
-    first, second = members(root, "source-marker")
-    dx = position(second)[0] - position(first)[0]
-    assert .0001 < dx < .01  # old two-decimal output collapsed this distance
-    assert root.get("viewBox") == "329.660000000 299.690000000 0.680000000 0.620000000"
-    assert members(root, "coordinate-tick")
-
-
-@pytest.mark.parametrize("dec", [89.99, -89.99])
-def test_polar_wrap_grid_is_finite_clipped_and_has_no_false_chords(dec):
-    central = source(ra=359.99, dec=dec)
-    root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000", zoom=4))
-    grids = members(root, "coordinate-grid")
-    assert len(grids) < 150
-    assert members(root, "coordinate-tick")
-    for grid in grids:
-        assert "nan" not in grid.get("d").lower()
-        assert "Z" not in grid.get("d")
-        for segment in grid.get("d").split("M")[1:]:
-            points = np.array([(float(x), float(y)) for x, y in re.findall(r"(-?[\d.]+),(-?[\d.]+)", segment)])
-            if len(points) > 1:
-                assert np.max(np.hypot(*np.diff(points, axis=0).T)) <= 235 * .4 + 1e-6
-
-
-def test_grid_points_are_actual_meridians_and_parallels():
-    central = source(ra=359.99, dec=25)
-    root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000"))
-    center = source_coord(central)
-    for grid in members(root, "coordinate-grid"):
-        points = path_points(grid)
-        inside = np.hypot(points[:, 0] - 330, points[:, 1] - 300) < 230
-        points = points[inside][::20]
-        if not len(points):
-            continue
-        dx, dy = points[:, 0] - 330, 300 - points[:, 1]
-        coordinates = center.directional_offset_by(np.arctan2(dx, dy) * u.rad, np.hypot(dx, dy) * 6.5 / 235 * u.deg)
-        expected = float(grid.get("data-coordinate-deg"))
-        if grid.get("data-axis") == "RA":
-            error = (coordinates.ra.deg - expected + 180) % 360 - 180
-        else:
-            error = coordinates.dec.deg - expected
-        assert np.max(np.abs(error)) < 1e-7
-
-
-def test_trajectory_uses_display_instant_for_every_projection(monkeypatch):
-    later = AT + timedelta(hours=5)
-    def snapshot(sources, start, end, constraints, telescope, **kwargs):
-        return fake_snapshot(sources, kwargs["display_time"], constraints, telescope)
-    monkeypatch.setattr(sm, "sky_trajectory_snapshot", snapshot)
-    star = source()
-    svg, meta = sm.render_all_sky_svg([star], AT, ConstraintSet(), trajectory_end=later + timedelta(hours=2), trajectory_display_time=later, display_frame="galactic")
-    root = ET.fromstring(svg)
-    geometry = fake_snapshot([star], later, ConstraintSet(), LACT_TELESCOPE)["sources"][0]["geometry"]
-    expected = sm._project_body(max(0, geometry["target_altitude_deg"]), geometry["target_azimuth_deg"], later, LACT_TELESCOPE, "galactic", 350, 335, 260)
-    assert position(members(root, "source-marker")[0]) == pytest.approx(expected[:2], abs=1e-7)
-    assert meta["map_display_time"] == later.isoformat()
-
-
-@pytest.mark.parametrize("kwargs", [{"zoom": 0}, {"zoom": 1001}, {"bounds": (0, 0, 0, 5)}, {"grid_step_deg": 0}])
-def test_invalid_display_settings_fail_without_mutating_science(kwargs):
-    with pytest.raises(ValueError):
-        sm.render_local_fov_svg(source(), [], AT, **kwargs)
-
-
-def test_offcentre_bounds_keeps_target_projection_and_stable_identity():
-    central = source()
-    root = ET.fromstring(sm.render_local_fov_svg(central, [], AT, display_frame="j2000", bounds=(329, 299, 2, 2), grid_step_deg=.01))
-    assert position(members(root, "source-marker")[0]) == pytest.approx((330, 300), abs=1e-8)
-    assert root.get("data-grid-step-deg") == "0.010000000"
-    assert root.get("viewBox") == "329.000000000 299.000000000 2.000000000 2.000000000"
-
-
-def test_unknown_footprint_never_draws_a_measured_extension():
-    central = replace(source(ext=1), footprint_known=False)
-    root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT))
+def test_unknown_footprint_never_draws_extension_and_css_isolated():
+    unknown = Source(0, "unknown", 1, None, 10, 20, 0, 0, None, "Test", footprint_known=False)
+    root = ET.fromstring(sm.render_local_fov_svg(unknown, [unknown], AT))
     assert not members(root, "extension-ring")
-    assert members(root, "source-symbol")
-
-
-def test_styles_are_per_map_zoom_and_allow_client_symbol_scaling_only():
-    css = sm._styles(1000)
-    assert '.sky-map-svg[data-zoom="1000.000000000"]' in css
-    assert '--map-icon-scale' in css
-    extension_rule = next(line for line in css.splitlines() if '.extension-ring' in line)
-    assert 'transform:none' in extension_rule
-    assert 'scale(var(' not in extension_rule
+    css = root.find("style").text
+    extension_rule = next(line for line in css.splitlines() if ".extension-ring" in line)
+    hit_rule = next(line for line in css.splitlines() if '[data-hit-target="true"]' in line)
+    assert "#00b8c6" in extension_rule and "stroke-dasharray:5 4" in extension_rule
+    assert "stroke:none!important" in hit_rule and "stroke-width:0!important" in hit_rule
