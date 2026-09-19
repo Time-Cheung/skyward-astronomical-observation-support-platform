@@ -12,6 +12,34 @@ from app.windows import _grid, calculate_catalogue_windows, calculate_windows
 from .helpers import FakeSeries, source
 
 
+def test_multiday_calculation_streams_exact_seconds_but_bounds_display_series(monkeypatch):
+    src = source()
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    end = start + timedelta(days=2)
+
+    def fake_compute(_source, values):
+        if isinstance(values, datetime):
+            values = [values]
+        timestamps = np.asarray([value.timestamp() for value in values])
+        elapsed = timestamps - start.timestamp()
+        return FakeSeries(
+            unix_seconds=timestamps,
+            target_altitude_deg=np.full_like(elapsed, 30.0),
+            target_zenith_deg=np.full_like(elapsed, 60.0),
+            sun_altitude_deg=np.full_like(elapsed, -30.0),
+            moon_separation_deg=np.full_like(elapsed, 90.0),
+        )
+
+    monkeypatch.setattr(windows, "compute_geometry", fake_compute)
+    result = calculate_windows(src, start, end, ConstraintSet())
+    assert result.center_windows[0].start == start
+    assert result.center_windows[0].end == end
+    assert len(result.sample_times) <= windows.MAX_DISPLAY_SAMPLES
+    assert result.sample_times[0] == start and result.sample_times[-1] == end
+    assert "display_series_downsampled" in result.warnings
+    assert result.to_dict()["display_samples_downsampled"] is True
+
+
 def test_grid_includes_exact_end_without_exceeding_it():
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     end = start + timedelta(seconds=125)

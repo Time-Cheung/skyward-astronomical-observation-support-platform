@@ -87,7 +87,7 @@ Skyward 是无账号、无授权隔离的天文观测辅助原型。**不允许�
 - Gaia DR3 是**候选定标星**；浏览器独立请求 `GET /api/v1/gaia` 并异步等待 HTTP 响应，**不是服务端 job 轮询**。参数含 `target_source_key`、`map_kind=current|local-fov`、`radius_deg/limit/max_mag`；成功返回 `sources/overlay_svg/gaia` 及 `count/drawn_count/cached/error/zero/limit/truncated`。错误可能仍为 HTTP 200，需检查顶层 `status/error`；详情及缺省字段处理见完整手册。默认 **5° / 500 行 / G≤18** 不变；查询无 `ORDER BY`，`selection=bounded_unordered_subset`，**不是最亮 N 颗，也不是代表性抽样**。独立 Gaia 查询配置为 **20 秒**有限超时（不保证整条 HTTP 请求严格在 20 秒内结束），上限为 2 并发、2 MiB 响应、32 个进程缓存查询。
 - 已支持 **1000× 缩放**，它不增加物理分辨率、角分辨率或定位精度，只是显示放大。
 - 网页支持中/英、自动/亮/暗主题、北京 UTC+8/UTC、坐标显示切换、临时目标和本地观测计划；下载 **ZIP 内含 TXT + 选配 SVG**。设置/计划位于客户端浏览器，不是服务端账号数据。
-- 单次窗口最多 30×24 小时，逐秒候选扫描与已发现边界细化不保证发现所有亚秒窗口；长范围仅下采样展示数据，窗口判定仍逐秒进行。完整源计划需至少两个几何复核有效整秒；未知 footprint 不能据此声称完整源通过。
+- 单次窗口最多 30×24 小时，逐秒候选扫描与已发现边界细化不保证发现所有亚秒窗口；长范围仅下采样展示数据（响应会标记该状态），窗口判定仍逐秒进行。完整源计划需至少两个几何复核有效整秒；未知 footprint 不能据此声称完整源通过。
 
 ## 健康、离线与验收 / Health and acceptance
 

@@ -18,7 +18,7 @@ class ConstraintSet(BaseModel):
     moon_min_separation_deg: Optional[float] = Field(default=None, ge=0, le=180)
     target_min_zenith_deg: Optional[float] = Field(default=None, ge=0, le=90)
     target_max_zenith_deg: Optional[float] = Field(default=None, ge=0, le=90)
-    minimum_window_seconds: Optional[int] = Field(default=None, ge=0, le=86_400)
+    minimum_window_seconds: Optional[int] = Field(default=None, ge=0, le=2_592_000)
 
     @model_validator(mode="after")
     def validate_zenith_range(self) -> "ConstraintSet":

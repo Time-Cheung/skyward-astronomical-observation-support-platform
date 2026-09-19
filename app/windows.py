@@ -15,6 +15,7 @@ from .config import (
     DEFAULT_GRID_STEP_SECONDS,
     LACT_TELESCOPE,
     MAX_GRID_POINTS,
+    MAX_DISPLAY_SAMPLES,
     TelescopeConfig,
     WINDOW_SCAN_CHUNK_SECONDS,
 )
@@ -87,6 +88,8 @@ class WindowResult:
             "constraints": self.constraints.model_dump(),
             "enabled_constraints": self.constraints.enabled_labels(),
             "samples": samples,
+            "display_sample_count": len(self.sample_times),
+            "display_samples_downsampled": "display_series_downsampled" in self.warnings,
             "center_windows": [window.to_dict() for window in self.center_windows],
             "full_footprint_windows": [
                 window.to_dict() for window in self.full_footprint_windows
@@ -687,6 +690,94 @@ def calculate_catalogue_windows(
         )
     return results
 
+def _merge_window_intervals(intervals: Sequence[WindowInterval]) -> List[WindowInterval]:
+    """Merge contiguous chunk-local intervals without changing scientific bounds."""
+    merged: List[WindowInterval] = []
+    for interval in sorted(intervals, key=lambda item: item.start):
+        if merged and abs((interval.start - merged[-1].end).total_seconds()) <= 1.0:
+            previous = merged[-1]
+            previous.end = interval.end
+            previous.duration_seconds = (previous.end - previous.start).total_seconds()
+            previous.end_reason = interval.end_reason
+            previous.plan_start = previous.plan_start or interval.plan_start
+            previous.plan_end = interval.plan_end or previous.plan_end
+            previous.minimum_target_zenith_deg = min(previous.minimum_target_zenith_deg, interval.minimum_target_zenith_deg)
+            previous.maximum_sun_altitude_deg = max(previous.maximum_sun_altitude_deg, interval.maximum_sun_altitude_deg)
+            previous.minimum_moon_separation_deg = min(previous.minimum_moon_separation_deg, interval.minimum_moon_separation_deg)
+        else:
+            merged.append(interval)
+    return merged
+
+
+def _display_series(parts: Sequence[tuple[List[datetime], GeometrySeries, List[int]]]) -> tuple[List[datetime], GeometrySeries]:
+    """Build a bounded plotting series from sampled points retained per chunk."""
+    selected_times = [moment for times, _, indexes in parts for index, moment in ((index, times[index]) for index in indexes)]
+    if not selected_times:
+        raise ValueError("streamed calculation retained no display samples")
+    defaults = {
+        "target_azimuth_deg": 0.0, "target_pointing_separation_deg": 0.0,
+        "sun_azimuth_deg": 0.0, "moon_altitude_deg": 0.0, "moon_azimuth_deg": 0.0,
+        "sun_separation_deg": 90.0,
+    }
+    def values(attribute: str):
+        selected = []
+        for _, series, indexes in parts:
+            raw = getattr(series, attribute, None)
+            if raw is None:
+                raw = np.full(len(series.unix_seconds), defaults[attribute], dtype=float)
+            selected.append(np.asarray(raw)[indexes])
+        return np.concatenate(selected)
+    unix = values("unix_seconds")
+    first_series = parts[0][1]
+    return selected_times, GeometrySeries(
+        times=Time(unix, format="unix", scale="utc"), unix_seconds=unix,
+        target_altitude_deg=values("target_altitude_deg"), target_azimuth_deg=values("target_azimuth_deg"),
+        target_zenith_deg=values("target_zenith_deg"), target_pointing_separation_deg=values("target_pointing_separation_deg"),
+        sun_altitude_deg=values("sun_altitude_deg"), sun_azimuth_deg=values("sun_azimuth_deg"),
+        moon_altitude_deg=values("moon_altitude_deg"), moon_azimuth_deg=values("moon_azimuth_deg"),
+        moon_separation_deg=values("moon_separation_deg"), sun_separation_deg=values("sun_separation_deg"),
+        warnings=sorted({warning for _, series, _ in parts for warning in series.warnings}),
+    )
+
+
+def _calculate_windows_streamed(
+    source: Source, start: datetime, end: datetime, constraints: ConstraintSet, telescope: TelescopeConfig,
+) -> WindowResult:
+    """Evaluate every second in bounded chunks, retaining only display samples."""
+    total_seconds = int((end - start).total_seconds())
+    display_stride = max(1, int(np.ceil((total_seconds + 1) / MAX_DISPLAY_SAMPLES)))
+    interval_constraints = constraints.model_copy(update={"minimum_window_seconds": 0})
+    display_parts: List[tuple[List[datetime], GeometrySeries, List[int]]] = []
+    center_intervals: List[WindowInterval] = []
+    footprint_intervals: List[WindowInterval] = []
+    chunk_start, first_chunk = start, True
+    while chunk_start < end:
+        chunk_end = min(chunk_start + timedelta(seconds=WINDOW_SCAN_CHUNK_SECONDS), end)
+        chunk_times = _grid(chunk_start, chunk_end, 1)
+        series = _geometry_for_telescope(source, chunk_times, telescope)
+        evaluation = evaluate_constraints(
+            series.target_altitude_deg, series.target_zenith_deg, series.sun_altitude_deg,
+            series.moon_separation_deg, source.ext, interval_constraints,
+            fov_radius_deg=telescope.fov_radius_deg,
+        )
+        center_intervals.extend(_build_intervals(source, chunk_start, chunk_end, chunk_times, series, evaluation, 0.0, interval_constraints, "center", telescope))
+        footprint_intervals.extend(_build_intervals(source, chunk_start, chunk_end, chunk_times, series, evaluation, source.ext, interval_constraints, "footprint", telescope))
+        offset = 0 if first_chunk else 1
+        retained = [index for index in range(offset, len(chunk_times)) if int((chunk_times[index] - start).total_seconds()) % display_stride == 0]
+        if chunk_end == end and len(chunk_times) - 1 not in retained:
+            retained.append(len(chunk_times) - 1)
+        if retained:
+            display_parts.append((chunk_times, series, retained))
+        first_chunk = False
+        chunk_start = chunk_end
+    sample_times, display_series = _display_series(display_parts)
+    center_windows = [interval for interval in _merge_window_intervals(center_intervals) if interval.duration_seconds >= constraints.minimum_duration]
+    full_windows = [interval for interval in _merge_window_intervals(footprint_intervals) if interval.duration_seconds >= constraints.minimum_duration]
+    return WindowResult(source=source, start=start, end=end, constraints=constraints, sample_times=sample_times,
+                        series=display_series, center_windows=center_windows, full_footprint_windows=full_windows,
+                        warnings=[*display_series.warnings, *( ["display_series_downsampled"] if display_stride > 1 else [])], telescope=telescope)
+
+
 def calculate_windows(
     source: Source,
     start: datetime,
@@ -705,6 +796,8 @@ def calculate_windows(
     start = _as_utc(start)
     end = _as_utc(end)
     grid_step_seconds = _effective_grid_step(constraints, grid_step_seconds)
+    if (end - start).total_seconds() > 86_400:
+        return _calculate_windows_streamed(source, start, end, constraints, telescope)
     # The candidate grid is deliberately one second. It is the only simple,
     # auditable guarantee that a pass/fail excursion cannot disappear entirely
     # between samples when the user asks to retain all durations.

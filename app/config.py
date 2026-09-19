@@ -193,6 +193,9 @@ WINDOW_SCAN_CHUNK_SECONDS = 600
 # (2,592,001 instants including both endpoints), while the safety ceiling leaves
 # room for explicitly appended endpoints and future diagnostics.
 MAX_GRID_POINTS = 3_000_000
+# Keep long-range response/plot geometry bounded independently of the exact
+# one-second candidate scan used for window decisions.
+MAX_DISPLAY_SAMPLES = 12_001
 CURRENT_STATUS_LOOKAHEAD_SECONDS = 7 * 24 * 3600
 MAX_STATUS_SAMPLES = 3_601
 
