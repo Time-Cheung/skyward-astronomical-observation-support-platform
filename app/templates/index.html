@@ -5,7 +5,6 @@
   <div>
     <p class="section-label" data-i18n="currentSky">CURRENT SKY</p>
     <h1 class="v0-title" data-i18n="homeTitle">V0: geometry assessment only</h1>
-    <p data-i18n="homeLead">Currently imported: the 2LHAASO source catalogue.</p>
   </div>
   <dl class="summary-stats" aria-label="Sky summary" data-i18n-aria-label="skySummary">
     <div><dt data-i18n="catalogue">Catalogue</dt><dd>{{ catalog_count }}</dd></div>
@@ -17,7 +16,6 @@
 <div class="workspace-grid">
   <section class="planner-panel" aria-labelledby="planner-title">
     <div class="panel-heading"><div><p class="section-label" data-i18n="calculationConditions">CALCULATION CONDITIONS</p><h2 id="planner-title" data-i18n="windowPlanner">Window planner</h2></div></div>
-    {% include "_catalogue_panel.html" %}
     <form method="post" action="/result" class="planner-form" id="planner-form">
       <input type="hidden" id="source-key-input" name="source_key" value="{{ form_values.source_key or '' }}">
       <input type="hidden" name="nominal_radius_deg" value="{{ form_values.nominal_radius_deg if form_values.nominal_radius_deg is defined and form_values.nominal_radius_deg is not none else '' }}">
@@ -77,7 +75,7 @@
     </form>
   </section>
   <section class="sky-panel" aria-labelledby="sky-title" data-sky-panel>
-    <div class="panel-heading"><div><p class="section-label" data-i18n="horizonCoordinates">HORIZON COORDINATES</p><h2 id="sky-title" data-i18n="allSkyTitle">LACT all-sky view</h2></div><div class="sky-panel-settings"><label class="sky-mode-control"><span data-i18n="skyMode">Sky mode</span><select id="sky-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label></div></div>
+    <div class="panel-heading"><div><p class="section-label" data-i18n="horizonCoordinates">HORIZON COORDINATES</p><h2 id="sky-title" data-i18n="allSkyTitle">LACT all-sky view</h2></div><div class="sky-panel-settings">{% include "_catalogue_panel.html" %}<label class="sky-mode-control"><span data-i18n="skyMode">Sky mode</span><select id="sky-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label></div></div>
     <div class="catalogue-upload-control"><label for="catalogue-upload" data-i18n="uploadCatalogue">Upload source catalogue (CSV)</label><input id="catalogue-upload" type="file" accept=".csv,text/csv"><small data-i18n="catalogueUploadHelp">UTF-8 CSV: name, ra, dec; optional ext. Uploads are temporary and remain only in memory.</small><span id="catalogue-upload-status" aria-live="polite"></span></div>
     <div class="sky-time-control" id="sky-time-control" hidden><label for="sky-at-time" data-i18n="skyTime">Sky time</label><input id="sky-at-time" type="datetime-local" value="{{ now_local.strftime('%Y-%m-%dT%H:%M') }}"><button id="sky-time-apply" class="secondary-button" type="button" data-i18n="applySkyTime">Apply</button></div>
     <div class="sky-zoom-controls" aria-label="Sky map zoom" data-i18n-aria-label="skyZoom"><span data-i18n="skyZoom">Sky map zoom</span><button id="sky-zoom-out" class="secondary-button" type="button" data-i18n-title="zoomOut" title="Zoom out">−</button><button id="sky-zoom-reset" class="secondary-button" type="button" data-i18n="zoomReset">100%</button><button id="sky-zoom-in" class="secondary-button" type="button" data-i18n-title="zoomIn" title="Zoom in">+</button><button id="sky-zoom-centre" class="secondary-button" type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>

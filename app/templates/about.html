@@ -4,9 +4,42 @@
 <section class="page-heading narrow-heading">
   <div>
     <p class="section-label" data-i18n="methodAndBoundary">METHOD & BOUNDARY</p>
-    <h1 data-i18n="aboutTitle">Data, coordinates and geometry.</h1>
+    <h1 class="v0-title" data-i18n="aboutTitle">Data, coordinates and geometry.</h1>
     <p data-i18n="aboutLead">Fixed parameters, catalogue provenance and the conditions intentionally excluded from this first release.</p>
   </div>
+</section>
+
+<section class="method-section skyward-overview" aria-labelledby="skyward-overview-title">
+  <h2 id="skyward-overview-title" data-about-i18n="skywardOverviewTitle">What Skyward is</h2>
+  <p class="scope-statement" data-about-i18n="skywardScopeStatement">V0 provides explainable geometry candidates. It does not determine operational readiness or approve an observation.</p>
+  <div class="skyward-stage-grid">
+    <div class="scope-card">
+      <p class="section-label" data-about-i18n="currentStageLabel">AVAILABLE NOW</p>
+      <h3 data-about-i18n="currentStageTitle">Current functions</h3>
+      <p data-about-i18n="currentStageBody">Browse supported catalogues, inspect all-sky and local-field geometry, view source details, and calculate centre and full-footprint windows under explicit geometric constraints.</p>
+    </div>
+    <div class="scope-card">
+      <p class="section-label" data-about-i18n="goalStageLabel">PRODUCT GOAL</p>
+      <h3 data-about-i18n="goalStageTitle">Decision support</h3>
+      <p data-about-i18n="goalStageBody">Provide read-only, reproducible and explainable evidence that helps an operator or scientist prepare an observing decision.</p>
+    </div>
+    <div class="scope-card">
+      <p class="section-label" data-about-i18n="futureStageLabel">FUTURE DEVELOPMENT</p>
+      <h3 data-about-i18n="futureStageTitle">Evidence not yet connected</h3>
+      <p data-about-i18n="futureStageBody">After authoritative inputs and validation are available, future versions may add live pointing and device telemetry, weather and atmosphere, mechanical trajectory limits, instrument availability, and joint-observation evidence.</p>
+    </div>
+  </div>
+</section>
+
+<section class="method-section usage-section" aria-labelledby="usage-title">
+  <h2 id="usage-title" data-about-i18n="usageTitle">How to use Skyward</h2>
+  <ol class="usage-steps">
+    <li><strong data-about-i18n="usageStep1Title">Open the sky map.</strong><span data-about-i18n="usageStep1Body">Return to “Sky map &amp; planner” and open the catalogue selector inside the sky-map area.</span></li>
+    <li><strong data-about-i18n="usageStep2Title">Select catalogue layers and confirm.</strong><span data-about-i18n="usageStep2Body">The page loads the checked catalogues and draws their markers only after you confirm the selection.</span></li>
+    <li><strong data-about-i18n="usageStep3Title">Choose a target and conditions.</strong><span data-about-i18n="usageStep3Body">Select a source, set the time range and geometric constraints, then calculate the windows.</span></li>
+    <li><strong data-about-i18n="usageStep4Title">Interpret the result within scope.</strong><span data-about-i18n="usageStep4Body">Green, yellow and red describe geometry only. Check weather, device state, mechanics and operating approval separately.</span></li>
+  </ol>
+  <a class="about-planner-link" href="/" data-about-i18n="openPlanner">Open Sky map &amp; planner →</a>
 </section>
 
 <section class="about-grid">
@@ -29,14 +62,21 @@
       <div><dt data-i18n="notModelled">Not modelled</dt><dd data-i18n="fovNotModelled">Off-axis response, PSF, obstruction or sensitivity falloff</dd></div>
     </dl>
   </article>
-  <article>
-    <h2 data-i18n="catalogueTitle">2LHAASO catalogue</h2>
-    <dl class="definition-list">
-      <div><dt data-i18n="records">Records</dt><dd>{{ catalog_count }}</dd></div>
-      <div><dt data-i18n="coordinates">Coordinates</dt><dd>{{ frame_label }}</dd></div>
-      <div><dt>Extension</dt><dd data-i18n="extensionMeaning">Degrees, used as a nominal circular radius</dd></div>
-      <div><dt>SHA-256</dt><dd class="hash-value">{{ catalog_hash }}</dd></div>
-    </dl>
+  <article class="catalogue-guide-card">
+    <h2 data-about-i18n="catalogueGuideTitle">Catalogue guide</h2>
+    <label class="catalogue-guide-label" for="about-catalogue-select" data-about-i18n="catalogueGuideLabel">Choose one catalogue to read its scope</label>
+    <select id="about-catalogue-select" aria-controls="about-catalogue-description">
+      <option value="2lhaaso">2LHAASO</option>
+      <option value="fermi-fl16y">Fermi FL16Y</option>
+      <option value="fermi-3fhl">Fermi 3FHL</option>
+      <option value="tevcat">TeVCat</option>
+      <option value="gaia-dr3">Gaia DR3</option>
+    </select>
+    <div id="about-catalogue-description" class="catalogue-guide-output" aria-live="polite">
+      <div class="catalogue-guide-heading"><strong id="about-catalogue-name">2LHAASO</strong><span id="about-catalogue-count">190 installed records</span></div>
+      <p id="about-catalogue-summary">The local table preserves catalogue coordinates and extension fields for source browsing and geometry calculations.</p>
+      <p class="catalogue-boundary"><strong data-about-i18n="catalogueBoundaryLabel">Boundary</strong><span id="about-catalogue-boundary">The 190 rows are catalogue records, not a claim of 190 unique physical objects. Extension is treated only as a nominal circular radius.</span></p>
+    </div>
   </article>
   <article>
     <h2 data-i18n="iersOffline">IERS online-first data</h2>

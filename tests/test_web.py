@@ -732,7 +732,9 @@ def test_custom_offset_plot_uses_physical_local_clock_and_client_passes_label():
     script = (Path(__file__).resolve().parents[1] / "app" / "static" / "app.js").read_text(encoding="utf-8")
     assert "observerTimezoneLabel()" in script
     assert "checkbox.dataset.catalogueId=data.token" in script
-    assert "replaceSourceOptions(data.sources || [])" in script
+    assert "setCatalogueOpen(true); checkbox.checked=true" in script
+    assert "confirm?.addEventListener('click', applySelection)" in script
+    assert "replaceSourceOptions(rows)" in script
 
 
 def test_conditional_fields_zoom_and_result_modes_have_explicit_client_contracts():

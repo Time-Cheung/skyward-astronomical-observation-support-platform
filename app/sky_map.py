@@ -169,11 +169,14 @@ def _lonlat(lon, lat, frame):
     return SkyCoord(lon * u.deg, lat * u.deg, frame=frame)
 
 
-def _grid(projection: _Projection, key: str, zoom: float, bounds, grid_step_deg: Optional[float]) -> tuple[str, float]:
-    """True meridians/parallels, sampled near the view as well as globally.
+def _grid(projection: _Projection, key: str, zoom: float, bounds, grid_step_deg: Optional[float]) -> tuple[str, float, float]:
+    """True, sparse meridians/parallels sampled around the current view.
 
-    View-centre inversion selects fine-grid ranges even after off-centre pan;
-    spherical longitude offsets avoid a discontinuity at 0/360 degrees.
+    The unzoomed all-sky map uses a stable 60-degree longitude by 30-degree
+    latitude baseline. Local and zoomed views choose a nice interval from the
+    visible angular span, so deep zoom retains a few real coordinate curves
+    rather than either a dense mesh or an empty map. View-centre inversion
+    keeps the interval correct after off-centre panning.
     """
     p = projection
     vx, vy, vw, vh = bounds
@@ -185,17 +188,32 @@ def _grid(projection: _Projection, key: str, zoom: float, bounds, grid_step_deg:
         view_center = p.center.directional_offset_by(math.atan2(dx, dy) * u.rad, min(distance, 179) * u.deg)
     lon0, lat0 = float(view_center.spherical.lon.deg), float(view_center.spherical.lat.deg)
     extent = min(180.0, math.hypot(vw, vh) / (2 * p.scale))
-    step = float(grid_step_deg) if grid_step_deg is not None else _nice_step(min(60.0, extent * 1.2))
-    if not math.isfinite(step) or step <= 0 or step > 90:
+    if grid_step_deg is not None:
+        longitude_step = latitude_step = float(grid_step_deg)
+    elif p.angular_radius >= 89.999 and zoom <= 1.000000001:
+        longitude_step, latitude_step = 60.0, 30.0
+    else:
+        visible_span = min(2 * p.angular_radius, 2 * extent)
+        longitude_step = latitude_step = _nice_step(max(visible_span, 1e-6))
+    if not all(math.isfinite(value) and 0 < value <= 90 for value in (longitude_step, latitude_step)):
         raise ValueError("grid_step_deg must be finite and in (0, 90]")
     lo, hi = max(-90.0, lat0 - extent), min(90.0, lat0 + extent)
     longitude_extent = 180.0 if abs(lat0) + extent >= 89.999 else min(180.0, extent / max(math.cos(math.radians(abs(lat0) + extent)), 1e-6))
     # A polar cap contains all meridians: retain bounded density without losing
     # fine latitude ticks. A tiny caller-provided step cannot allocate millions.
-    lon_step = max(step, 360 / 72 if longitude_extent >= 179 else longitude_extent * 2 / 72)
-    lat_step = max(step, (hi - lo) / 72)
-    lons = np.arange(math.ceil((lon0 - longitude_extent) / lon_step) * lon_step, lon0 + longitude_extent + lon_step * .01, lon_step)
-    lats = np.arange(math.ceil(lo / lat_step) * lat_step, hi + lat_step * .01, lat_step)
+    longitude_step = max(longitude_step, 360 / 72 if longitude_extent >= 179 else longitude_extent * 2 / 72)
+    latitude_step = max(latitude_step, (hi - lo) / 72)
+    raw_lons = np.arange(math.ceil((lon0 - longitude_extent) / longitude_step) * longitude_step, lon0 + longitude_extent + longitude_step * .01, longitude_step)
+    # -180 and +180 are the same physical meridian. Do not draw that boundary
+    # twice, which otherwise looks like an artificial heavier coordinate line.
+    seen_longitudes = set()
+    lons = []
+    for value in raw_lons:
+        key_value = round(float(value) % 360, 9)
+        if key_value not in seen_longitudes:
+            seen_longitudes.add(key_value)
+            lons.append(float(value))
+    lats = np.arange(math.ceil(lo / latitude_step) * latitude_step, hi + latitude_step * .01, latitude_step)
     pieces = []
     occupied = []
     axes = ("Az", "Alt") if key == "altaz" else ("RA", "Dec") if key == "j2000" else ("l", "b")
@@ -221,11 +239,12 @@ def _grid(projection: _Projection, key: str, zoom: float, bounds, grid_step_deg:
                     if all(abs(px - ox) > 54 / zoom or abs(py - oy) > 17 / zoom for ox, oy in occupied):
                         occupied.append((px, py))
                         number = value % 360 if axis == 0 else value
-                        precision = max(0, min(6, int(-math.floor(math.log10(step))) + 1))
+                        axis_step = longitude_step if axis == 0 else latitude_step
+                        precision = max(0, min(6, int(-math.floor(math.log10(axis_step))) + 1))
                         label = f"{axes[axis]} {number:.{precision}f}°"
                         pieces.append(f'<text class="ring-label coordinate-tick" data-axis="{axes[axis]}" data-coordinate-deg="{number:.9f}" x="{px + 3 / zoom:.9f}" y="{py - 3 / zoom:.9f}">{label}</text>')
                         break
-    return "".join(pieces), step
+    return "".join(pieces), longitude_step, latitude_step
 
 
 def _styles(zoom: float) -> str:
@@ -233,16 +252,16 @@ def _styles(zoom: float) -> str:
     # extensions never inherit the old CSS symbol-scale/hover transforms.
     css = f'''<style>
 .sky-map-svg text,.fov-map-svg text{{font-size:calc({14.4 / zoom:.9f}px * var(--map-icon-scale,1));font-weight:650}}
-.sky-map-svg .coordinate-grid,.fov-map-svg .coordinate-grid{{fill:none;stroke:var(--line-soft,#667085);stroke-width:1.4;vector-effect:non-scaling-stroke;stroke-dasharray:3 6}}
+.sky-map-svg .coordinate-grid,.fov-map-svg .coordinate-grid{{fill:none;stroke:var(--line,#667085);stroke-width:1;stroke-opacity:.5;vector-effect:non-scaling-stroke;stroke-dasharray:3 7}}
 .sky-map-svg .source-marker,.fov-map-svg .source-marker{{color:var(--blue,#608fea);cursor:pointer}}
 .sky-map-svg .status-green{{color:var(--green,#47a976)}} .sky-map-svg .status-yellow{{color:var(--yellow,#c9a200)}} .sky-map-svg .status-red{{color:var(--red,#d45962)}}
 .sky-map-svg .trajectory-highlight{{color:#8b5cf6}}
 .sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol{{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
 .sky-map-svg .source-type-gaia polygon,.fov-map-svg .source-type-gaia polygon{{fill:currentColor;stroke:currentColor;stroke-width:1.5;vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
-.sky-map-svg .extension-ring,.fov-map-svg .extension-ring{{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke;transform:none;pointer-events:none}}
-.sky-map-svg .source-hit-target,.fov-map-svg .source-hit-target{{fill:transparent;stroke:none;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center;pointer-events:all}}
+.sky-map-svg .extension-ring,.fov-map-svg .extension-ring{{fill:none;stroke:currentColor;stroke-width:1.35;stroke-opacity:.58;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;transform:none;filter:none;pointer-events:none}}
+.sky-map-svg .source-marker [data-hit-target="true"],.fov-map-svg .source-marker [data-hit-target="true"]{{fill:transparent!important;stroke:none!important;stroke-width:0!important;filter:none!important;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center;pointer-events:all}}
 .sky-map-svg .realtime-fov-ring,.fov-map-svg .fov-ring{{fill:none;stroke:var(--blue,#608fea);stroke-width:3;vector-effect:non-scaling-stroke;pointer-events:none}}
-.sky-map-svg .coordinate-tick,.fov-map-svg .coordinate-tick{{fill:var(--muted,#8993a7);pointer-events:none;paint-order:stroke;stroke:var(--sky,#101827);stroke-width:{2 / zoom:.9f}px}}
+.sky-map-svg .coordinate-tick,.fov-map-svg .coordinate-tick{{fill:var(--muted,#8993a7);fill-opacity:.66;font-weight:500;pointer-events:none;paint-order:stroke;stroke:var(--sky,#101827);stroke-opacity:.42;stroke-width:{1 / zoom:.9f}px}}
 .sky-map-svg .body-marker text,.fov-map-svg .body-marker text{{fill:#ee9b37}}
 .sky-map-svg .body-marker text[dominant-baseline],.fov-map-svg .body-marker text[dominant-baseline]{{font-size:{27 / zoom:.9f}px}}
 </style>'''
@@ -277,7 +296,7 @@ def _marker(source: Source, coordinate: Optional[SkyCoord], p: _Projection, zoom
         pieces.append(f'<polygon points="{_star_points(x, y, 8 / zoom, 3.2 / zoom)}" />')
     else:
         pieces.append(f'<circle cx="{x:.9f}" cy="{y:.9f}" r="{3.5 / zoom:.9f}" class="source-symbol" data-symbol-only="true" />')
-    pieces.append(f'<circle class="source-hit-target" cx="{x:.9f}" cy="{y:.9f}" r="{9 / zoom:.9f}" data-hit-target="true" /></g>')
+    pieces.append(f'<circle class="source-hit-target" cx="{x:.9f}" cy="{y:.9f}" r="{9 / zoom:.9f}" data-hit-target="true" style="fill:transparent;stroke:none;stroke-width:0;filter:none" /></g>')
     return "".join(pieces)
 
 
@@ -317,9 +336,9 @@ def render_all_sky_svg(
     frame = _frame(display_frame, display_time, telescope)
     p = _Projection(_zenith_coordinate(display_time, telescope).transform_to(frame), 350, 335, 260, 90, display_frame == "altaz")
     viewbox, zoom, view = _viewbox(760, 700, p.cx, p.cy, zoom, bounds)
-    grid, step = _grid(p, display_frame, zoom, view, grid_step_deg)
+    grid, longitude_step, latitude_step = _grid(p, display_frame, zoom, view, grid_step_deg)
     clip = f'sky-clip-{display_frame}'
-    lines = [f'<svg class="sky-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="zenith" data-zoom="{zoom:.9f}" data-grid-step-deg="{step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="{_esc(telescope.name)} {_esc(_display_label(display_frame))} map">',
+    lines = [f'<svg class="sky-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="zenith" data-zoom="{zoom:.9f}" data-grid-step-deg="{min(longitude_step, latitude_step):.9f}" data-grid-longitude-step-deg="{longitude_step:.9f}" data-grid-latitude-step-deg="{latitude_step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="{_esc(telescope.name)} {_esc(_display_label(display_frame))} map">',
              f'<title>{_esc(telescope.name)} {_esc(_display_label(display_frame))} map</title><desc>Zenith-centred 90 degree hemisphere; coordinates in degrees; symbols and hit areas are not angular extensions. Pressure=0 hPa.</desc>', _styles(zoom),
              f'<defs><clipPath id="{clip}"><circle cx="350" cy="335" r="260" /></clipPath></defs>',
              '<circle class="sky-surface" cx="350" cy="335" r="260" />',
@@ -368,7 +387,7 @@ def render_all_sky_svg(
                 x, y, _ = p.project(coordinate)
                 lines.append(_body_icon(float(x), float(y), kind, text[kind], zoom))
     lines.extend(['</g>', _directions(p, display_frame, text, zoom), f'<text class="ring-label horizon-label" x="110" y="125">{text["horizon"]}</text>', '</svg>'])
-    snapshot.update({"display_frame": display_frame, "display_frame_label": _display_label(display_frame), "visible_source_count": visible_count, "below_horizon_source_count": below_count, "lact_pointing": {"mode": telescope.pointing_mode, "altitude_deg": telescope.pointing_altitude_deg, "azimuth_deg": telescope.pointing_azimuth_deg, "fov_diameter_deg": telescope.fov_diameter_deg, "fov_radius_deg": telescope.fov_radius_deg}, "highlighted_source_indexes": sorted(highlighted), "map_display_time": _utc(display_time).isoformat(), "map_viewbox": list(view), "grid_step_deg": step})
+    snapshot.update({"display_frame": display_frame, "display_frame_label": _display_label(display_frame), "visible_source_count": visible_count, "below_horizon_source_count": below_count, "lact_pointing": {"mode": telescope.pointing_mode, "altitude_deg": telescope.pointing_altitude_deg, "azimuth_deg": telescope.pointing_azimuth_deg, "fov_diameter_deg": telescope.fov_diameter_deg, "fov_radius_deg": telescope.fov_radius_deg}, "highlighted_source_indexes": sorted(highlighted), "map_display_time": _utc(display_time).isoformat(), "map_viewbox": list(view), "grid_step_deg": min(longitude_step, latitude_step), "grid_longitude_step_deg": longitude_step, "grid_latitude_step_deg": latitude_step})
     return "".join(lines), snapshot
 
 
@@ -392,9 +411,9 @@ def render_local_fov_svg(
     center = source_coord(source).transform_to(frame)
     p = _Projection(center, 330, 300, 235, max(6.5, telescope.fov_radius_deg * 1.4))
     viewbox, zoom, view = _viewbox(680, 620, p.cx, p.cy, zoom, bounds)
-    grid, step = _grid(p, display_frame, zoom, view, grid_step_deg)
+    grid, longitude_step, latitude_step = _grid(p, display_frame, zoom, view, grid_step_deg)
     clip = f'local-clip-{display_frame}'
-    lines = [f'<svg class="fov-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="target" data-center-source-key="{_esc(source.source_key)}" data-zoom="{zoom:.9f}" data-grid-step-deg="{step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Telescope local FoV map">',
+    lines = [f'<svg class="fov-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="target" data-center-source-key="{_esc(source.source_key)}" data-zoom="{zoom:.9f}" data-grid-step-deg="{min(longitude_step, latitude_step):.9f}" data-grid-longitude-step-deg="{longitude_step:.9f}" data-grid-latitude-step-deg="{latitude_step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Telescope local FoV map">',
              '<title>Telescope local FoV map</title>',
              f'<desc>Centre is selected source; circle is a {telescope.fov_diameter_deg:.2f} degree hard FoV. {_esc(_display_label(display_frame))}; coordinates in degrees. Source symbols and hit areas are not extensions.</desc>', _styles(zoom),
              f'<defs><clipPath id="{clip}"><circle cx="330" cy="300" r="235" /></clipPath></defs>',

@@ -246,7 +246,9 @@ A query failure may still use HTTP 200 with top-level `status="error"`, non-null
 
 - GREEN: known centre and nominal extension pass the applicable geometry; YELLOW: centre passes but a known edge fails; RED: centre fails. Do not interpret unknown footprints as fully verified containment.
 - Current-sky status uses current pointing/FoV; candidate tracking windows do not approve live equipment pointing. Extension uncertainty and positional errors are not automatically physical extension or colour thresholds.
-- Select catalogues and a source, or enter a new target's RA, Dec and radius. A blank name yields `TMP JHHMM±DDMM`; temporary targets do not modify 2LHAASO.
+- Open **Select catalogues** inside the all-sky panel, check the desired catalogues, then choose **Confirm & load**. Checks are drafts until confirmation; Cancel, Escape or clicking outside restores the applied selection. Confirmation refreshes the sky and homepage target search. An empty selection is valid. Result-page layer changes do not replace the calculated target.
+- Select a source, or enter a new target's RA, Dec and radius. A blank name yields `TMP JHHMM±DDMM`; temporary targets do not modify 2LHAASO.
+- The unzoomed all-sky grid uses 60-degree longitude and 30-degree latitude spacing; local/deep-zoom views adapt the spacing. A solid hollow symbol marks a source; a faint dashed outline is its known nominal extension, not the invisible click target. The Data notes page includes usage, platform scope/roadmap and a single-select introduction for each supported catalogue.
 - Choose start/end (at most one day per request). Timezone-free browser inputs use the selected time zone; API timestamps should include `Z` or an explicit offset.
 - Defaults: Sun altitude at most `-18°`, Moon separation at least `30°`, target zenith angle `0°–60°`, minimum duration `0 s`. The page requires all five values; API nullability follows OpenAPI.
 - Candidate scanning uses one-second samples with refinement of detected pass/fail transitions. Zero minimum duration does not guarantee discovery of every sub-second window.

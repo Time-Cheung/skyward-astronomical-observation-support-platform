@@ -7,7 +7,9 @@
   <title>{% block title %}Skyward | LACT Observation Planner{% endblock %}</title>
   <!-- All visual and interaction assets are local so the LAN deployment stays offline. -->
   <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='/about.css') }}">
   <script defer src="{{ url_for('static', path='/app.js') }}"></script>
+  <script defer src="{{ url_for('static', path='/about.js') }}"></script>
 </head>
 <body>
   <header class="site-header">

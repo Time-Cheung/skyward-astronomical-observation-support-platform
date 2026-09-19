@@ -74,7 +74,9 @@ def browser_page():
 
 def test_browser_search_stability_and_failed_submission(browser_page):
     page = browser_page
+    page.locator('#catalogue-picker-toggle').click()
     page.locator('[data-catalogue-id="fermi-fl16y"]').check()
+    page.locator('#catalogue-confirm').click()
     page.locator('#source-picker-toggle').click()
     page.locator('#source-search').fill('J2359')
     page.wait_for_function("document.querySelector('#source-options').textContent.includes('J2359') && document.querySelector('#source-search-status').textContent.includes('/')")
@@ -100,7 +102,9 @@ def test_browser_gaia_cache_detail_and_uncheck(browser_page):
                'sources': [{'index': 80001, 'source_key': 'gaia-dr3:123', 'source_id': '123', 'display_name': 'Gaia DR3 123', 'notes': '<script>alert(1)</script>'}],
                'overlay_svg': '<svg xmlns="http://www.w3.org/2000/svg"><g class="source-marker source-type-gaia" data-source-index="80001" data-source-key="gaia-dr3:123" tabindex="0"><circle cx="380" cy="250" r="8" /></g></svg>'}
     page.route('**/api/v1/gaia?*', lambda route: route.fulfill(content_type='application/json', body=json.dumps(payload)))
+    page.locator('#catalogue-picker-toggle').click()
     page.locator('[data-catalogue-id="gaia-dr3"]').check()
+    page.locator('#catalogue-confirm').click()
     page.wait_for_selector('[data-gaia-layer] .source-marker')
     assert '1 / 1' in page.locator('[data-gaia-status]').inner_text()
     assert '不是最亮 N 颗' in page.locator('[data-gaia-selection-warning]').inner_text()
@@ -112,7 +116,9 @@ def test_browser_gaia_cache_detail_and_uncheck(browser_page):
     assert page.locator('#dialog-title').inner_text() == 'Gaia DR3 123'
     assert page.locator('#dialog-body script').count() == 0
     page.locator('[data-close-dialog]').click()
+    page.locator('#catalogue-picker-toggle').click()
     page.locator('[data-catalogue-id="gaia-dr3"]').uncheck()
+    page.locator('#catalogue-confirm').click()
     assert page.locator('[data-gaia-layer]').count() == 0
 
 
@@ -125,8 +131,10 @@ def test_browser_empty_layers_and_camera_layout(browser_page):
     page.locator('.zoom-factor').press('Tab')
     assert frame.get_attribute('data-zoom') == '1000'
     assert abs(frame.bounding_box()['width'] - width) < 1
+    page.locator('#catalogue-picker-toggle').click()
     for checkbox in page.locator('[data-catalogue-id]:checked').all():
         checkbox.uncheck()
+    page.locator('#catalogue-confirm').click()
     page.wait_for_function("document.querySelectorAll('.map-frame .source-marker').length === 0")
     assert page.locator('#source-key-input').input_value() == selected_before
 
@@ -148,7 +156,9 @@ def test_browser_deep_zoom_preserves_rendered_symbol_and_text_sizes(browser_page
             'sources': [], 'overlay_svg': svg}))
 
     page.route('**/api/v1/gaia?*', mock_gaia)
+    page.locator('#catalogue-picker-toggle').click()
     page.locator('[data-catalogue-id="gaia-dr3"]').check()
+    page.locator('#catalogue-confirm').click()
     page.wait_for_selector('[data-gaia-layer] polygon')
 
     def dimensions():

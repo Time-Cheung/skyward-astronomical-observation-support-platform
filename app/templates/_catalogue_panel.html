@@ -1,13 +1,26 @@
-{# One checkbox is the sole authority for each display layer on every page. #}
+{# The checked boxes are draft state. JavaScript keeps the applied selection separately. #}
 {% set selected_layers = (form_values.catalog_tokens if form_values.catalog_tokens is defined and form_values.catalog_tokens is not none else '2lhaaso').split(',') %}
-<aside class="catalogue-panel" data-catalogue-panel aria-labelledby="catalogue-panel-title">
-  <h3 id="catalogue-panel-title" data-i18n="catalogueLayers">Catalogue layers</h3>
-  <div class="catalogue-checkboxes" id="catalogue-checkboxes">
-    {% for identifier, label in [('2lhaaso','2LHAASO'),('fermi-fl16y','Fermi FL16Y'),('fermi-3fhl','Fermi 3FHL'),('tevcat','TeVCat'),('gaia-dr3','Gaia DR3')] %}
-    <label class="catalogue-choice"><input type="checkbox" data-catalogue-id="{{ identifier }}" value="{{ identifier }}" {% if identifier in selected_layers %}checked{% endif %}><span>{{ label }}</span></label>
-    {% endfor %}
+<div class="catalogue-control" data-catalogue-panel>
+  <button class="secondary-button catalogue-picker-toggle" id="catalogue-picker-toggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="catalogue-picker-popup">
+    <span data-i18n="cataloguePicker">Select catalogues</span>
+    <strong id="catalogue-picker-summary"></strong>
+  </button>
+  <div class="catalogue-picker-popup" id="catalogue-picker-popup" role="dialog" aria-labelledby="catalogue-panel-title" hidden>
+    <div class="catalogue-picker-head">
+      <h3 id="catalogue-panel-title" data-i18n="catalogueLayers">Catalogues</h3>
+      <button class="icon-button catalogue-picker-close" type="button" data-catalogue-cancel data-i18n-aria-label="catalogueCancel" aria-label="Cancel">×</button>
+    </div>
+    <div class="catalogue-checkboxes" id="catalogue-checkboxes">
+      {% for identifier, label in [('2lhaaso','2LHAASO'),('fermi-fl16y','Fermi FL16Y'),('fermi-3fhl','Fermi 3FHL'),('tevcat','TeVCat'),('gaia-dr3','Gaia DR3')] %}
+      <label class="catalogue-choice"><input type="checkbox" data-catalogue-id="{{ identifier }}" value="{{ identifier }}" {% if identifier in selected_layers %}checked{% endif %}><span>{{ label }}</span></label>
+      {% endfor %}
+    </div>
+    <p class="map-note catalogue-draft-help" data-i18n="layerScope">Checks are drafts. Confirm loading to update the sky map and target picker.</p>
+    <p id="catalogue-status" role="status" aria-live="polite"></p>
+    <div class="catalogue-picker-actions">
+      <button class="secondary-button" type="button" data-catalogue-cancel data-i18n="catalogueCancel">Cancel</button>
+      <button class="primary-button compact-primary-button" id="catalogue-confirm" type="button" data-i18n="catalogueConfirm">Confirm &amp; load</button>
+    </div>
+    <section class="gaia-query-status" aria-labelledby="gaia-status-title"><h4 id="gaia-status-title">Gaia DR3</h4><div data-gaia-status role="status" aria-live="polite"></div><p data-i18n="gaiaCandidateWarning">Candidates only; calibration suitability has not been assessed.</p></section>
   </div>
-  <p class="map-note" data-i18n="layerScope">Display layers only. Changing layers does not recalculate the selected target.</p>
-  <p id="catalogue-status" role="status" aria-live="polite"></p>
-  <section class="gaia-query-status" aria-labelledby="gaia-status-title"><h4 id="gaia-status-title">Gaia DR3</h4><div data-gaia-status role="status" aria-live="polite"></div><p data-i18n="gaiaCandidateWarning">Candidates only; calibration suitability has not been assessed.</p></section>
-</aside>
+</div>

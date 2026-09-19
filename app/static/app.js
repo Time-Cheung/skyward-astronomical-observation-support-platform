@@ -95,10 +95,10 @@
     target_above_horizon: 'target above horizon', target_inside_current_fov: 'target inside current FoV', sun_altitude: 'Sun altitude', moon_separation: 'Moon separation', target_min_zenith: 'minimum target zenith angle', target_max_zenith: 'maximum target zenith angle', extension_inside_fov: 'extension inside FoV', extension_inside_current_fov: 'extension inside current FoV', extension_above_horizon: 'extension above horizon', extension_max_zenith: 'extension within horizon limit', minimum_window: 'minimum continuous window',
   });
   Object.assign(translations.zh, {
-    catalogueLayers: '目录图层', layerScope: '仅切换显示图层，不重新计算所选目标。', emptyLayers: '未选择目录图层', searchCatalogue: '搜索所有已选目录', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '目录清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按目录选择显示图层，检索目标并计算几何窗口。'
+    catalogueLayers: '源表', layerScope: '勾选仅为草稿；确认加载后才更新天图与目标源选择器。', cataloguePicker: '选择源表', catalogueConfirm: '确认加载', catalogueCancel: '取消', catalogueDraftChanged: '选择尚未应用', catalogueCountUnit: '个源表', emptyLayers: '未选择源表', searchCatalogue: '搜索所有已选源表', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '源表清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按源表选择显示图层，检索目标并计算几何窗口。'
   });
   Object.assign(translations.en, {
-    catalogueLayers: 'Catalogue layers', layerScope: 'Display layers only. Changing layers does not recalculate the selected target.', emptyLayers: 'No catalogue layers selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
+    catalogueLayers: 'Catalogues', layerScope: 'Checks are drafts. Confirm loading to update the sky map and target picker.', cataloguePicker: 'Select catalogues', catalogueConfirm: 'Confirm & load', catalogueCancel: 'Cancel', catalogueDraftChanged: 'Selection not applied', catalogueCountUnit: 'catalogues', emptyLayers: 'No catalogues selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
   });
   Object.assign(translations.zh, { gaiaUnorderedSubset: '按行数上限返回的无序子集；不是最亮 N 颗，也不是代表性抽样。', operatorNominalAssumption: '用户指定的名义半径假设', unknownFootprint: '未提供；未评估完整源范围' });
   Object.assign(translations.en, { gaiaUnorderedSubset: 'Bounded unordered subset; not the brightest N stars and not a representative sample.', operatorNominalAssumption: 'Operator-supplied nominal assumption', unknownFootprint: 'Not provided; full footprint not evaluated' });
@@ -683,7 +683,10 @@
     sync();
   };
 
-  const selectedCatalogueTokens = () => [...document.querySelectorAll('[data-catalogue-id]:checked')].map(input => input.value);
+  const catalogueCheckboxes = () => [...document.querySelectorAll('[data-catalogue-id]')];
+  let appliedCatalogueTokens = null;
+  const draftCatalogueTokens = () => catalogueCheckboxes().filter(input => input.checked).map(input => input.value);
+  const selectedCatalogueTokens = () => [...(appliedCatalogueTokens ?? draftCatalogueTokens())];
   const appendLayerParameters = (params) => {
     // Explicit empty is meaningful. Never fall back to a default catalogue.
     params.set('catalog_tokens', selectedCatalogueTokens().filter(id => id !== 'gaia-dr3').join(','));
@@ -802,12 +805,12 @@
     const select = document.querySelector('[data-source-select]'); if (!select) return;
     const previous = select.value;
     sources.forEach(source => {
-      const id = String(source.index); sourceRows.set(id, source);
-      let option = [...select.options].find(item => item.value === id);
-      if (!option) { option = new Option('', id); select.add(option); }
+      const sourceKey = String(source.source_key || source.source_id || source.index); sourceRows.set(sourceKey, source);
+      let option = [...select.options].find(item => item.dataset.sourceKey === sourceKey);
+      if (!option) { option = new Option('', sourceKey); select.add(option); }
       option.textContent = `${source.display_name || source.name} | RA ${Number(source.ra).toFixed(3)}° | Dec ${Number(source.dec).toFixed(3)}°`;
-      option.dataset.sourceId = source.source_key || source.source_id || id;
-      option.dataset.sourceKey = source.source_key || '';
+      option.dataset.sourceId = source.source_key || source.source_id || sourceKey;
+      option.dataset.sourceKey = source.source_key || sourceKey;
     });
     select.value = previous;
   };
@@ -816,6 +819,10 @@
   const initialiseCatalogueControls = () => {
     const panel = document.querySelector('[data-catalogue-panel]'); if (!panel) return;
     const status = document.getElementById('catalogue-status');
+    const picker = document.getElementById('catalogue-picker-popup');
+    const pickerToggle = document.getElementById('catalogue-picker-toggle');
+    const pickerSummary = document.getElementById('catalogue-picker-summary');
+    const confirm = document.getElementById('catalogue-confirm');
     const select = document.querySelector('[data-source-select]');
     const input = document.getElementById('source-search');
     const popup = document.getElementById('source-picker-popup');
@@ -823,17 +830,51 @@
     const list = document.getElementById('source-options');
     const more = document.getElementById('source-load-more');
     const searchStatus = document.getElementById('source-search-status');
+    appliedCatalogueTokens = draftCatalogueTokens();
     let rows = [], nextOffset = null, generation = 0, controller, active = -1, debounce;
+    const sameTokens = (left, right) => left.length === right.length && left.every((value, index) => value === right[index]);
+    const restoreDraft = () => {
+      const applied = new Set(selectedCatalogueTokens());
+      catalogueCheckboxes().forEach(checkbox => { checkbox.checked = applied.has(checkbox.value); });
+      if (status) status.textContent = applied.size ? '' : translate('emptyLayers');
+    };
+    const syncCatalogueSummary = () => {
+      if (!pickerSummary) return;
+      const selected = selectedCatalogueTokens();
+      if (!selected.length) { pickerSummary.textContent = translate('emptyLayers'); return; }
+      if (selected.length === 1) {
+        const checkbox = catalogueCheckboxes().find(item => item.value === selected[0]);
+        pickerSummary.textContent = checkbox?.parentElement.querySelector('span')?.textContent || selected[0];
+        return;
+      }
+      pickerSummary.textContent = `${selected.length} ${translate('catalogueCountUnit')}`;
+    };
+    const setCatalogueOpen = open => {
+      if (!picker) return;
+      if (open) restoreDraft();
+      picker.hidden = !open;
+      pickerToggle?.setAttribute('aria-expanded', String(open));
+      panel.closest('.sky-panel')?.classList.toggle('catalogue-open', open);
+      if (open) picker.querySelector('[data-catalogue-id]')?.focus();
+      else pickerToggle?.focus();
+    };
+    const cancelDraft = () => { restoreDraft(); setCatalogueOpen(false); };
     const setOpen = open => { if (!popup) return; popup.hidden = !open; toggle.setAttribute('aria-expanded',String(open)); input.setAttribute('aria-expanded',String(open)); if (open) input.focus(); else input.removeAttribute('aria-activedescendant'); };
     const syncLabel = () => { const label = document.getElementById('source-picker-value'); if (label && select) label.textContent = select.selectedOptions[0]?.textContent || translate('targetSource'); };
-    const choose = value => { select.value=value; select.dispatchEvent(new Event('change',{bubbles:true})); syncLabel(); setOpen(false); toggle.focus(); };
+    const choose = sourceKey => {
+      const option = sourceKey === 'region' ? [...select.options].find(item => item.value === 'region') : [...select.options].find(item => item.dataset.sourceKey === sourceKey);
+      if (!option) return;
+      select.value=option.value; select.dispatchEvent(new Event('change',{bubbles:true})); syncLabel(); setOpen(false); toggle.focus();
+    };
     renderSourcePicker = () => {
       if (!list) return;
-      const items = [{index:'region',display_name:translate('addTargetOption')}, ...rows];
+      const selectedKey = select.selectedOptions[0]?.dataset.sourceKey || select.value;
+      const items = [{index:'region',source_key:'region',display_name:translate('addTargetOption')}, ...rows];
       list.replaceChildren(...items.map((source,index) => {
-        const option = document.createElement('div'); option.id='source-option-'+index; option.role='option'; option.tabIndex=-1; option.dataset.value=String(source.index);
-        option.setAttribute('aria-selected',String(select.value===String(source.index)));
-        option.textContent = source.display_name || source.name; option.addEventListener('click',()=>choose(String(source.index))); return option;
+        const sourceKey=String(source.source_key || source.source_id || source.index);
+        const option = document.createElement('div'); option.id='source-option-'+index; option.role='option'; option.tabIndex=-1; option.dataset.value=sourceKey;
+        option.setAttribute('aria-selected',String(selectedKey===sourceKey));
+        option.textContent = source.display_name || source.name; option.addEventListener('click',()=>choose(sourceKey)); return option;
       }));
       active=-1; input.removeAttribute('aria-activedescendant'); syncLabel();
     };
@@ -869,22 +910,34 @@
     popup?.addEventListener('keydown',event=>{ if(event.key==='Escape'){setOpen(false);toggle.focus();} });
     document.addEventListener('click',event=>{if(popup && !event.target.closest('.source-combobox'))setOpen(false);});
     select?.addEventListener('change',syncLabel); more?.addEventListener('click',()=>load(true));
-    const changed = () => {
-      const selectedSet=new Set(selectedCatalogueTokens());
-      document.querySelectorAll('.map-frame [data-source-key]').forEach(marker=>{if(!selectedSet.has(marker.dataset.sourceKey.split(':')[0]))marker.remove();});
-      const hidden=document.getElementById('catalog-tokens-input'); if(hidden)hidden.value=selectedCatalogueTokens().join(',');
-      status.textContent=selectedCatalogueTokens().length ? '' : translate('emptyLayers');
-      // Calculated context and local pointing are intentionally never mutated here.
+    const applySelection = () => {
+      appliedCatalogueTokens = draftCatalogueTokens();
+      const appliedValue=selectedCatalogueTokens().join(',');
+      document.querySelectorAll('[name="catalog_tokens"]').forEach(hidden => { hidden.value=appliedValue; });
+      const resultContext=document.getElementById('detail-query-context'); if(resultContext)resultContext.dataset.catalogTokens=appliedValue;
+      if (status) status.textContent=selectedCatalogueTokens().length ? '' : translate('emptyLayers');
+      syncCatalogueSummary(); setCatalogueOpen(false);
+      // Calculated context and result target stay stable; only display layers and the homepage picker refresh.
       document.dispatchEvent(new Event('skyward:catalogues-change')); load();
     };
-    panel.addEventListener('change',event=>{if(event.target.matches('[data-catalogue-id]'))changed();});
+    pickerToggle?.addEventListener('click', () => setCatalogueOpen(picker.hidden));
+    confirm?.addEventListener('click', applySelection);
+    panel.addEventListener('change',event=>{
+      if (!event.target.matches('[data-catalogue-id]')) return;
+      const draft = draftCatalogueTokens();
+      if (status) status.textContent = sameTokens(draft, selectedCatalogueTokens()) ? (draft.length ? '' : translate('emptyLayers')) : translate('catalogueDraftChanged');
+    });
+    panel.querySelectorAll('[data-catalogue-cancel]').forEach(button => button.addEventListener('click', cancelDraft));
+    picker?.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); cancelDraft(); } });
+    document.addEventListener('click', event => { if (!picker?.hidden && !event.target.closest('[data-catalogue-panel]')) cancelDraft(); });
     fetch('/api/v1/catalogues').then(response=>response.json()).then(data=>{
       (data.catalogues || []).forEach(item=>{
-        const checkbox=[...panel.querySelectorAll('[data-catalogue-id]')].find(input=>input.value===item.identifier);
+        const checkbox=catalogueCheckboxes().find(input=>input.value===item.identifier);
         if(checkbox)checkbox.parentElement.querySelector('span').textContent=item.label;
         if(checkbox && item.available===false){checkbox.disabled=true;checkbox.title=item.error || translate('unavailable');}
       });
-    }).catch(error=>{status.textContent=translate('catalogueLoadFailed')+': '+error.message;});
+      syncCatalogueSummary();
+    }).catch(error=>{if(status)status.textContent=translate('catalogueLoadFailed')+': '+error.message;});
     document.getElementById('catalogue-upload')?.addEventListener('change',async event=>{
       const file=event.target.files?.[0]; if(!file)return;
       const uploadStatus=document.getElementById('catalogue-upload-status'); uploadStatus.textContent=translate('catalogueUploading');
@@ -892,11 +945,11 @@
         const body=new FormData();body.append('file',file);const response=await fetch('/api/v1/catalogues/upload',{method:'POST',body});const data=await response.json();if(!response.ok)throw new Error(data.detail || 'HTTP '+response.status);
         const label=document.createElement('label'); label.className='catalogue-choice'; const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=data.token;checkbox.dataset.catalogueId=data.token;checkbox.checked=true;
         const text=document.createElement('span');text.textContent=data.label;label.append(checkbox,text);document.getElementById('catalogue-checkboxes').append(label);
-        replaceSourceOptions(data.sources || []);uploadStatus.textContent=translate('catalogueUploaded');changed();
+        uploadStatus.textContent=translate('catalogueUploaded'); setCatalogueOpen(true); checkbox.checked=true; if(status)status.textContent=translate('catalogueDraftChanged');
       } catch(error){uploadStatus.textContent=translate('catalogueUploadFailed')+': '+error.message;}
     });
-    document.addEventListener('skyward:language-change',()=>{renderSourcePicker();});
-    syncLabel(); renderSourcePicker(); load();
+    document.addEventListener('skyward:language-change',()=>{renderSourcePicker();syncCatalogueSummary();});
+    syncCatalogueSummary(); syncLabel(); renderSourcePicker(); load();
   };
 
   const liveTimestamp = (date) => {

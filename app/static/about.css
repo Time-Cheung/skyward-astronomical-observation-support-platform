@@ -1,0 +1,202 @@
+/* Page-specific layout for the data notes. Shared colours, typography and the
+ * v0-title heading class continue to come from styles.css. */
+.skyward-overview,
+.usage-section {
+  margin-bottom: 18px;
+}
+
+.scope-statement {
+  margin: -5px 0 18px;
+  max-width: 78ch;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.skyward-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-small);
+  background: var(--line-soft);
+}
+
+.scope-card {
+  min-width: 0;
+  padding: 17px;
+  background: var(--surface-2);
+}
+
+.scope-card .section-label {
+  margin-bottom: 7px;
+}
+
+.scope-card h3 {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.scope-card p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.usage-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-small);
+  background: var(--line-soft);
+  list-style: none;
+  counter-reset: skyward-steps;
+}
+
+.usage-steps li {
+  position: relative;
+  min-width: 0;
+  padding: 17px 16px 17px 48px;
+  background: var(--surface-2);
+  counter-increment: skyward-steps;
+}
+
+.usage-steps li::before {
+  content: counter(skyward-steps, decimal-leading-zero);
+  position: absolute;
+  top: 17px;
+  left: 15px;
+  color: var(--blue);
+  font: 800 12px/1 var(--font-mono);
+}
+
+.usage-steps strong,
+.usage-steps span {
+  display: block;
+}
+
+.usage-steps strong {
+  margin-bottom: 7px;
+  font-size: 13px;
+}
+
+.usage-steps span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.about-planner-link {
+  display: inline-block;
+  margin-top: 15px;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.about-planner-link:hover,
+.about-planner-link:focus-visible {
+  text-decoration: underline;
+}
+
+.catalogue-guide-card {
+  display: grid;
+  align-content: start;
+}
+
+.catalogue-guide-label {
+  margin-bottom: 7px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+#about-catalogue-select {
+  min-height: 42px;
+  margin-bottom: 13px;
+}
+
+.catalogue-guide-output {
+  min-height: 172px;
+  padding: 15px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+}
+
+.catalogue-guide-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 11px;
+}
+
+.catalogue-guide-heading strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.catalogue-guide-heading span {
+  color: var(--blue);
+  text-align: right;
+  font: 800 10px/1.4 var(--font-mono);
+}
+
+.catalogue-guide-output > p {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.catalogue-guide-output > p:last-child {
+  margin-bottom: 0;
+}
+
+.catalogue-boundary {
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.catalogue-boundary strong,
+.catalogue-boundary span {
+  display: block;
+}
+
+.catalogue-boundary strong {
+  margin-bottom: 4px;
+  color: var(--text);
+  font: 800 10px/1.2 var(--font-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1040px) {
+  .usage-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .skyward-stage-grid,
+  .usage-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogue-guide-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .catalogue-guide-heading span {
+    text-align: left;
+  }
+}

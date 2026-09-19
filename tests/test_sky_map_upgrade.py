@@ -92,6 +92,68 @@ def test_all_sky_is_zenith_centered_and_matches_astropy(monkeypatch, frame):
     assert len(members(root, "coordinate-tick")) > 2
 
 
+@pytest.mark.parametrize("frame,axes", [
+    ("altaz", ("Az", "Alt")),
+    ("j2000", ("RA", "Dec")),
+    ("galactic", ("l", "b")),
+])
+def test_all_sky_default_grid_is_sparse_60_by_30_in_every_true_frame(monkeypatch, frame, axes):
+    monkeypatch.setattr(sm, "sky_snapshot", fake_snapshot)
+    svg, meta = sm.render_all_sky_svg([], AT, ConstraintSet(), display_frame=frame)
+    root = ET.fromstring(svg)
+    assert root.get("data-grid-longitude-step-deg") == "60.000000000"
+    assert root.get("data-grid-latitude-step-deg") == "30.000000000"
+    assert meta["grid_longitude_step_deg"] == 60
+    assert meta["grid_latitude_step_deg"] == 30
+    grids = members(root, "coordinate-grid")
+    assert 0 < len(grids) <= 12
+    assert {grid.get("data-axis") for grid in grids} == set(axes)
+    longitude_values = [float(grid.get("data-coordinate-deg")) for grid in grids if grid.get("data-axis") == axes[0]]
+    latitude_values = [float(grid.get("data-coordinate-deg")) for grid in grids if grid.get("data-axis") == axes[1]]
+    assert all(value % 60 == pytest.approx(0) for value in longitude_values)
+    assert all(value % 30 == pytest.approx(0) for value in latitude_values)
+    assert len({round(value % 360, 8) for value in longitude_values}) == len(longitude_values)
+
+
+def test_local_grid_adapts_sparsely_and_never_disappears_at_deep_zoom():
+    central = source(ra=120, dec=25)
+    intervals = []
+    for zoom in (1, 4, 20, 1000):
+        root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000", zoom=zoom))
+        grids = members(root, "coordinate-grid")
+        axes = {grid.get("data-axis") for grid in grids}
+        assert axes == {"RA", "Dec"}
+        assert 2 <= len(grids) <= 16
+        longitude_step = float(root.get("data-grid-longitude-step-deg"))
+        latitude_step = float(root.get("data-grid-latitude-step-deg"))
+        assert longitude_step > 0 and latitude_step > 0
+        intervals.append(max(longitude_step, latitude_step))
+    assert intervals == sorted(intervals, reverse=True)
+    assert intervals[-1] < intervals[0]
+
+
+def test_hit_target_is_forced_invisible_while_symbol_and_extension_stay_distinct():
+    central = source(ext=.25)
+    root = ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000"))
+    marker = members(root, "source-marker")[0]
+    symbols = members(marker, "source-symbol")
+    hits = members(marker, "source-hit-target")
+    extensions = members(marker, "extension-ring")
+    assert len(symbols) == len(hits) == len(extensions) == 1
+    assert symbols[0].tag == "circle" and symbols[0].get("data-symbol-only") == "true"
+    assert hits[0].get("style") == "fill:transparent;stroke:none;stroke-width:0;filter:none"
+    assert extensions[0].tag == "path"
+    assert extensions[0].get("data-angular-radius-deg") == "0.250000000"
+    css = root.find("style").text
+    hit_rule = next(line for line in css.splitlines() if '[data-hit-target="true"]' in line)
+    extension_rule = next(line for line in css.splitlines() if ".extension-ring" in line)
+    tick_rule = next(line for line in css.splitlines() if ".coordinate-tick" in line)
+    assert "stroke:none!important" in hit_rule and "stroke-width:0!important" in hit_rule
+    assert "stroke-dasharray:4 4" in extension_rule and "stroke-opacity:.58" in extension_rule
+    assert "transform:none" in extension_rule
+    assert "fill-opacity:.66" in tick_rule and "font-weight:500" in tick_rule
+
+
 def test_extension_is_true_spherical_radius_not_hit_radius_and_zoom_invariant():
     central = source(ext=.25)
     roots = [ET.fromstring(sm.render_local_fov_svg(central, [central], AT, display_frame="j2000", zoom=z)) for z in (1, 1000)]

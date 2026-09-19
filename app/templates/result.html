@@ -62,11 +62,9 @@
   <div><span data-i18n="enabledConstraints">Enabled constraints</span><strong>{{ constraints.enabled_labels()|length }}</strong></div>
 </section>
 
-<div class="catalogue-map-layout">
-{% include "_catalogue_panel.html" %}
 <div class="result-map-grid">
   <section class="sky-panel compact-panel">
-    <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="startTime">START TIME</p><h2 data-i18n="allSky">All-sky map</h2></div><label class="heading-mode-control"><span data-i18n="resultStatusMode">Map status</span><select id="result-status-mode"><option value="instant" data-live-option data-i18n="statusInstant">Real-time</option><option value="trajectory" data-i18n="statusTrajectory">Observation window</option></select></label></div>
+    <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="startTime">START TIME</p><h2 data-i18n="allSky">All-sky map</h2></div><div class="result-map-heading-actions">{% include "_catalogue_panel.html" %}<label class="heading-mode-control"><span data-i18n="resultStatusMode">Map status</span><select id="result-status-mode"><option value="instant" data-live-option data-i18n="statusInstant">Real-time</option><option value="trajectory" data-i18n="statusTrajectory">Observation window</option></select></label></div></div>
     <div class="result-map-controls"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div>
     <div class="map-frame" data-result-sky-map data-map-frame>{{ sky_svg|safe }}</div>
     <div class="legend"><span><i class="legend-star green"></i><b data-i18n="legendGreenMeaning">Full source observable</b></span><span><i class="legend-star yellow"></i><b data-i18n="legendYellowMeaning">Centre only</b></span><span><i class="legend-star red"></i><b data-i18n="legendRedMeaning">Centre unavailable</b></span><span id="tracked-fov-legend" hidden><i class="legend-star purple"></i><b data-i18n="trackedFovSource">Tracked-FoV source</b></span></div>
@@ -79,7 +77,6 @@
     <div class="map-frame" data-local-fov-map>{{ fov_svg|safe }}</div>
     <p class="map-note" data-i18n="localFovNote">The grey solid circle is the local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension can be hidden beneath the central target marker.</p>
   </section>
-</div>
 </div>
 
 <section class="plot-panel" data-plan-source-name="{{ source.display_name }}" data-plan-ra="{{ '%.6f'|format(source.ra) }}" data-plan-dec="{{ '%.6f'|format(source.dec) }}" data-plan-radius="{{ '%.6f'|format(source.ext) if source.footprint_known else 'not evaluated' }}" data-plan-constraints="Sun altitude ≤ {{ constraints.sun_max_altitude_deg if constraints.sun_max_altitude_deg is not none else 'disabled' }}°; Moon separation ≥ {{ constraints.moon_min_separation_deg if constraints.moon_min_separation_deg is not none else 'disabled' }}°; Zenith {{ constraints.target_min_zenith_deg if constraints.target_min_zenith_deg is not none else 'disabled' }}°-{{ constraints.target_max_zenith_deg if constraints.target_max_zenith_deg is not none else 'disabled' }}°; minimum {{ constraints.minimum_duration }} s">
