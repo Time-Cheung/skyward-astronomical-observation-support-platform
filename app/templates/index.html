@@ -7,9 +7,9 @@
     <h1 class="v0-title" data-i18n="homeTitle">V0: geometry assessment only</h1>
   </div>
   <dl class="summary-stats" aria-label="Sky summary" data-i18n-aria-label="skySummary">
-    <div><dt data-i18n="catalogue">Catalogue</dt><dd>{{ catalog_count }}</dd></div>
-    <div><dt data-i18n="aboveHorizon">Above horizon</dt><dd>{{ snapshot.visible_source_count }}</dd></div>
-    <div><dt data-i18n="belowHorizon">Below horizon</dt><dd>{{ snapshot.below_horizon_source_count }}</dd></div>
+    <div><dt data-i18n="catalogue">Catalogue</dt><dd id="home-catalog-count" data-home-summary="catalogue">{{ catalog_count }}</dd></div>
+    <div><dt data-i18n="aboveHorizon">Above horizon</dt><dd id="home-visible-count" data-home-summary="visible">{{ snapshot.visible_source_count }}</dd></div>
+    <div><dt data-i18n="belowHorizon">Below horizon</dt><dd id="home-below-count" data-home-summary="below">{{ snapshot.below_horizon_source_count }}</dd></div>
   </dl>
 </section>
 {% if error %}<div class="alert alert-error" role="alert"><strong data-i18n="inputValidation">Input validation</strong><span>{{ error }}</span></div>{% endif %}
@@ -81,7 +81,7 @@
     <div class="sky-zoom-controls" aria-label="Sky map zoom" data-i18n-aria-label="skyZoom"><span data-i18n="skyZoom">Sky map zoom</span><button id="sky-zoom-out" class="secondary-button" type="button" data-i18n-title="zoomOut" title="Zoom out">−</button><button id="sky-zoom-reset" class="secondary-button" type="button" data-i18n="zoomReset">100%</button><button id="sky-zoom-in" class="secondary-button" type="button" data-i18n-title="zoomIn" title="Zoom in">+</button><button id="sky-zoom-centre" class="secondary-button" type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>
     <div class="map-frame" data-map-frame data-zoom-max="1000">{{ sky_svg|safe }}</div>
     {% include "_map_legend.html" %}
-    <p class="map-note" data-i18n="allSkyNote">Colours use the current pointing, the configured hard FoV and default geometric constraints. The current LACT pointing is fixed to zenith pending telemetry. Select a star for details.</p>
+    <p class="map-note" data-i18n="allSkyNote">Colours use the horizon and enabled geometric constraints. Authoritative live pointing is not connected, so no current-FoV constraint is applied. Select a star for details.</p>
   </section>
 </div>
 <section class="method-strip"><div><strong data-i18n="centreWindow">Centre window</strong><span data-i18n="centreWindowDescription">The source centre passes horizon and enabled constraints.</span></div><div><strong data-i18n="fullWindow">Full-footprint window</strong><span data-i18n="fullWindowDescription">The nominal extension fits entirely within the configured hard FoV and edge constraints.</span></div><div><strong data-i18n="secondBoundary">Second-scale boundaries</strong><span data-i18n="secondBoundaryDescription">Every second is evaluated and boundaries are refined to within one second.</span></div></section>

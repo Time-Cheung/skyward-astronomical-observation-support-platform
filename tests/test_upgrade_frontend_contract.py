@@ -14,15 +14,30 @@ ROOT = Path(__file__).resolve().parents[1]
 JS = (ROOT / 'app/static/app.js').read_text()
 
 
-def test_shared_layers_are_checkboxes_with_explicit_empty_semantics():
+def test_shared_layers_and_gaia_loader_have_explicit_empty_semantics():
     panel = (ROOT / 'app/templates/_catalogue_panel.html').read_text()
-    for identifier in ('2lhaaso', 'fermi-fl16y', 'fermi-3fhl', 'tevcat', 'gaia-dr3'):
+    for identifier in ('2lhaaso', 'fermi-fl16y', 'fermi-3fhl', 'tevcat'):
         assert identifier in panel
+    assert 'gaia-dr3' not in panel
     for name in ('index.html', 'result.html'):
         assert '{% include "_catalogue_panel.html" %}' in (ROOT / 'app/templates' / name).read_text()
     assert 'data-catalogue-id' in panel
     assert 'include-gaia' not in JS
-    assert "params.set('catalog_tokens', selectedCatalogueTokens().filter" in JS
+    assert "params.set('catalog_tokens', selectedCatalogueTokens().join(','))" in JS
+    result = (ROOT / 'app/templates/result.html').read_text()
+    assert 'id="local-fov-gaia-toggle"' not in result
+    assert 'id="local-fov-gaia-legend"' in result
+    assert 'value="10"' in result
+    assert 'data-i18n="applyGaiaFilters"' in result
+    assert 'id="local-gaia-radius"' in result and 'min="0.1" max="5"' in result
+    assert 'id="local-gaia-max-mag"' in result
+    assert 'id="local-gaia-limit"' in result and 'max="500"' in result
+    assert 'id="local-gaia-filter-apply"' in result
+    assert "params.set('radius_deg',filters.radius_deg)" in JS
+    assert "params.set('max_mag',filters.max_mag)" in JS
+    assert "params.set('limit',filters.limit)" in JS
+    assert 'gaiaFallback' in JS
+    assert 'fallback_reason' in JS and 'fallback_errors' in JS
 
 
 def test_search_transport_is_separate_from_popup_and_uses_paging_and_keys():
@@ -53,6 +68,9 @@ def test_submission_feedback_and_safe_notes_contract():
     assert 'JSON.stringify(data, null, 2)' in JS
     assert 'safeExternalUrl' in JS
     assert "gaiaCandidateWarning" in JS
+    assert "sessionStorage.setItem(key, window.location.href)" in JS
+    assert "window.location.assign(parsed.href)" in JS
+    assert "history.back();" not in JS
 
 
 @pytest.fixture
@@ -96,30 +114,27 @@ def test_browser_search_stability_and_failed_submission(browser_page):
     assert page.locator('#planner-form button[type=submit]').is_enabled()
 
 
-def test_browser_gaia_cache_detail_and_uncheck(browser_page):
+def test_browser_result_local_gaia_cache_detail_and_reload(browser_page):
     page = browser_page
-    payload = {'gaia': {'count': 1, 'drawn_count': 1, 'cached': True, 'radius_deg': 5, 'max_mag': 18, 'limit': 500, 'selection': 'bounded_unordered_subset', 'ordering': 'unspecified', 'brightest_n': False},
+    payload = {'gaia': {'count': 1, 'drawn_count': 1, 'cached': True, 'radius_deg': 1, 'max_mag': 10, 'limit': 10, 'selection': 'nearest_by_angular_distance', 'ordering': 'angular_distance_asc', 'brightest_n': False},
                'sources': [{'index': 80001, 'source_key': 'gaia-dr3:123', 'source_id': '123', 'display_name': 'Gaia DR3 123', 'notes': '<script>alert(1)</script>'}],
-               'overlay_svg': '<svg xmlns="http://www.w3.org/2000/svg"><g class="source-marker source-type-gaia" data-source-index="80001" data-source-key="gaia-dr3:123" tabindex="0"><circle cx="380" cy="250" r="8" /></g></svg>'}
+               'overlay_svg': '<svg xmlns="http://www.w3.org/2000/svg"><g class="source-marker source-type-gaia status-green" data-source-index="80001" data-source-key="gaia-dr3:123" tabindex="0"><path class="source-symbol gaia-cross" d="M 372 250 H 388 M 380 242 V 258" /></g></svg>'}
     page.route('**/api/v1/gaia?*', lambda route: route.fulfill(content_type='application/json', body=json.dumps(payload)))
-    page.locator('#catalogue-picker-toggle').click()
-    page.locator('[data-catalogue-id="gaia-dr3"]').check()
-    page.locator('#catalogue-confirm').click()
-    page.wait_for_selector('[data-gaia-layer] .source-marker')
+    assert _post_result(page).status == 200
+    assert page.locator('[data-catalogue-id="gaia-dr3"]').count() == 0
+    page.locator('#local-gaia-filter-apply').click()
+    page.wait_for_selector('[data-local-fov-map] [data-gaia-layer] .source-marker')
     assert '1 / 1' in page.locator('[data-gaia-status]').inner_text()
-    assert '不是最亮 N 颗' in page.locator('[data-gaia-selection-warning]').inner_text()
-    assert '不是代表性抽样' in page.locator('[data-gaia-selection-warning]').inner_text()
+    assert '最近 N 颗' in page.locator('[data-gaia-selection-info]').inner_text()
     page.locator('#language-select').select_option('en')
-    page.wait_for_function("document.querySelector('[data-gaia-selection-warning]')?.textContent.includes('not the brightest N')")
-    assert 'not a representative sample' in page.locator('[data-gaia-selection-warning]').inner_text()
-    page.locator('[data-gaia-layer] .source-marker').click(force=True)
+    page.wait_for_function("document.querySelector('[data-gaia-selection-info]')?.textContent.includes('nearest N')")
+    assert 'nearest N' in page.locator('[data-gaia-selection-info]').inner_text()
+    page.locator('[data-local-fov-map] [data-gaia-layer] .source-marker').click(force=True)
     assert page.locator('#dialog-title').inner_text() == 'Gaia DR3 123'
     assert page.locator('#dialog-body script').count() == 0
     page.locator('[data-close-dialog]').click()
-    page.locator('#catalogue-picker-toggle').click()
-    page.locator('[data-catalogue-id="gaia-dr3"]').uncheck()
-    page.locator('#catalogue-confirm').click()
-    assert page.locator('[data-gaia-layer]').count() == 0
+    assert page.locator('[data-local-fov-map] [data-gaia-layer]').count() == 1
+    assert page.locator('#local-fov-gaia-legend').is_visible()
 
 
 def test_browser_empty_layers_and_camera_layout(browser_page):
@@ -149,39 +164,39 @@ def test_browser_deep_zoom_preserves_rendered_symbol_and_text_sizes(browser_page
         radius = 8 / zoom
         svg = ('<svg xmlns="http://www.w3.org/2000/svg"><g class="source-marker source-type-gaia" '
                'data-source-key="gaia-dr3:123" data-source-index="80001">'
-               f'<polygon points="{380-radius},350 380,{350-radius} {380+radius},350 380,{350+radius}"/>'
+               f'<path class="source-symbol gaia-cross" d="M {380-radius} 350 H {380+radius} M 380 {350-radius} V {350+radius}"/>'
                '</g></svg>')
         route.fulfill(content_type='application/json', body=json.dumps({
             'gaia': {'count': 1, 'drawn_count': 1, 'cached': True},
             'sources': [], 'overlay_svg': svg}))
 
     page.route('**/api/v1/gaia?*', mock_gaia)
-    page.locator('#catalogue-picker-toggle').click()
-    page.locator('[data-catalogue-id="gaia-dr3"]').check()
-    page.locator('#catalogue-confirm').click()
-    page.wait_for_selector('[data-gaia-layer] polygon')
+    assert _post_result(page).status == 200
+    page.locator('#local-gaia-filter-apply').click()
+    page.wait_for_selector('[data-local-fov-map] [data-gaia-layer] .gaia-cross')
 
     def dimensions():
-        return page.locator('.map-frame svg').evaluate('''svg => {
+        return page.locator('[data-local-fov-map] svg').evaluate('''svg => {
           const box = selector => {
             const e = svg.querySelector(selector), rect = e.getBoundingClientRect();
             return {width:rect.width,height:rect.height};
           };
           return {symbol:box('.source-type-catalogue .source-symbol'),
             hit:box('.source-type-catalogue .source-hit-target'),
-            text:box('.compass-label'),gaia:box('[data-gaia-layer] polygon')};
+            text:box('.compass-label'),gaia:box('[data-gaia-layer] .gaia-cross')};
         }''')
 
     before = dimensions()
-    page.locator('.zoom-factor').fill('1000')
-    page.locator('.zoom-factor').press('Tab')
-    page.wait_for_function("Number(document.querySelector('.map-frame svg').dataset.zoom) === 1000 && document.querySelector('[data-gaia-layer]')?.dataset.renderZoom === '1000'")
+    zoom_input=page.locator('section:has([data-local-fov-map]) .zoom-factor')
+    zoom_input.fill('1000')
+    zoom_input.press('Tab')
+    page.wait_for_function("Number(document.querySelector('[data-local-fov-map] svg').dataset.zoom) === 1000 && document.querySelector('[data-local-fov-map] [data-gaia-layer]')?.dataset.renderZoom === '1000'")
     after = dimensions()
     for name in before:
         assert after[name]['width'] > 2, (name, before, after)
         assert after[name]['height'] > 2, (name, before, after)
         assert after[name]['width'] == pytest.approx(before[name]['width'], rel=0.2), (name, before, after)
-    assert page.locator('.map-frame svg').evaluate("e=>e.style.getPropertyValue('--map-icon-scale')") == '1'
+    assert page.locator('[data-local-fov-map] svg').evaluate("e=>e.style.getPropertyValue('--map-icon-scale')") == '1'
 
 
 def _post_result(page, **overrides):
@@ -308,3 +323,7 @@ def test_browser_mobile_header_controls_fit_without_clipping(browser_page, langu
     page.locator('#coordinate-select').select_option('galactic')
     page.locator('#theme-toggle').click()
     assert page.evaluate('document.documentElement.scrollWidth') == 375
+
+
+def test_map_legend_drops_non_gaia_label():
+    assert 'nonGaiaSource' not in (ROOT / 'app/templates/_map_legend.html').read_text()

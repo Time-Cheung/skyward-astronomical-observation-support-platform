@@ -39,19 +39,25 @@ def test_local_projection_and_grid_share_each_display_frame(frame):
     centre = source_coord(central).transform_to(sm._frame(frame, AT, LACT_TELESCOPE))
     candidate = source_coord(other).transform_to(centre.frame)
     separation, pa = centre.separation(candidate).deg, centre.position_angle(candidate).rad
-    scale = 235 / max(6.5, LACT_TELESCOPE.fov_radius_deg * 1.4)
+    scale = 235 / 5.0
     assert position(markers[1]) == pytest.approx((330 + separation * scale * np.sin(pa), 300 - separation * scale * np.cos(pa)), abs=1e-7)
     assert {line.get("data-axis") for line in members(root, "coordinate-grid")} == ({"Az", "Alt"} if frame == "altaz" else {"RA", "Dec"} if frame == "j2000" else {"l", "b"})
+    assert root.get("data-display-radius-deg") == "5.000000000"
+    assert float(root.get("data-fov-radius-deg")) == pytest.approx(4.15)
+    fov_ring = members(root, "fov-ring")[0]
+    assert float(fov_ring.get("r")) / 235 == pytest.approx(4.15 / 5.0)
 
 
-def test_shared_marker_contract_gaia_dot_catalogue_star_extension_tracking_and_target():
+def test_shared_marker_contract_gaia_cross_catalogue_star_extension_tracking_and_target():
     normal = source(0, ext=.25)
     gaia = source(1, ra=.01, dec=25.01, kind="gaia")
     root = ET.fromstring(sm.render_local_fov_svg(normal, [normal, gaia], AT, display_frame="j2000"))
     catalogue, gaia_marker = members(root, "source-marker")
     assert members(catalogue, "source-star")
     assert not members(gaia_marker, "source-star")
-    assert members(gaia_marker, "gaia-dot")
+    gaia_cross = members(gaia_marker, "gaia-cross")[0]
+    assert gaia_cross.tag == "path"
+    assert gaia_cross.get("d").count(" M ") == 1
     extension = members(catalogue, "extension-ring")[0]
     assert extension.get("data-angular-radius-deg") == "0.250000000"
     assert extension.tag == "path"
@@ -63,7 +69,31 @@ def test_shared_marker_contract_gaia_dot_catalogue_star_extension_tracking_and_t
     assert members(selected, "selected-symbol")
     tracked_svg, _ = sm.render_all_sky_svg([normal], AT, ConstraintSet(), highlighted_indexes=[0], trajectory_end=AT.replace(hour=13))
     tracked = members(ET.fromstring(tracked_svg), "source-marker")[0]
-    assert members(tracked, "tracking-ring")
+    assert members(tracked, "tracked-symbol")
+    assert not members(tracked, "tracking-ring")
+
+
+
+
+def test_gaia_point_sources_use_red_green_observability_without_yellow():
+    zenith = sm._zenith_coordinate(AT, LACT_TELESCOPE).transform_to(J2000_FRAME)
+    # Keep both markers above the horizon and fail the second through an
+    # explicit zenith-angle limit, not a simulated current-pointing FoV.
+    outside = zenith.directional_offset_by(90 * u.deg, 10 * u.deg)
+    inside_source = source(10, ra=float(zenith.ra.deg), dec=float(zenith.dec.deg), kind="gaia")
+    outside_source = source(11, ra=float(outside.ra.deg), dec=float(outside.dec.deg), kind="gaia")
+    constraints = ConstraintSet(
+        sun_max_altitude_deg=None, moon_min_separation_deg=None,
+        target_min_zenith_deg=None, target_max_zenith_deg=5,
+    )
+    svg, _ = sm.render_all_sky_svg([inside_source, outside_source], AT, constraints)
+    markers = members(ET.fromstring(svg), "source-type-gaia")
+    assert len(markers) == 2
+    classes = [marker.get("class", "") for marker in markers]
+    assert any("status-green" in value for value in classes)
+    assert any("status-red" in value for value in classes)
+    assert all("status-yellow" not in value for value in classes)
+    assert not members(ET.fromstring(svg), "extension-ring")
 
 
 def test_sparse_grid_and_deep_zoom_keep_two_axes_and_real_extension_radius():
@@ -84,8 +114,22 @@ def test_all_sky_default_grid_is_sparse_60_by_30():
     root = ET.fromstring(svg)
     assert root.get("data-grid-longitude-step-deg") == "60.000000000"
     assert root.get("data-grid-latitude-step-deg") == "30.000000000"
+    assert 0 <= float(root.get("data-view-center-ra-deg")) < 360
+    assert -90 <= float(root.get("data-view-center-dec-deg")) <= 90
     assert meta["grid_longitude_step_deg"] == 60
     assert meta["grid_latitude_step_deg"] == 30
+
+
+def test_local_map_uses_shared_status_symbols_and_hides_radius_label():
+    central = source(ra=120, dec=25, ext=.25)
+    other = source(1, ra=120.2, dec=25.1)
+    root = ET.fromstring(sm.render_local_fov_svg(central, [central, other], AT, constraints=ConstraintSet()))
+    markers = members(root, "source-marker")
+    assert members(markers[0], "source-star")
+    for marker in markers:
+        assert any(f"status-{name}" in marker.get("class", "") for name in ("green", "yellow", "red"))
+    assert not members(root, "fov-ring-label")
+    assert members(root, "selected-label")[0].get("y") == "585"
 
 
 def test_unknown_footprint_never_draws_extension_and_css_isolated():

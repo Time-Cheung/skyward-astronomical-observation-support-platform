@@ -42,6 +42,17 @@
   <a class="about-planner-link" href="/" data-about-i18n="openPlanner">Open Sky map &amp; planner →</a>
 </section>
 
+<section class="method-section navigation-note" aria-labelledby="navigation-note-title">
+  <h2 id="navigation-note-title" data-about-i18n="navigationNoteTitle">Returning to a result</h2>
+  <p data-about-i18n="navigationNoteBody">When you leave a calculated result for Data notes or API, this browser tab keeps the rendered result view. Returning through Sky map &amp; planner restores it without recalculating the windows or reloading either map. A direct refresh or unavailable browser storage uses the normal server rebuild.</p>
+</section>
+
+<section class="method-section plan-notes-section" aria-labelledby="plan-notes-title">
+  <h2 id="plan-notes-title" data-about-i18n="observingPlanTitle">Observing plans</h2>
+  <p data-about-i18n="observingPlanBody">The full-footprint section has one shared set of plan actions. Each valid window is listed on its own row with a checkbox selected by default. Add to the plan creates one target entry containing all checked windows; the preview edits each planned interval separately, while the XLSX records one target row per selected window and keeps alternatives attached to the corresponding window. A user-uploaded CSV can be selected as the exclusive alternative-source directory for that plan; without it, the selected ordinary catalogues remain the candidate pool.</p>
+  <p data-about-i18n="observingPlanFormat">The downloaded workbook uses a solid black header, yellow target rows, and green alternative rows. It is generated locally in the browser; no plan is uploaded to the server. Saved observing-window SVGs include comparison-curve legends; saved local-FoV SVGs use a light background, assign the target ID 1, and include a source-name legend.</p>
+</section>
+
 <section class="about-grid">
   <article>
     <h2 data-i18n="lactSite">LACT site</h2>
@@ -73,9 +84,9 @@
       <option value="gaia-dr3">Gaia DR3</option>
     </select>
     <div id="about-catalogue-description" class="catalogue-guide-output" aria-live="polite">
-      <div class="catalogue-guide-heading"><strong id="about-catalogue-name">2LHAASO</strong><span id="about-catalogue-count">190 installed records</span></div>
+      <div class="catalogue-guide-heading"><strong id="about-catalogue-name">2LHAASO</strong><span id="about-catalogue-count">Catalogue row count is provided by the catalogue API</span></div>
       <p id="about-catalogue-summary">The local table preserves catalogue coordinates and extension fields for source browsing and geometry calculations.</p>
-      <p class="catalogue-boundary"><strong data-about-i18n="catalogueBoundaryLabel">Boundary</strong><span id="about-catalogue-boundary">The 190 rows are catalogue records, not a claim of 190 unique physical objects. Extension is treated only as a nominal circular radius.</span></p>
+      <p class="catalogue-boundary"><strong data-about-i18n="catalogueBoundaryLabel">Boundary</strong><span id="about-catalogue-boundary">Catalogue row counts and availability are reported by the catalogue API. Extension is treated only as a nominal circular radius when a verified value exists.</span></p>
     </div>
   </article>
   <article>
@@ -92,11 +103,15 @@
 </section>
 
 <section class="method-section">
-  <h2 data-i18n="statusDefinition">Green, yellow and red</h2>
-  <div class="method-table">
-    <div class="method-row"><span class="status-chip green">GREEN</span><p data-i18n="greenDefinition">The source centre and nominal extension both pass horizon, enabled constraints and the 8.3° hard FoV.</p></div>
-    <div class="method-row"><span class="status-chip yellow">YELLOW</span><p data-i18n="yellowDefinition">The centre passes, but an extension edge cannot fully meet FoV, horizon, zenith-angle or Moon-separation requirements.</p></div>
-    <div class="method-row"><span class="status-chip red">RED</span><p data-i18n="redDefinition">The centre itself fails the baseline horizon, solar or enabled centre constraints.</p></div>
+  <h2 data-i18n="statusDefinition">Source status</h2>
+  <div class="method-table source-status-legend">
+    <div class="method-row"><span class="legend-star green" aria-hidden="true"></span><p><strong data-i18n="greenStatusLabel">GREEN</strong> — <span data-i18n="greenDefinition">The source centre and nominal extension both pass the active geometric constraints.</span></p></div>
+    <div class="method-row"><span class="legend-star yellow" aria-hidden="true"></span><p><strong data-i18n="yellowStatusLabel">YELLOW</strong> — <span data-i18n="yellowDefinition">The centre passes, but the full source footprint does not.</span></p></div>
+    <div class="method-row"><span class="legend-star red" aria-hidden="true"></span><p><strong data-i18n="redStatusLabel">RED</strong> — <span data-i18n="redDefinition">The source centre fails the active geometric constraints.</span></p></div>
+    <div class="method-row"><span class="legend-star selected" aria-hidden="true"></span><p><strong data-i18n="selectedTarget">Selected target</strong> — <span data-i18n="selectedDefinition">Blue hollow star outline marks the source chosen for calculation.</span></p></div>
+    <div class="method-row"><span class="legend-star tracking" aria-hidden="true"></span><p><strong data-i18n="trackedFovSource">Tracked-FoV source</strong> — <span data-i18n="trackedDefinition">Purple hollow star outline marks a source inside the tracked FoV during an observation-window calculation.</span></p></div>
+    <div class="method-row"><span class="legend-cross" aria-hidden="true"></span><p><strong data-i18n="gaiaSource">Gaia DR3 calibration star</strong> — <span data-i18n="gaiaDefinition">A thicker red/green cross is an on-demand Gaia candidate whose geometry is unavailable/observable in the shared map mode; calibration suitability is not assessed.</span></p></div>
+    <div class="method-row"><span class="legend-extension" aria-hidden="true"></span><p><strong data-i18n="trueExtension">True extension</strong> — <span data-i18n="extensionDefinition">Cyan dashed circle marks the nominal source footprint when a verified radius is available.</span></p></div>
   </div>
 </section>
 

@@ -121,6 +121,13 @@ def _render_window_plot(
         axes[0].axhline(constraints.target_max_zenith_deg, color=palette.threshold, linestyle="--", linewidth=1)
     axes[0].set_ylabel("Zenith (deg)")
     axes[0].invert_yaxis()
+    # Keep the target and every optional comparison curve identifiable in the
+    # saved SVG.  The legend is part of the exported scientific figure, not
+    # only a browser-side decoration, so it remains available in ZIP copies.
+    axes[0].legend(
+        loc="upper left", fontsize=8, frameon=True, framealpha=0.88,
+        facecolor=palette.axes, edgecolor=palette.edge,
+    )
 
     axes[1].plot(plot_times, series.sun_altitude_deg, color=palette.sun, linewidth=1.6)
     if constraints.sun_max_altitude_deg is not None:

@@ -102,6 +102,60 @@ class WindowRequest(BaseModel):
         return self.end_time.astimezone(timezone.utc)
 
 
+class AlternativeWindowRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source_key: str = Field(min_length=1, max_length=256)
+    catalog_token: Optional[str] = None
+    catalog_tokens: Optional[str] = None
+    alternative_catalog_token: Optional[str] = Field(default=None, min_length=1, max_length=256)
+    nominal_radius_deg: Optional[float] = Field(default=None, gt=0, le=90)
+    search_start: datetime
+    search_end: datetime
+    target_window_start: datetime
+    target_window_end: datetime
+    constraints: ConstraintSet = Field(default_factory=ConstraintSet)
+    max_alternatives: int = Field(default=3, ge=1, le=3)
+    coarse_step_seconds: int = Field(default=900, ge=600, le=1800)
+    shortlist_limit: int = Field(default=8, ge=1, le=12)
+
+    @staticmethod
+    def _as_aware(value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=ZoneInfo(SITE_TIMEZONE_NAME))
+        return value
+
+    @model_validator(mode="after")
+    def validate_ranges(self) -> "AlternativeWindowRequest":
+        for field in ("search_start", "search_end", "target_window_start", "target_window_end"):
+            setattr(self, field, self._as_aware(getattr(self, field)))
+        if self.search_end <= self.search_start:
+            raise ValueError("search_end must be later than search_start")
+        if (self.search_end - self.search_start).total_seconds() > MAX_CALCULATION_DAYS * 86400:
+            raise ValueError(f"search range cannot exceed {MAX_CALCULATION_DAYS} days")
+        if self.target_window_end <= self.target_window_start:
+            raise ValueError("target_window_end must be later than target_window_start")
+        if self.target_window_start < self.search_start or self.target_window_end > self.search_end:
+            raise ValueError("target window must lie inside the search range")
+        return self
+
+    @property
+    def search_start_utc(self) -> datetime:
+        return self.search_start.astimezone(timezone.utc)
+
+    @property
+    def search_end_utc(self) -> datetime:
+        return self.search_end.astimezone(timezone.utc)
+
+    @property
+    def target_start_utc(self) -> datetime:
+        return self.target_window_start.astimezone(timezone.utc)
+
+    @property
+    def target_end_utc(self) -> datetime:
+        return self.target_window_end.astimezone(timezone.utc)
+
+
 class SkyRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

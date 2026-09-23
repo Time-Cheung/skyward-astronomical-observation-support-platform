@@ -28,6 +28,9 @@ class CatalogError(ValueError):
     """Raised when a catalogue violates its declared schema."""
 
 
+POINT_SOURCE_FALLBACK_WARNING = "point_source_fallback"
+
+
 @dataclass(frozen=True)
 class Source:
     """One fixed J2000 source from a selected request-scoped catalogue."""
@@ -57,12 +60,37 @@ class Source:
         return self.ext if self.footprint_known else None
 
     @property
+    def evaluation_radius_deg(self) -> float:
+        """Radius used for geometry when the catalogue footprint is unknown."""
+        return self.ext if self.footprint_known else 0.0
+
+    @property
+    def point_source_fallback(self) -> bool:
+        return not self.footprint_known
+
+    @property
     def display_name(self) -> str:
         # Negative indexes are deliberately reserved for temporary operator
         # targets. They are not catalogue records and therefore have no prefix.
         if self.index < 0:
             return self.name
-        return f"{self.catalogue_label} {self.name}".strip()
+        label = self.catalogue_label
+        name = self.name.strip()
+        # Fermi catalogue rows already carry their survey prefix. Keep the
+        # display label concise without changing raw names or source identity.
+        if self.catalogue_id == "fermi-3fhl":
+            label = "3FHL"
+            for prefix in ("Fermi 3FHL ", "3FHL "):
+                if name.startswith(prefix):
+                    name = name[len(prefix):]
+                    break
+        elif self.catalogue_id == "fermi-fl16y":
+            label = "FL16Y"
+            for prefix in ("Fermi FL16Y ", "FL16Y "):
+                if name.startswith(prefix):
+                    name = name[len(prefix):]
+                    break
+        return f"{label} {name}".strip()
 
     def to_dict(self, include_notes: bool = False) -> dict:
         # Avoid recursively copying thousands of bibliography/raw-field blocks
@@ -79,6 +107,8 @@ class Source:
         if self.source_type == "gaia":
             payload["source_id"] = self.original_id or self.name
         payload["ext"] = self.planning_radius_deg
+        if self.point_source_fallback:
+            payload["warnings"] = [POINT_SOURCE_FALLBACK_WARNING]
         return payload
 
     @property

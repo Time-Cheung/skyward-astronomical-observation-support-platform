@@ -11,7 +11,7 @@
       <button class="icon-button catalogue-picker-close" type="button" data-catalogue-cancel data-i18n-aria-label="catalogueCancel" aria-label="Cancel">×</button>
     </div>
     <div class="catalogue-checkboxes" id="catalogue-checkboxes">
-      {% for identifier, label in [('2lhaaso','2LHAASO'),('fermi-fl16y','Fermi FL16Y'),('fermi-3fhl','Fermi 3FHL'),('tevcat','TeVCat'),('gaia-dr3','Gaia DR3')] %}
+      {% for identifier, label in [('2lhaaso','2LHAASO'),('fermi-fl16y','Fermi FL16Y'),('fermi-3fhl','Fermi 3FHL'),('tevcat','TeVCat')] %}
       <label class="catalogue-choice"><input type="checkbox" data-catalogue-id="{{ identifier }}" value="{{ identifier }}" {% if identifier in selected_layers %}checked{% endif %}><span>{{ label }}</span></label>
       {% endfor %}
     </div>
@@ -21,6 +21,5 @@
       <button class="secondary-button" type="button" data-catalogue-cancel data-i18n="catalogueCancel">Cancel</button>
       <button class="primary-button compact-primary-button" id="catalogue-confirm" type="button" data-i18n="catalogueConfirm">Confirm &amp; load</button>
     </div>
-    <section class="gaia-query-status" aria-labelledby="gaia-status-title"><h4 id="gaia-status-title">Gaia DR3</h4><div data-gaia-status role="status" aria-live="polite"></div><p data-i18n="gaiaCandidateWarning">Candidates only; calibration suitability has not been assessed.</p></section>
   </div>
 </div>

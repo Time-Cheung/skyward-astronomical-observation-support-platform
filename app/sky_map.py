@@ -91,6 +91,15 @@ class _Projection:
         x, y, separation = self.project(coordinates)
         return _path_segments(x, y, separation < 179.0, self.radius)
 
+    def unproject(self, x: float, y: float) -> SkyCoord:
+        """Return the spherical coordinate represented by a map position."""
+        dx, dy = float(x) - self.cx, float(y) - self.cy
+        separation = min(self.angular_radius, math.hypot(dx, dy) / self.scale)
+        if separation == 0:
+            return self.center
+        position_angle = math.atan2(dx, -dy) * u.rad
+        return self.center.directional_offset_by(position_angle, separation * u.deg)
+
 
 def _path_segments(x, y, valid, radius: float) -> str:
     """Break invalid/antipodal jumps; SVG clipping handles the domain edge.
@@ -192,6 +201,8 @@ def _grid(projection: _Projection, key: str, zoom: float, bounds, grid_step_deg:
         longitude_step = latitude_step = float(grid_step_deg)
     elif p.angular_radius >= 89.999 and zoom <= 1.000000001:
         longitude_step, latitude_step = 60.0, 30.0
+    elif p.angular_radius <= 5.000000001 and zoom <= 1.000000001:
+        longitude_step = latitude_step = 5.0
     else:
         visible_span = min(2 * p.angular_radius, 2 * extent)
         longitude_step = latitude_step = _nice_step(max(visible_span, 1e-6))
@@ -254,11 +265,12 @@ def _styles(zoom: float) -> str:
 .sky-map-svg text,.fov-map-svg text{{font-size:calc({14.4 / zoom:.9f}px * var(--map-icon-scale,1));font-weight:650}}
 .sky-map-svg .coordinate-grid,.fov-map-svg .coordinate-grid{{fill:none;stroke:var(--line,#667085);stroke-width:1;stroke-opacity:.5;vector-effect:non-scaling-stroke;stroke-dasharray:3 7}}
 .sky-map-svg .source-marker,.fov-map-svg .source-marker{{color:var(--blue,#608fea);cursor:pointer}}
-.sky-map-svg .status-green{{color:var(--green,#47a976)}} .sky-map-svg .status-yellow{{color:var(--yellow,#c9a200)}} .sky-map-svg .status-red{{color:var(--red,#d45962)}}
-.sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol,.sky-map-svg .source-marker .tracking-ring,.fov-map-svg .source-marker .tracking-ring{{vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
+.sky-map-svg .status-green,.fov-map-svg .status-green{{color:var(--green,#47a976)}} .sky-map-svg .status-yellow,.fov-map-svg .status-yellow{{color:var(--yellow,#c9a200)}} .sky-map-svg .status-red,.fov-map-svg .status-red{{color:var(--red,#d45962)}}
+.sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol{{vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
 .sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol{{fill:currentColor;stroke:var(--sky,#101827);stroke-width:1.2}}
-.sky-map-svg .source-marker.selected-source .source-symbol,.fov-map-svg .source-marker.selected-source .source-symbol{{stroke:var(--blue,#608fea);stroke-width:2.4}}
-.sky-map-svg .tracking-ring,.fov-map-svg .tracking-ring{{fill:none;stroke:#8b5cf6;stroke-width:2.2;pointer-events:none}}
+.sky-map-svg .source-marker.source-type-gaia .gaia-cross,.fov-map-svg .source-marker.source-type-gaia .gaia-cross{{fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round}}
+.sky-map-svg .source-marker.selected-source .source-symbol,.fov-map-svg .source-marker.selected-source .source-symbol{{stroke:var(--blue,#3333FF)!important;stroke-width:3.4;paint-order:stroke fill}}
+.sky-map-svg .source-marker.trajectory-highlight .source-symbol,.fov-map-svg .source-marker.trajectory-highlight .source-symbol{{stroke:#8b5cf6;stroke-width:2.6;paint-order:stroke fill;pointer-events:auto}}
 .sky-map-svg .extension-ring,.fov-map-svg .extension-ring{{fill:none;stroke:#00b8c6;stroke-width:1.6;stroke-opacity:.9;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;transform:none;filter:none;pointer-events:none}}
 .sky-map-svg .source-marker [data-hit-target="true"],.fov-map-svg .source-marker [data-hit-target="true"]{{fill:transparent!important;stroke:none!important;stroke-width:0!important;filter:none!important;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center;pointer-events:all}}
 .sky-map-svg .realtime-fov-ring,.fov-map-svg .fov-ring{{fill:none;stroke:var(--blue,#608fea);stroke-width:3;vector-effect:non-scaling-stroke;pointer-events:none}}
@@ -290,20 +302,23 @@ def _marker(source: Source, coordinate: Optional[SkyCoord], p: _Projection, zoom
     candidate = " calibration-candidate" if kind == "gaia" else ""
     classes = extra.split()
     selected = "selected-source" in classes
-    tracked = "trajectory-highlight" in classes and not selected
-    attrs = f'data-source-index="{source.index}" data-source-key="{_esc(key)}"'
+    tracked = "trajectory-highlight" in classes
+    attrs = f'data-source-index="{source.index}" data-source-key="{_esc(key)}" data-source-name="{_esc(source.display_name)}"'
     pieces = [f'<g class="source-marker source-type-{kind}{candidate}{extra}" {attrs} data-x="{x:.9f}" data-y="{y:.9f}" data-below-horizon="{str(below).lower()}" role="button" tabindex="0" aria-label="{_esc(title)}"><title>{_esc(title)}</title>']
     if source.ext > 0 and getattr(source, "footprint_known", True) and not below and kind != "gaia":
         # ext is an angular radius, not a marker or a hit-test radius.
         pieces.append(f'<path class="extension-ring" data-angular-radius-deg="{source.ext:.9f}" d="{p.path(_boundary(source_coord(source), source.ext))}" />')
-    if tracked:
-        pieces.append(f'<circle class="tracking-ring" cx="{x:.9f}" cy="{y:.9f}" r="{12 / zoom:.9f}" />')
     if selected or kind != "gaia":
-        outer, inner = ((12 / zoom, 5 / zoom) if selected else (7 / zoom, 3 / zoom))
-        selected_symbol = " selected-symbol" if selected else ""
+        outer, inner = ((9.5 / zoom, 4.2 / zoom) if selected else (7 / zoom, 3 / zoom))
+        selected_symbol = (" selected-symbol" if selected else "") + (" tracked-symbol" if tracked else "")
         pieces.append(f'<polygon class="source-symbol source-star{selected_symbol}" points="{_star_points(x, y, outer, inner)}" data-symbol-only="true" />')
     else:
-        pieces.append(f'<circle cx="{x:.9f}" cy="{y:.9f}" r="{4.5 / zoom:.9f}" class="source-symbol gaia-dot" data-symbol-only="true" />')
+        arm = 5.2 / zoom
+        pieces.append(
+            f'<path class="source-symbol gaia-cross" '
+            f'd="M {x - arm:.9f} {y:.9f} H {x + arm:.9f} M {x:.9f} {y - arm:.9f} V {y + arm:.9f}" '
+            'data-symbol-only="true" />'
+        )
     pieces.append(f'<circle class="source-hit-target" cx="{x:.9f}" cy="{y:.9f}" r="{14 / zoom:.9f}" data-hit-target="true" style="fill:transparent;stroke:none;stroke-width:0;filter:none" /></g>')
     return "".join(pieces)
 
@@ -345,13 +360,27 @@ def render_all_sky_svg(
     p = _Projection(_zenith_coordinate(display_time, telescope).transform_to(frame), 350, 335, 260, 90, display_frame == "altaz")
     viewbox, zoom, view = _viewbox(760, 700, p.cx, p.cy, zoom, bounds)
     grid, longitude_step, latitude_step = _grid(p, display_frame, zoom, view, grid_step_deg)
+    view_center = p.unproject(view[0] + view[2] / 2, view[1] + view[3] / 2).transform_to(J2000_FRAME)
+    selected_item = next((item for item in snapshot["sources"] if item["index"] == selected_index), None)
+    selected_geometry = selected_item["geometry"] if selected_item is not None else None
+    if selected_geometry is not None:
+        pointing = SkyCoord(
+            az=float(selected_geometry["target_azimuth_deg"]) * u.deg,
+            alt=float(selected_geometry["target_altitude_deg"]) * u.deg,
+            frame=_altaz(display_time, telescope),
+        )
+        fov_centre_mode = "selected_target"
+        fov_centre_key = selected_item.get("source_key", "")
+    else:
+        pointing = SkyCoord(az=telescope.pointing_azimuth_deg * u.deg, alt=telescope.pointing_altitude_deg * u.deg, frame=_altaz(display_time, telescope))
+        fov_centre_mode = telescope.pointing_mode
+        fov_centre_key = ""
     clip = f'sky-clip-{display_frame}'
-    lines = [f'<svg class="sky-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="zenith" data-zoom="{zoom:.9f}" data-grid-step-deg="{min(longitude_step, latitude_step):.9f}" data-grid-longitude-step-deg="{longitude_step:.9f}" data-grid-latitude-step-deg="{latitude_step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="{_esc(telescope.name)} {_esc(_display_label(display_frame))} map">',
-             f'<title>{_esc(telescope.name)} {_esc(_display_label(display_frame))} map</title><desc>Zenith-centred 90 degree hemisphere; coordinates in degrees; symbols and hit areas are not angular extensions. Pressure=0 hPa.</desc>', _styles(zoom),
+    lines = [f'<svg class="sky-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="zenith" data-fov-centre-mode="{_esc(fov_centre_mode)}" data-fov-centre-source-key="{_esc(fov_centre_key)}" data-view-center-ra-deg="{float(view_center.ra.deg):.9f}" data-view-center-dec-deg="{float(view_center.dec.deg):.9f}" data-zoom="{zoom:.9f}" data-grid-step-deg="{min(longitude_step, latitude_step):.9f}" data-grid-longitude-step-deg="{longitude_step:.9f}" data-grid-latitude-step-deg="{latitude_step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="{_esc(telescope.name)} {_esc(_display_label(display_frame))} map">',
+             f'<title>{_esc(telescope.name)} {_esc(_display_label(display_frame))} map</title><desc>Zenith-centred 90 degree hemisphere; the LACT FoV is centred on the selected target when present; coordinates in degrees; symbols and hit areas are not angular extensions. Pressure=0 hPa.</desc>', _styles(zoom),
              f'<defs><clipPath id="{clip}"><circle cx="350" cy="335" r="260" /></clipPath></defs>',
              '<circle class="sky-surface" cx="350" cy="335" r="260" />',
              f'<g class="map-clipped" clip-path="url(#{clip})">', grid]
-    pointing = SkyCoord(az=telescope.pointing_azimuth_deg * u.deg, alt=telescope.pointing_altitude_deg * u.deg, frame=_altaz(display_time, telescope))
     lines.append(f'<path class="realtime-fov-ring" d="{p.path(_boundary(pointing, telescope.fov_radius_deg))}" role="img" aria-label="{_esc(telescope.name)} FoV, diameter {telescope.fov_diameter_deg:.2f} degrees"><title>{_esc(telescope.name)} FoV: {telescope.fov_diameter_deg:.2f}° diameter</title></path>')
     px, py, _ = p.project(pointing)
     lines.append(f'<text class="realtime-fov-label" x="{px:.9f}" y="{py + 31 / zoom:.9f}" text-anchor="middle">{_esc(telescope.name)} FoV</text>')
@@ -395,7 +424,7 @@ def render_all_sky_svg(
                 x, y, _ = p.project(coordinate)
                 lines.append(_body_icon(float(x), float(y), kind, text[kind], zoom))
     lines.extend(['</g>', _directions(p, display_frame, text, zoom), f'<text class="ring-label horizon-label" x="110" y="125">{text["horizon"]}</text>', '</svg>'])
-    snapshot.update({"display_frame": display_frame, "display_frame_label": _display_label(display_frame), "visible_source_count": visible_count, "below_horizon_source_count": below_count, "lact_pointing": {"mode": telescope.pointing_mode, "altitude_deg": telescope.pointing_altitude_deg, "azimuth_deg": telescope.pointing_azimuth_deg, "fov_diameter_deg": telescope.fov_diameter_deg, "fov_radius_deg": telescope.fov_radius_deg}, "highlighted_source_indexes": sorted(highlighted), "map_display_time": _utc(display_time).isoformat(), "map_viewbox": list(view), "grid_step_deg": min(longitude_step, latitude_step), "grid_longitude_step_deg": longitude_step, "grid_latitude_step_deg": latitude_step})
+    snapshot.update({"display_frame": display_frame, "display_frame_label": _display_label(display_frame), "visible_source_count": visible_count, "below_horizon_source_count": below_count, "lact_pointing": {"mode": fov_centre_mode, "altitude_deg": float(pointing.alt.deg), "azimuth_deg": float(pointing.az.deg), "fov_diameter_deg": telescope.fov_diameter_deg, "fov_radius_deg": telescope.fov_radius_deg, "source_key": fov_centre_key or None}, "highlighted_source_indexes": sorted(highlighted), "map_display_time": _utc(display_time).isoformat(), "map_viewbox": list(view), "grid_step_deg": min(longitude_step, latitude_step), "grid_longitude_step_deg": longitude_step, "grid_latitude_step_deg": latitude_step})
     return "".join(lines), snapshot
 
 
@@ -409,47 +438,70 @@ def render_local_fov_svg(
     language: str = "en", display_frame: str = "altaz", zoom: float = 1.0,
     bounds: Optional[tuple[float, float, float, float]] = None,
     grid_step_deg: Optional[float] = None,
+    constraints: Optional[ConstraintSet] = None,
+    *,
+    trajectory_end: Optional[datetime] = None,
+    trajectory_enforce_current_pointing: bool = False,
+    trajectory_ranges: Optional[Iterable[tuple[datetime, datetime]]] = None,
+    trajectory_display_time: Optional[datetime] = None,
+    selected_index: Optional[int] = None,
+    highlighted_indexes: Optional[Iterable[int]] = None,
 ) -> str:
-    """Target-centred spherical map; API-compatible optional display settings."""
+    """Target-centred spherical map using the shared instant/trajectory contract."""
     del selected_status
     display_frame = _normalise_display_frame(display_frame)
     text = _labels(language)
-    time = Time(_utc(at_time))
-    frame = _frame(display_frame, at_time, telescope)
+    display_time = trajectory_display_time if trajectory_end is not None and trajectory_display_time is not None else at_time
+    time = Time(_utc(display_time))
+    frame = _frame(display_frame, display_time, telescope)
     center = source_coord(source).transform_to(frame)
-    p = _Projection(center, 330, 300, 235, max(6.5, telescope.fov_radius_deg * 1.4))
+    p = _Projection(center, 330, 300, 235, 5.0)
     viewbox, zoom, view = _viewbox(680, 620, p.cx, p.cy, zoom, bounds)
     grid, longitude_step, latitude_step = _grid(p, display_frame, zoom, view, grid_step_deg)
     clip = f'local-clip-{display_frame}'
-    lines = [f'<svg class="fov-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="target" data-center-source-key="{_esc(source.source_key)}" data-zoom="{zoom:.9f}" data-grid-step-deg="{min(longitude_step, latitude_step):.9f}" data-grid-longitude-step-deg="{longitude_step:.9f}" data-grid-latitude-step-deg="{latitude_step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Telescope local FoV map">',
+    lines = [f'<svg class="fov-map-svg" data-display-frame="{display_frame}" data-projection="azimuthal-equidistant" data-center="target" data-center-source-key="{_esc(source.source_key)}" data-display-radius-deg="5.000000000" data-fov-radius-deg="{telescope.fov_radius_deg:.9f}" data-zoom="{zoom:.9f}" data-grid-step-deg="{min(longitude_step, latitude_step):.9f}" data-grid-longitude-step-deg="{longitude_step:.9f}" data-grid-latitude-step-deg="{latitude_step:.9f}" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Telescope local FoV map">',
              '<title>Telescope local FoV map</title>',
-             f'<desc>Centre is selected source; circle is a {telescope.fov_diameter_deg:.2f} degree hard FoV. {_esc(_display_label(display_frame))}; coordinates in degrees. Source symbols and hit areas are not extensions.</desc>', _styles(zoom),
+             f'<desc>Centre is selected source; the map shows a 10.00 degree diameter region and the dashed circle is the {telescope.fov_diameter_deg:.2f} degree telescope hard FoV. {_esc(_display_label(display_frame))}; coordinates in degrees. Source symbols and hit areas are not extensions.</desc>', _styles(zoom),
              f'<defs><clipPath id="{clip}"><circle cx="330" cy="300" r="235" /></clipPath></defs>',
              '<circle class="fov-surface" cx="330" cy="300" r="235" />',
              f'<g class="map-clipped" clip-path="url(#{clip})">', grid,
-             f'<circle class="fov-ring" cx="330" cy="300" r="{telescope.fov_radius_deg * p.scale:.9f}" />',
-             f'<text class="fov-ring-label" x="{330 + telescope.fov_radius_deg * p.scale + 8 / zoom:.9f}" y="{300 + 4 / zoom:.9f}">{text["radius"]} {telescope.fov_radius_deg:.2f}°</text>']
+             f'<circle class="fov-ring" cx="330" cy="300" r="{telescope.fov_radius_deg * p.scale:.9f}" />']
     candidates = [source if candidate.source_key == source.source_key else candidate for candidate in sources]
     if not any(candidate.source_key == source.source_key for candidate in candidates):
         candidates.append(source)
     coordinates = SkyCoord(ra=np.array([candidate.ra for candidate in candidates]) * u.deg,
                            dec=np.array([candidate.dec for candidate in candidates]) * u.deg, frame=J2000_FRAME)
     projected = p.project(coordinates)
+    visible = []
     for row, candidate in enumerate(candidates):
         position = tuple(values[row] for values in projected)
-        if position[2] > p.angular_radius + max(candidate.ext, 0):
-            continue
-        selected = candidate.source_key == source.source_key
+        if position[2] <= p.angular_radius + max(candidate.ext, 0):
+            visible.append((candidate, position))
+    status_by_key = {}
+    if visible and constraints is not None:
+        visible_sources = [candidate for candidate, _ in visible]
+        local_snapshot = (sky_trajectory_snapshot(
+            visible_sources, at_time, trajectory_end, constraints, telescope,
+            enforce_current_pointing=trajectory_enforce_current_pointing,
+            time_ranges=list(trajectory_ranges) if trajectory_ranges is not None else None,
+            display_time=display_time,
+        ) if trajectory_end is not None else sky_snapshot(visible_sources, at_time, constraints, telescope))
+        status_by_key = {item["source_key"]: item["status"] for item in local_snapshot["sources"]}
+    highlighted = set(highlighted_indexes or ())
+    for candidate, position in visible:
+        selected = candidate.source_key == source.source_key or (selected_index is not None and candidate.index == selected_index)
         extra = " local-selected-star selected-source" if selected else " local-source-star"
+        extra += " trajectory-highlight" if candidate.index in highlighted and not selected else ""
+        extra += f" status-{STATUS_CLASS.get(status_by_key.get(candidate.source_key), 'red')}"
         lines.append(_marker(candidate, None, p, zoom, extra, position=position))
-    horizon_frame = _altaz(at_time, telescope)
+    horizon_frame = _altaz(display_time, telescope)
     for body, kind in ((get_sun(time).transform_to(horizon_frame), "sun"), (get_body("moon", time, telescope.location).transform_to(horizon_frame), "moon")):
         if float(body.alt.deg) < 0:
             continue
         x, y, separation = p.project(body)
         if separation <= p.angular_radius:
             lines.append(_body_icon(float(x), float(y), kind, f'{text[kind]} {float(separation):.1f}°', zoom))
-    lines.extend(['</g>', _directions(p, display_frame, text, zoom), f'<text class="selected-label" x="330" y="569" text-anchor="middle">{_esc(source.display_name)}</text>'])
+    lines.extend(['</g>', _directions(p, display_frame, text, zoom), f'<text class="selected-label" x="330" y="585" text-anchor="middle">{_esc(source.display_name)}</text>'])
     if source.ext > p.angular_radius:
         lines.append(f'<text class="warning-label" x="20" y="600">{text["extension_outside"]}: {source.ext:.3f}°</text>')
     lines.append('</svg>')

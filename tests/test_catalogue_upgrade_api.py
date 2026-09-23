@@ -23,6 +23,8 @@ def test_installed_counts_and_original_identity_stable_under_selection():
     options = client.get("/api/v1/catalogues").json()["catalogues"]
     assert {r["identifier"]: r.get("count") for r in options if not r.get("online")} == {
         "2lhaaso": 190, "fermi-fl16y": 7224, "fermi-3fhl": 1556, "tevcat": 363}
+    gaia = next(row for row in options if row["identifier"] == "gaia-dr3")
+    assert gaia["selection_scope"] == "result_local_fov_only"
     fl = installed_catalogue("fermi-fl16y")
     tv = installed_catalogue("tevcat")
     source = fl.sources[7223]
@@ -82,20 +84,30 @@ def test_target_local_comparison_and_windows_do_not_follow_overlay_selection():
     assert result.json()["source"]["source_key"] == target.source_key
 
 
-def test_unknown_footprint_not_silently_zero_and_nominal_override_explicit():
+def test_unknown_footprint_uses_point_source_fallback_without_promoting_provenance():
     unknown = next(s for s in installed_catalogue("fermi-fl16y").sources if not s.footprint_known)
     assert unknown.to_dict()["planning_radius_deg"] is None
     assert unknown.to_dict()["ext"] is None
+    assert unknown.to_dict()["footprint_known"] is False
+    assert unknown.to_dict()["warnings"] == ["point_source_fallback"]
     status = source_status(unknown, MOMENT, ConstraintSet())
-    assert status.footprint_pass is False
-    assert "full_footprint_not_evaluated" in status.reasons
+    assert status.footprint_pass == status.center_pass
+    assert "point_source_fallback" in status.reasons
+    assert status.to_dict()["warnings"] == ["point_source_fallback"]
     result = calculate_windows(unknown, MOMENT, MOMENT + timedelta(seconds=2), ConstraintSet())
-    assert result.full_footprint_windows == []
-    assert result.to_dict()["full_footprint_evaluated"] is False
-    payload = {"source_key": unknown.source_key, "start_time": MOMENT.isoformat(), "end_time": (MOMENT + timedelta(seconds=2)).isoformat(), "nominal_radius_deg": 0.3}
-    data = client.post("/api/v1/windows/calculate", json=payload).json()
-    assert data["full_footprint_evaluated"] is True
-    assert data["source"]["footprint_kind"] == "operator_nominal_radius"
+    payload = result.to_dict()
+    assert payload["full_footprint_evaluated"] is False
+    assert payload["footprint_assessment"] == "point_source_fallback"
+    assert "point_source_fallback" in payload["warnings"]
+    request = {"source_key": unknown.source_key, "start_time": MOMENT.isoformat(), "end_time": (MOMENT + timedelta(seconds=2)).isoformat()}
+    data = client.post("/api/v1/windows/calculate", json=request).json()
+    assert data["source"]["footprint_known"] is False
+    assert data["source"]["planning_radius_deg"] is None
+    assert "point_source_fallback" in data["warnings"]
+    assert data["footprint_assessment"] == "point_source_fallback"
+    detail = client.get("/api/v1/sources/" + quote(unknown.source_key, safe=""), params={"at_time": MOMENT.isoformat()}).json()
+    assert "point_source_fallback" in detail["warnings"]
+    assert "point_source_fallback" in detail["status"]["warnings"]
 
 
 def test_basic_sky_never_queries_gaia(monkeypatch):
@@ -142,7 +154,7 @@ def test_legacy_single_upload_numeric_identity_is_preserved_across_routes():
 def test_nominal_override_survives_result_and_all_display_refreshes(monkeypatch):
     import app.main as main
     import xml.etree.ElementTree as ET
-    target = next(source for source in installed_catalogue("tevcat").sources if source_status(source, MOMENT, ConstraintSet()).center_pass)
+    target = next(source for source in installed_catalogue("tevcat").sources if not source.footprint_known and source_status(source, MOMENT, ConstraintSet()).center_pass)
     common = {"catalog_tokens": "tevcat", "nominal_radius_deg": 0.7}
     times = {"start_time": MOMENT.isoformat(), "end_time": (MOMENT + timedelta(seconds=2)).isoformat()}
     detail = client.get("/api/v1/sources/" + quote(target.source_key, safe=""), params={**common, "at_time": MOMENT.isoformat()}).json()
@@ -176,11 +188,12 @@ def test_nominal_override_survives_result_and_all_display_refreshes(monkeypatch)
     assert target.planning_radius_deg is None  # override never mutates original table
 
 
-def test_unknown_footprint_never_claims_failed_extension_duration():
-    target = next(source for source in installed_catalogue("tevcat").sources if source_status(source, MOMENT, ConstraintSet()).center_pass)
+def test_unknown_footprint_point_source_fallback_does_not_claim_extension_duration():
+    target = next(source for source in installed_catalogue("tevcat").sources if not source.footprint_known and source_status(source, MOMENT, ConstraintSet()).center_pass)
     for duration in (0, 120):
         status = source_status(target, MOMENT, ConstraintSet(minimum_window_seconds=duration))
-        assert "full_footprint_not_evaluated" in status.reasons
+        assert "point_source_fallback" in status.reasons
+        assert status.footprint_pass == status.center_pass
         assert not any(reason.startswith("extension_") for reason in status.reasons)
 
 
@@ -217,6 +230,7 @@ def test_gaia_api_error_is_not_zero(monkeypatch):
     monkeypatch.setattr(main, "query_gaia_stars", fail)
     data = client.get("/api/v1/gaia", params={"target_ra_deg": 20, "target_dec_deg": 30}).json()
     assert data["error"] == "offline" and data["zero"] is False and data["count"] == 0
+    assert data["gaia"]["status"] == "error" and data["gaia"]["error_reason"] == "offline"
     assert client.get("/api/v1/gaia", params={"target_ra_deg": 20}).status_code == 422
     assert client.get("/api/v1/gaia", params={"limit": 2001}).status_code == 422
 
@@ -228,25 +242,25 @@ def test_gaia_limit_cache_byte_and_concurrency_bounds(monkeypatch):
     class Response(io.BytesIO):
         pass
     monkeypatch.setattr(gaia, "urlopen", lambda *a, **k: Response(payload))
-    rows, meta = gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 18, 10, 20)
+    rows, meta = gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 10, 10, 20)
     assert meta["truncated"] and not meta["cached"] and meta["bytes"] == len(payload)
     assert rows[0].original_id == "3403822609273809792"
     assert rows[0].notes["proper_motion_applied"] is False
     assert rows[0].notes["query_fields"]["parallax_mas"] == 2
     assert rows[0].notes["distance"]["inverse_parallax_distance_pc"] == 500
-    assert gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 18, 10, 20)[1]["cached"]
+    assert gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 10, 10, 20)[1]["cached"]
     monkeypatch.setattr(gaia, "MAX_CACHE_ENTRIES", 2)
     for ra in (11, 12, 13):
-        gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 18, ra, 20)
+        gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 10, ra, 20)
     assert len(gaia._CACHE) == 2
     monkeypatch.setattr(gaia, "MAX_RESPONSE_BYTES", 10)
     with pytest.raises(gaia.GaiaQueryError, match="byte limit"):
-        gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 18, 14, 20)
+        gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 10, 14, 20)
     assert gaia._QUERY_SLOTS.acquire(False)
     assert gaia._QUERY_SLOTS.acquire(False)
     try:
         with pytest.raises(gaia.GaiaQueryError, match="concurrency"):
-            gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 18, 15, 20)
+            gaia.query_gaia_stars(MOMENT, LACT_TELESCOPE, .1, 1, 10, 15, 20)
     finally:
         gaia._QUERY_SLOTS.release()
         gaia._QUERY_SLOTS.release()

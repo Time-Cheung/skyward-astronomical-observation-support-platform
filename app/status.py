@@ -7,7 +7,7 @@ from typing import Iterable, List, Sequence
 import numpy as np
 
 from .astronomy import CatalogGeometrySeries, compute_catalog_geometry
-from .catalog import Source
+from .catalog import POINT_SOURCE_FALLBACK_WARNING, Source
 from .config import FOV_RADIUS_DEG, LACT_TELESCOPE, MAX_STATUS_SAMPLES, TelescopeConfig
 from .constraints import evaluate_constraints
 from .schemas import ConstraintSet
@@ -23,6 +23,7 @@ class SourceStatus:
     geometry: dict
     extension_inside_fov: bool
     minimum_window_seconds: int
+    warnings: List[str]
     telescope: TelescopeConfig
     current_pointing_enforced: bool = False
 
@@ -38,6 +39,7 @@ class SourceStatus:
             "geometry": self.geometry,
             "extension_inside_fov": self.extension_inside_fov,
             "minimum_window_seconds": self.minimum_window_seconds,
+            "warnings": self.warnings,
             "current_pointing_enforced": self.current_pointing_enforced,
             "telescope": self.telescope.to_dict(),
         }
@@ -87,9 +89,10 @@ def _from_series(
 ) -> List[SourceStatus]:
     """Classify each source from one shared series using exactly one rule set.
 
-    The all-sky map calls this with the telescope pointing requirement enabled.
-    Detail/result status uses normal planned-target geometry instead, allowing a
-    selected target to be evaluated as the future pointing centre.
+    All web map and detail paths use geometry-only observability in this
+    release. The current telescope FoV is a display geometry around the target,
+    not a live pointing constraint, because authoritative telemetry is not
+    integrated yet.
     """
     statuses: List[SourceStatus] = []
     for index, source in enumerate(sources):
@@ -111,29 +114,31 @@ def _from_series(
             constraints,
             **common,
         )
+        effective_radius = source.evaluation_radius_deg
         full_eval = evaluate_constraints(
             series.target_altitude_deg[index],
             series.target_zenith_deg[index],
             series.sun_altitude_deg,
             series.moon_separation_deg[index],
-            source.ext,
+            effective_radius,
             constraints,
             **common,
         )
         point_now = bool(point_eval.center_pass[0])
         full_now = bool(full_eval.footprint_pass[0])
         center_pass = point_now and bool(np.all(point_eval.center_pass))
-        footprint_pass = source.footprint_known and full_now and bool(np.all(full_eval.footprint_pass))
+        footprint_pass = full_now and bool(np.all(full_eval.footprint_pass))
         reasons = _reasons(
             center_pass,
             footprint_pass,
             point_eval.failure_labels("center", 0),
-            full_eval.failure_labels("footprint", 0) if source.footprint_known else [],
+            full_eval.failure_labels("footprint", 0),
             minimum_window_failed_center=point_now and not center_pass,
-            minimum_window_failed_footprint=source.footprint_known and full_now and not footprint_pass,
+            minimum_window_failed_footprint=full_now and not footprint_pass,
         )
-        if not source.footprint_known:
-            reasons = [reason for reason in reasons if reason != "all_enabled_geometry_conditions_pass"] + ["full_footprint_not_evaluated"]
+        warnings = [POINT_SOURCE_FALLBACK_WARNING] if source.point_source_fallback else []
+        if warnings:
+            reasons = [reason for reason in reasons if reason != "all_enabled_geometry_conditions_pass"] + warnings
         statuses.append(
             SourceStatus(
                 source=source,
@@ -142,8 +147,9 @@ def _from_series(
                 footprint_pass=footprint_pass,
                 reasons=reasons,
                 geometry=series.source_at(index, 0),
-                extension_inside_fov=source.footprint_known and source.ext <= telescope.fov_radius_deg,
+                extension_inside_fov=effective_radius <= telescope.fov_radius_deg,
                 minimum_window_seconds=constraints.minimum_duration,
+                warnings=warnings,
                 telescope=telescope,
                 current_pointing_enforced=enforce_current_pointing,
             )
@@ -183,17 +189,19 @@ def sky_snapshot(
     constraints: ConstraintSet,
     telescope: TelescopeConfig = LACT_TELESCOPE,
 ) -> dict:
-    """Return all-sky geometry and current-telescope red/yellow/green states."""
+    """Return all-sky geometry and red/yellow/green states without live pointing."""
     at_time = _utc(at_time)
     sources = list(sources)
     if len(sources) > 256:
         parts = [sky_snapshot(sources[start:start + 256], at_time, constraints, telescope) for start in range(0, len(sources), 256)]
         return {**parts[0], "sources": [row for part in parts for row in part["sources"]], "warnings": sorted({warning for part in parts for warning in part["warnings"]})}
     series = compute_catalog_geometry(sources, _status_times(at_time, constraints), telescope)
-    statuses = _from_series(sources, series, constraints, telescope, enforce_current_pointing=True)
+    # No authoritative live pointing is integrated in this web release.
+    statuses = _from_series(sources, series, constraints, telescope, enforce_current_pointing=False)
+    warnings = sorted({warning for status in statuses for warning in status.warnings} | set(series.warnings))
     return {
         "at_time": at_time.isoformat().replace("+00:00", "Z"),
-        "warnings": series.warnings,
+        "warnings": warnings,
         "telescope": telescope.to_dict(),
         "sources": [
             {
@@ -202,6 +210,7 @@ def sky_snapshot(
                 "center_pass": status.center_pass,
                 "footprint_pass": status.footprint_pass,
                 "reasons": status.reasons,
+                "warnings": status.warnings,
                 "geometry": status.geometry,
             }
             for status in statuses
@@ -225,7 +234,7 @@ def sky_trajectory_snapshot(
     This is a display-summary mode for the result-page all-sky map.  It uses
     vectorised shared ephemerides and never changes the exact per-second window
     result for the selected planning target.  A 60-second-or-finer grid is used
-    for a one-day range, preserving practical response time for a 190-source
+    for a one-day range, preserving practical response time for a multi-catalogue
     catalogue while showing a conservative trajectory overview.
     """
     start = _utc(start_time)
@@ -249,7 +258,7 @@ def sky_trajectory_snapshot(
         return {
             "at_time": start.isoformat().replace("+00:00", "Z"),
             "end_time": end.isoformat().replace("+00:00", "Z"),
-            "sources": items, "warnings": empty_series.warnings,
+            "sources": items, "warnings": sorted({warning for source in sources for warning in source.to_dict().get("warnings", [])} | set(empty_series.warnings)),
             "telescope": telescope.to_dict(), "status_mode": "trajectory",
             "enforce_current_pointing": enforce_current_pointing,
         }
@@ -292,22 +301,23 @@ def sky_trajectory_snapshot(
                 "enforce_current_pointing": True,
             })
         centre = evaluate_constraints(series.target_altitude_deg[index], series.target_zenith_deg[index], series.sun_altitude_deg, series.moon_separation_deg[index], 0.0, constraints, **common)
-        footprint = evaluate_constraints(series.target_altitude_deg[index], series.target_zenith_deg[index], series.sun_altitude_deg, series.moon_separation_deg[index], source.ext, constraints, **common)
+        full_eval = evaluate_constraints(series.target_altitude_deg[index], series.target_zenith_deg[index], series.sun_altitude_deg, series.moon_separation_deg[index], source.evaluation_radius_deg, constraints, **common)
         # Trajectory colours answer whether the enabled constraints can hold
         # continuously for the requested minimum duration, not merely whether
         # one sampled instant happens to pass.
         center_any, center_index = holds_for_duration(centre.center_pass)
-        full_any, full_index = holds_for_duration(footprint.footprint_pass)
-        full_any = full_any and source.footprint_known
+        full_any, full_index = holds_for_duration(full_eval.footprint_pass)
         del center_index, full_index
+        warnings = [POINT_SOURCE_FALLBACK_WARNING] if source.point_source_fallback else []
         items.append({
             **source.to_dict(),
             "status": "GREEN" if full_any else "YELLOW" if center_any else "RED",
             "center_pass": center_any,
             "footprint_pass": full_any,
-            "reasons": [] if source.footprint_known else ["full_footprint_not_evaluated"],
+            "reasons": warnings,
+            "warnings": warnings,
             # Every source and solar-system body is drawn at one common
             # display instant; status colours still summarize the full ranges.
             "geometry": display_series.source_at(index, 0),
         })
-    return {"at_time": start.isoformat().replace("+00:00", "Z"), "end_time": end.isoformat().replace("+00:00", "Z"), "sources": items, "warnings": series.warnings, "telescope": telescope.to_dict(), "status_mode": "trajectory", "enforce_current_pointing": enforce_current_pointing}
+    return {"at_time": start.isoformat().replace("+00:00", "Z"), "end_time": end.isoformat().replace("+00:00", "Z"), "sources": items, "warnings": sorted({warning for source in sources for warning in source.to_dict().get("warnings", [])} | set(series.warnings)), "telescope": telescope.to_dict(), "status_mode": "trajectory", "enforce_current_pointing": enforce_current_pointing}

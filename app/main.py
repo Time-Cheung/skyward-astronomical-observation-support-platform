@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
+from .alternatives import find_alternatives
 from .astronomy import compute_catalog_geometry, compute_geometry, format_ra_dec, iers_status
 from .catalog import BUILTIN_CATALOGUES, installed_catalogue, resolve_source, CatalogError, CatalogCollection, Source, TemporaryCatalog, catalog, enrichment_store, temporary_catalogues
 from .gaia import GaiaQueryError, query_gaia_stars
@@ -42,7 +43,7 @@ from .config import (
     SITE_TIMEZONE_NAME,
 )
 from .plotting import render_window_plot
-from .schemas import ConstraintSet, SkyRequest, WindowRequest
+from .schemas import AlternativeWindowRequest, ConstraintSet, SkyRequest, WindowRequest
 from .sky_map import render_all_sky_svg, render_local_fov_svg
 from .status import source_status
 from .targets import normalise_temporary_target_name
@@ -50,7 +51,7 @@ from .windows import calculate_catalogue_windows, calculate_windows
 
 app = FastAPI(
     title="Skyward Astronomical Observation Support Platform",
-    version="0.1.0",
+    version="2.1.20260924",
     description="LAN-only geometry planning prototype with a current LACT adapter and extensible catalogue/display interfaces.",
     docs_url=None,
     redoc_url=None,
@@ -505,9 +506,13 @@ def _source_detail(
         source = _nominal_source(_resolve_target_identity(source_index, catalog_token, catalog_tokens), nominal_radius_deg)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    # Keep the legacy query parameter for old clients, but do not apply it:
+    # this release has no authoritative live pointing telemetry, so source
+    # observability is always evaluated from the shared geometry-only rule.
+    del enforce_current_pointing
     status = source_status(
         source, at_time, constraints, telescope,
-        enforce_current_pointing=enforce_current_pointing,
+        enforce_current_pointing=False,
     )
     # Source records remain raw, but this response adds user-facing coordinate
     # formats, current geometry and only locally curated enrichment fields.
@@ -679,7 +684,7 @@ def result_page(
             # every catalogue computation to the 4.15 degree FoV radius.
             fov_constraints = _current_fov_constraints(constraints, telescope)
             # "All sources" means sources inside the current LACT FoV at the
-            # requested start instant, not a costly all-night scan of 190 rows.
+            # requested start instant, not a costly all-night scan of every catalogue row.
             # The displayed real-time pointing is presently fixed at zenith.
             _, start_snapshot = render_all_sky_svg(
                 selected_catalogue.sources, request_model.start_utc, constraints, telescope=telescope, language="zh"
@@ -793,6 +798,67 @@ def result_page(
         return templates.TemplateResponse(request, "index.html", context, status_code=422)
 
 
+@app.get("/result", response_class=HTMLResponse)
+def result_page_get(
+    request: Request,
+    source_index: str = Query("region"),
+    source_key: Optional[str] = Query(None),
+    nominal_radius_deg: Optional[str] = Query(None),
+    start_time: Optional[str] = Query(None),
+    end_time: Optional[str] = Query(None),
+    region_ra_deg: Optional[str] = Query(None),
+    region_dec_deg: Optional[str] = Query(None),
+    region_radius_deg: Optional[str] = Query(None),
+    region_name: Optional[str] = Query(None),
+    catalog_token: Optional[str] = Query(None),
+    catalog_tokens: Optional[str] = Query(None),
+    telescope_mode: Optional[str] = Query(None),
+    custom_longitude_deg: Optional[str] = Query(None),
+    custom_latitude_deg: Optional[str] = Query(None),
+    custom_altitude_m: Optional[str] = Query(None),
+    custom_timezone_offset_hours: Optional[str] = Query(None),
+    custom_fov_diameter_deg: Optional[str] = Query(None),
+    display_theme: Optional[str] = Query(None),
+    plot_theme: Optional[str] = Query(None),
+    display_timezone: Optional[str] = Query(None),
+    sun_max_altitude_deg: Optional[str] = Query(None),
+    moon_min_separation_deg: Optional[str] = Query(None),
+    target_min_zenith_deg: Optional[str] = Query(None),
+    target_max_zenith_deg: Optional[str] = Query(None),
+    minimum_window_seconds: Optional[str] = Query(None),
+) -> HTMLResponse:
+    """Rebuild a calculated result from its URL-safe form state."""
+    if not start_time or not end_time:
+        return index(request)
+    try:
+        parsed_nominal_radius = _parse_optional_float(nominal_radius_deg)
+        if parsed_nominal_radius is not None and not 0 < parsed_nominal_radius <= 90:
+            raise ValueError
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=[{
+                "type": "value_error",
+                "loc": ["query", "nominal_radius_deg"],
+                "msg": "nominal_radius_deg must be a number in (0, 90]",
+                "input": nominal_radius_deg,
+            }],
+        ) from exc
+    return result_page(
+        request=request, source_index=source_index, source_key=source_key,
+        nominal_radius_deg=parsed_nominal_radius, start_time=start_time, end_time=end_time,
+        region_ra_deg=region_ra_deg, region_dec_deg=region_dec_deg, region_radius_deg=region_radius_deg,
+        region_name=region_name, catalog_token=catalog_token, catalog_tokens=catalog_tokens,
+        telescope_mode=telescope_mode, custom_longitude_deg=custom_longitude_deg,
+        custom_latitude_deg=custom_latitude_deg, custom_altitude_m=custom_altitude_m,
+        custom_timezone_offset_hours=custom_timezone_offset_hours, custom_fov_diameter_deg=custom_fov_diameter_deg,
+        display_theme=display_theme, plot_theme=plot_theme, display_timezone=display_timezone,
+        sun_max_altitude_deg=sun_max_altitude_deg, moon_min_separation_deg=moon_min_separation_deg,
+        target_min_zenith_deg=target_min_zenith_deg, target_max_zenith_deg=target_max_zenith_deg,
+        minimum_window_seconds=minimum_window_seconds,
+    )
+
+
 @app.get("/about", response_class=HTMLResponse)
 def about(request: Request) -> HTMLResponse:
     context = _base_context(request)
@@ -808,10 +874,15 @@ def api_reference(request: Request) -> HTMLResponse:
             "endpoints": [
                 ("GET", "/api/v1/health", "源表、IERS 与补充数据健康状态"),
                 ("GET", "/api/v1/config", "站点、FoV 与能力边界"),
-                ("GET", "/api/v1/sources?q=&limit=", "检索 2LHAASO 源"),
-                ("GET", "/api/v1/sources/{index}", "源详情与指定时刻几何状态"),
-                ("GET", "/api/v1/sky/current", "全天图 SVG 与 190 源状态"),
+                ("GET", "/api/v1/catalogues", "已安装、临时和结果页 Gaia 源表元数据"),
+                ("GET", "/api/v1/sources?q=&limit=&catalog_tokens=", "按已选源表检索普通目录源"),
+                ("GET", "/api/v1/sources/{source_key}", "源详情与指定时刻几何状态"),
+                ("GET", "/api/v1/sky/current", "全天图 SVG 与已选普通源表状态"),
+                ("GET", "/api/v1/sky/local-fov", "目标中心局部图 SVG 与共享模式状态"),
+                ("GET", "/api/v1/gaia?map_kind=local-fov", "按筛选条件查询并着色局部 Gaia 图层"),
                 ("POST", "/api/v1/windows/calculate", "中心和完整 footprint 观测窗口"),
+                ("POST", "/api/v1/windows/alternatives", "观测计划备选源：粗筛后精确验证，最多返回 3 个"),
+                ("GET", "/api/v1/windows/plot-overlay", "含 Zenith-Time 对比曲线的窗口 SVG"),
                 ("GET", "/openapi.json", "机器可读 OpenAPI schema"),
             ]
         }
@@ -862,7 +933,7 @@ def catalogue_options() -> dict:
             choices.append({**_catalogue_metadata(installed_catalogue(identifier)), "available": True})
         except (ValueError, OSError) as exc:
             choices.append({"identifier": identifier, "label": label, "count": count, "available": False, "error": str(exc)})
-    choices.append({"identifier": "gaia-dr3", "label": "Gaia DR3", "available": True, "online": True, "temporary": False})
+    choices.append({"identifier": "gaia-dr3", "label": "Gaia DR3", "available": True, "online": True, "temporary": False, "selection_scope": "result_local_fov_only"})
     return {"catalogues": choices}
 
 
@@ -881,7 +952,7 @@ async def upload_catalogue(file: UploadFile = File(...)) -> dict:
 @app.get("/api/v1/sources")
 def sources(
     q: str = Query(default="", max_length=80),
-    limit: int = Query(default=190, ge=1, le=2000),
+    limit: int = Query(default=100, ge=1, le=2000),
     offset: int = Query(default=0, ge=0),
     catalog_token: Optional[str] = Query(None),
     catalog_tokens: Optional[str] = Query(None, max_length=4000),
@@ -982,6 +1053,13 @@ def _map_bounds(value: Optional[str]):
 def gaia_stars(
     at_time: Optional[datetime] = None,
     map_kind: str = Query("current", pattern="^(current|local-fov)$"),
+    status_mode: str = Query("instant", pattern="^(instant|trajectory|specified)$"),
+    specified_kind: str = Query("point", pattern="^(point|range)$"),
+    specified_end: Optional[datetime] = None,
+    trajectory_end: Optional[datetime] = None,
+    trajectory_enforce_current_pointing: bool = Query(False),
+    trajectory_ranges: Optional[str] = Query(None, max_length=24000),
+    trajectory_display_time: Optional[datetime] = None,
     selected_source_key: Optional[str] = Query(None, max_length=256),
     target_source_key: Optional[str] = Query(None, max_length=256),
     target_radius_deg: float = Query(0.1, gt=0, le=90),
@@ -992,9 +1070,10 @@ def gaia_stars(
     bounds: Optional[str] = Query(None, max_length=200),
     target_ra_deg: Optional[float] = Query(None, ge=0, lt=360),
     target_dec_deg: Optional[float] = Query(None, ge=-90, le=90),
-    radius_deg: float = Query(5.0, ge=0.1, le=15.0),
-    limit: int = Query(500, ge=1, le=2000),
-    max_mag: float = Query(18.0, ge=5.0, le=22.0),
+    radius_deg: float = Query(1.0, ge=0.1, le=5.0),
+    limit: int = Query(10, ge=1, le=500),
+    max_mag: float = Query(10.0, ge=5.0, le=22.0),
+    constraints: ConstraintSet = Depends(_query_constraints),
     telescope: TelescopeConfig = Depends(_telescope_query),
 ) -> dict:
     """Independent bounded online layer; failures do not block the base sky."""
@@ -1009,7 +1088,51 @@ def gaia_stars(
     if (target_ra_deg is None) != (target_dec_deg is None):
         raise HTTPException(status_code=422, detail="both target coordinates are required")
     moment = at_time or _now_utc()
-    if target_ra_deg is None:
+    moment = moment.replace(tzinfo=SITE_TIMEZONE) if moment.tzinfo is None else moment
+    moment = moment.astimezone(timezone.utc)
+    render_status_mode = status_mode
+    if status_mode == "specified":
+        if specified_kind == "point":
+            if specified_end is not None:
+                raise HTTPException(status_code=422, detail="specified point must not include specified_end")
+            trajectory_end = None
+        else:
+            if specified_end is None:
+                raise HTTPException(status_code=422, detail="specified range requires specified_end")
+            trajectory_end = specified_end
+        render_status_mode = "trajectory" if specified_kind == "range" else "instant"
+    parsed_ranges = None
+    if status_mode == "specified" and trajectory_ranges:
+        raise HTTPException(status_code=422, detail="specified time range cannot use trajectory_ranges")
+    if trajectory_ranges:
+        try:
+            raw_ranges = json.loads(trajectory_ranges)
+            if not isinstance(raw_ranges, list):
+                raise ValueError
+            parsed_ranges = []
+            for raw in raw_ranges:
+                if not isinstance(raw, list) or len(raw) != 2:
+                    raise ValueError
+                begin = _parse_form_datetime(str(raw[0]), "utc")
+                finish = _parse_form_datetime(str(raw[1]), "utc")
+                if finish <= begin:
+                    raise ValueError
+                parsed_ranges.append((begin, finish))
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=422, detail="trajectory_ranges must be a JSON array of forward UTC intervals") from exc
+    if render_status_mode == "trajectory":
+        if trajectory_end is None:
+            raise HTTPException(status_code=422, detail="trajectory_end is required for trajectory status mode")
+        if trajectory_end.tzinfo is None:
+            trajectory_end = trajectory_end.replace(tzinfo=SITE_TIMEZONE)
+        trajectory_end = trajectory_end.astimezone(timezone.utc)
+        if trajectory_end <= moment:
+            raise HTTPException(status_code=422, detail="trajectory_end must be later than at_time")
+        if status_mode == "specified" and (trajectory_end - moment).total_seconds() > 86400:
+            raise HTTPException(status_code=422, detail="specified time range cannot exceed 24 hours")
+        _validate_iers_range(moment, trajectory_end)
+    else:
+        trajectory_end = None
         _validate_iers_range(moment, moment)
     try:
         rows, metadata = query_gaia_stars(moment, telescope, radius_deg, limit, max_mag, target_ra_deg, target_dec_deg)
@@ -1019,17 +1142,65 @@ def gaia_stars(
                 if target_ra_deg is None:
                     raise HTTPException(status_code=422, detail="local Gaia layer requires a target")
                 target = Source(-1, target_name or "Target", target_radius_deg, None, target_ra_deg, target_dec_deg, 0, 0, None)
-            svg = render_local_fov_svg(target, rows, moment, None, telescope, language, display_frame, zoom, map_bounds)
+            svg = render_local_fov_svg(
+                target, rows, moment, None, telescope, language, display_frame, zoom, map_bounds, None, constraints,
+                trajectory_end=trajectory_end,
+                trajectory_enforce_current_pointing=trajectory_enforce_current_pointing,
+                trajectory_ranges=parsed_ranges,
+                trajectory_display_time=trajectory_display_time,
+            )
         else:
-            svg, _ = render_all_sky_svg(rows, moment, ConstraintSet(), telescope=telescope, language=language, display_frame=display_frame, zoom=zoom, bounds=map_bounds)
+            svg, _ = render_all_sky_svg(
+                rows, moment, constraints, telescope=telescope, language=language,
+                trajectory_end=trajectory_end,
+                trajectory_enforce_current_pointing=trajectory_enforce_current_pointing,
+                trajectory_ranges=parsed_ranges,
+                trajectory_display_time=trajectory_display_time,
+                display_frame=display_frame, zoom=zoom, bounds=map_bounds,
+            )
         root = ET.fromstring(svg)
         markers = [element for element in root.iter() if "source-type-gaia" in element.attrib.get("class", "").split()]
         overlay = '<svg xmlns="http://www.w3.org/2000/svg">' + ''.join(ET.tostring(element, encoding="unicode") for element in markers) + '</svg>'
+        status_by_key = {}
+        status_counts = {"GREEN": 0, "RED": 0, "UNKNOWN": 0}
+        for marker in markers:
+            classes = marker.attrib.get("class", "").split()
+            status = next((value[len("status-"):].upper() for value in classes if value.startswith("status-")), "UNKNOWN")
+            key = marker.attrib.get("data-source-key", "")
+            if key:
+                status_by_key[key] = status
+            status_counts[status if status in status_counts else "UNKNOWN"] += 1
         metadata["drawn_count"] = len(markers)
-        return {**metadata, "gaia": metadata, "overlay_svg": overlay, "sources": [{**row.to_dict(include_notes=True), "source_id": row.original_id} for row in rows]}
+        metadata["status_counts"] = status_counts
+        metadata["status_mode"] = status_mode
+        metadata["specified_kind"] = specified_kind if status_mode == "specified" else None
+        metadata["display_time"] = (trajectory_display_time or moment).isoformat().replace("+00:00", "Z")
+        metadata["specified_end"] = trajectory_end.isoformat().replace("+00:00", "Z") if status_mode == "specified" and trajectory_end else None
+        return {**metadata, "gaia": metadata, "overlay_svg": overlay, "sources": [{**row.to_dict(include_notes=True), "source_id": row.original_id, "status": status_by_key.get(row.source_key, "UNKNOWN")} for row in rows]}
     except GaiaQueryError as exc:
-        return {"sources": [], "status": "error", "count": 0, "cached": False,
-                "error": str(exc), "zero": False, "limit": limit, "truncated": False}
+        # Keep query failures structurally distinct from a successful zero-row
+        # response. The front end can therefore show the actual upstream
+        # reason without treating an unavailable TAP service as no stars.
+        error = str(exc)
+        failure_meta = getattr(exc, "metadata", {})
+        metadata = {
+            "status": "error", "error": error, "error_reason": error,
+            "actual_failure_reason": failure_meta.get("actual_failure_reason", error),
+            "count": 0, "zero": False, "cached": False, "cache_hit": False,
+            "cache": {"hit": False, "backend": "memory"},
+            "limit": limit, "truncated": False, "incomplete": True,
+            "query_strategy": failure_meta.get("query_strategy", "async_tap" if (radius_deg > 1 or limit > 100 or max_mag > 10) else "sync_tap"),
+            "query_strategy_metadata": failure_meta.get("query_strategy_metadata", {}),
+            "async_cleanup_attempted": failure_meta.get("async_cleanup_attempted", False),
+            "async_cleanup_error": failure_meta.get("async_cleanup_error"),
+            "selection": "nearest_by_angular_distance", "ordering": "angular_distance_asc",
+            "brightest_n": False,
+            "warning": "Gaia DR3 could not be queried; no stars are treated as a successful zero-row result.",
+            "status_mode": status_mode,
+            "specified_kind": specified_kind if status_mode == "specified" else None,
+            "display_time": (trajectory_display_time or moment).isoformat().replace("+00:00", "Z"),
+        }
+        return {**metadata, "gaia": metadata, "sources": [], "overlay_svg": ""}
 
 
 @app.get("/api/v1/sky/current")
@@ -1041,15 +1212,17 @@ def current_sky(
     catalog_token: Optional[str] = Query(None),
     catalog_tokens: Optional[str] = Query(None, max_length=4000),
     include_gaia: bool = Query(False),
-    gaia_radius_deg: float = Query(5.0, ge=0.1, le=15.0),
-    gaia_limit: int = Query(500, ge=1, le=2000),
-    gaia_max_mag: float = Query(18.0, ge=5.0, le=22.0),
+    gaia_radius_deg: float = Query(1.0, ge=0.1, le=5.0),
+    gaia_limit: int = Query(10, ge=1, le=500),
+    gaia_max_mag: float = Query(10.0, ge=5.0, le=22.0),
     zoom: float = Query(1.0, ge=1, le=1000),
     bounds: Optional[str] = Query(None, max_length=200),
     grid_step_deg: Optional[float] = Query(None, gt=0, le=90),
     display_frame: str = Query(DEFAULT_DISPLAY_COORDINATE_FRAME, pattern="^(altaz|j2000|galactic)$"),
     language: str = Query("en", pattern="^(en|zh)$"),
-    status_mode: str = Query("instant", pattern="^(instant|trajectory)$"),
+    status_mode: str = Query("instant", pattern="^(instant|trajectory|specified)$"),
+    specified_kind: str = Query("point", pattern="^(point|range)$"),
+    specified_end: Optional[datetime] = None,
     trajectory_end: Optional[datetime] = None,
     highlight_indexes: Optional[str] = Query(None, max_length=6000),
     trajectory_enforce_current_pointing: bool = Query(False),
@@ -1080,7 +1253,18 @@ def current_sky(
         selected_source_index=selected_source_index,
         constraints=constraints,
     )
-    if status_mode == "trajectory":
+    render_status_mode = status_mode
+    if status_mode == "specified":
+        if specified_kind == "point":
+            if specified_end is not None:
+                raise HTTPException(status_code=422, detail="specified point must not include specified_end")
+            trajectory_end = None
+        else:
+            if specified_end is None:
+                raise HTTPException(status_code=422, detail="specified range requires specified_end")
+            trajectory_end = specified_end
+        render_status_mode = "trajectory" if specified_kind == "range" else "instant"
+    if render_status_mode == "trajectory":
         if trajectory_end is None:
             raise HTTPException(status_code=422, detail="trajectory_end is required for trajectory status mode")
         if trajectory_end.tzinfo is None:
@@ -1088,6 +1272,8 @@ def current_sky(
         trajectory_end = trajectory_end.astimezone(timezone.utc)
         if trajectory_end <= sky_request.at_utc:
             raise HTTPException(status_code=422, detail="trajectory_end must be later than at_time")
+        if status_mode == "specified" and (trajectory_end - sky_request.at_utc).total_seconds() > 86400:
+            raise HTTPException(status_code=422, detail="specified time range cannot exceed 24 hours")
         _validate_iers_range(sky_request.at_utc, trajectory_end)
     else:
         trajectory_end = None
@@ -1097,6 +1283,8 @@ def current_sky(
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="highlight_indexes must be a comma-separated index list") from exc
     parsed_ranges = None
+    if status_mode == "specified" and trajectory_ranges:
+        raise HTTPException(status_code=422, detail="specified time range cannot use trajectory_ranges")
     if trajectory_ranges:
         try:
             raw_ranges = json.loads(trajectory_ranges)
@@ -1117,7 +1305,7 @@ def current_sky(
     highlights = [value for value in highlights if value in allowed_indexes]
     # Purple tracked-FoV markers belong exclusively to observation-window mode
     # and never override the selected target's own status marker.
-    if status_mode != "trajectory":
+    if render_status_mode != "trajectory":
         highlights = []
     elif selected_source_index is not None:
         highlights = [value for value in highlights if value != selected_source_index]
@@ -1138,6 +1326,9 @@ def current_sky(
     )
     snapshot.update({
         "geometry_only": True,
+        "status_mode": status_mode,
+        "specified_kind": specified_kind if status_mode == "specified" else None,
+        "specified_end": trajectory_end.isoformat().replace("+00:00", "Z") if status_mode == "specified" and trajectory_end else None,
         "gaia": gaia_status,
         "display_frame": display_frame,
         "svg": svg,
@@ -1293,6 +1484,14 @@ def plot_overlay(
 @app.get("/api/v1/sky/local-fov")
 def local_fov(
     at_time: datetime = Query(...),
+    status_mode: str = Query("instant", pattern="^(instant|trajectory|specified)$"),
+    specified_kind: str = Query("point", pattern="^(point|range)$"),
+    specified_end: Optional[datetime] = None,
+    trajectory_end: Optional[datetime] = None,
+    trajectory_enforce_current_pointing: bool = Query(False),
+    trajectory_ranges: Optional[str] = Query(None, max_length=24000),
+    trajectory_display_time: Optional[datetime] = None,
+    highlight_indexes: Optional[str] = Query(None, max_length=6000),
     target_source_index: Optional[int] = Query(None, ge=0),
     target_source_key: Optional[str] = Query(None, max_length=256),
     nominal_radius_deg: Optional[float] = Query(None, gt=0, le=90),
@@ -1318,12 +1517,121 @@ def local_fov(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     moment = at_time.replace(tzinfo=SITE_TIMEZONE) if at_time.tzinfo is None else at_time
     moment = moment.astimezone(timezone.utc)
-    _validate_iers_range(moment, moment)
-    status = source_status(target, moment, constraints, telescope)
+    render_status_mode = status_mode
+    if status_mode == "specified":
+        if specified_kind == "point":
+            if specified_end is not None:
+                raise HTTPException(status_code=422, detail="specified point must not include specified_end")
+            trajectory_end = None
+        else:
+            if specified_end is None:
+                raise HTTPException(status_code=422, detail="specified range requires specified_end")
+            trajectory_end = specified_end
+        render_status_mode = "trajectory" if specified_kind == "range" else "instant"
+    parsed_ranges = None
+    if status_mode == "specified" and trajectory_ranges:
+        raise HTTPException(status_code=422, detail="specified time range cannot use trajectory_ranges")
+    if trajectory_ranges:
+        try:
+            raw_ranges = json.loads(trajectory_ranges)
+            if not isinstance(raw_ranges, list):
+                raise ValueError
+            parsed_ranges = []
+            for raw in raw_ranges:
+                if not isinstance(raw, list) or len(raw) != 2:
+                    raise ValueError
+                begin = _parse_form_datetime(str(raw[0]), "utc")
+                finish = _parse_form_datetime(str(raw[1]), "utc")
+                if finish <= begin:
+                    raise ValueError
+                parsed_ranges.append((begin, finish))
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=422, detail="trajectory_ranges must be a JSON array of forward UTC intervals") from exc
+    if render_status_mode == "trajectory":
+        if trajectory_end is None:
+            raise HTTPException(status_code=422, detail="trajectory_end is required for trajectory status mode")
+        if trajectory_end.tzinfo is None:
+            trajectory_end = trajectory_end.replace(tzinfo=SITE_TIMEZONE)
+        trajectory_end = trajectory_end.astimezone(timezone.utc)
+        if trajectory_end <= moment:
+            raise HTTPException(status_code=422, detail="trajectory_end must be later than at_time")
+        if status_mode == "specified" and (trajectory_end - moment).total_seconds() > 86400:
+            raise HTTPException(status_code=422, detail="specified time range cannot exceed 24 hours")
+        _validate_iers_range(moment, trajectory_end)
+    else:
+        trajectory_end = None
+        _validate_iers_range(moment, moment)
+    try:
+        highlights = [int(value) for value in (highlight_indexes or "").split(",") if value.strip()]
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="highlight_indexes must be a comma-separated index list") from exc
+    allowed_indexes = {item.index for item in selected.sources} | {target.index}
+    highlights = [value for value in highlights if value in allowed_indexes]
+    if render_status_mode != "trajectory":
+        highlights = []
+    selected_status = source_status(target, moment, constraints, telescope) if render_status_mode != "trajectory" else None
     return {
-        "svg": render_local_fov_svg(target, selected.sources, moment, status.to_dict(), telescope, language, display_frame, zoom, _map_bounds(bounds), grid_step_deg),
+        "svg": render_local_fov_svg(
+            target, selected.sources, moment, selected_status.to_dict() if selected_status else None,
+            telescope, language, display_frame, zoom, _map_bounds(bounds), grid_step_deg, constraints,
+            trajectory_end=trajectory_end,
+            trajectory_enforce_current_pointing=trajectory_enforce_current_pointing,
+            trajectory_ranges=parsed_ranges,
+            trajectory_display_time=trajectory_display_time,
+            selected_index=target.index,
+            highlighted_indexes=highlights,
+        ),
         "source": target.to_dict(),
+        "status_mode": status_mode,
+        "specified_kind": specified_kind if status_mode == "specified" else None,
+        "display_time": (trajectory_display_time or moment).isoformat().replace("+00:00", "Z"),
+        "specified_end": trajectory_end.isoformat().replace("+00:00", "Z") if status_mode == "specified" and trajectory_end else None,
     }
+
+
+@app.post("/api/v1/windows/alternatives")
+def windows_alternatives(
+    payload: AlternativeWindowRequest,
+    telescope: TelescopeConfig = Depends(_telescope_query),
+) -> dict:
+    """Return a bounded, explainable set of catalogue alternatives.
+
+    Candidate geometry never applies the current-pointing FoV because this
+    deployment has no authoritative pointing telemetry. The telescope hard FoV
+    still limits each source footprint.
+    """
+    _validate_iers_range(payload.search_start_utc, payload.search_end_utc)
+    try:
+        selected = _catalogue_collection(_resolve_catalogues(payload.catalog_token, payload.catalog_tokens))
+        target = _nominal_source(
+            _resolve_target_identity(
+                payload.source_key, payload.catalog_token, payload.catalog_tokens
+            ),
+            payload.nominal_radius_deg,
+        )
+        if payload.alternative_catalog_token:
+            alternative_catalogue = _resolve_catalogue(payload.alternative_catalog_token)
+            candidate_sources = alternative_catalogue.sources
+            candidate_catalogues = [alternative_catalogue]
+            candidate_scope = "uploaded_alternative_catalogue"
+        else:
+            candidate_sources = selected.sources
+            candidate_catalogues = list(selected.catalogues)
+            candidate_scope = "selected_catalogues"
+        result = find_alternatives(
+            candidate_sources, target, payload.target_start_utc, payload.target_end_utc,
+            payload.search_start_utc, payload.search_end_utc, payload.constraints, telescope,
+            max_alternatives=payload.max_alternatives,
+            coarse_step_seconds=payload.coarse_step_seconds,
+            shortlist_limit=payload.shortlist_limit,
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    result["catalogues"] = [_catalogue_metadata(table) for table in selected.catalogues]
+    result["candidate_catalogues"] = [_catalogue_metadata(table) for table in candidate_catalogues]
+    result["candidate_scope"] = candidate_scope
+    result["geometry_only"] = True
+    return result
 
 
 @app.post("/api/v1/windows/calculate")

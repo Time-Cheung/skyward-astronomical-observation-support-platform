@@ -8,7 +8,7 @@
          The result header has no replacement action. The form preserves every
          constraint, display setting and telescope field across that choice. -->
     <form id="replace-source-form" method="post" action="/result" hidden>
-      <input name="source_index"><input name="source_key"><input name="catalog_token" value="{{ form_values.catalog_token }}"><input name="catalog_tokens" value="{{ form_values.catalog_tokens }}"><input name="start_time" value="{{ result_dict.start }}"><input name="end_time" value="{{ result_dict.end }}">
+      <input name="source_index" value="{{ source.index }}"><input name="source_key" value="{{ source.source_key }}"><input name="catalog_token" value="{{ form_values.catalog_token }}"><input name="catalog_tokens" value="{{ form_values.catalog_tokens }}"><input name="start_time" value="{{ result_dict.start }}"><input name="end_time" value="{{ result_dict.end }}">
       <input name="nominal_radius_deg" value="{{ form_values.nominal_radius_deg if form_values.nominal_radius_deg is defined and form_values.nominal_radius_deg is not none else '' }}">
       <input name="region_name" value=""><input name="region_ra_deg" value=""><input name="region_dec_deg" value=""><input name="region_radius_deg" value="">
       <input name="telescope_mode" value="{{ form_values.telescope_mode }}"><input name="custom_longitude_deg" value="{{ form_values.custom_longitude_deg }}"><input name="custom_latitude_deg" value="{{ form_values.custom_latitude_deg }}"><input name="custom_altitude_m" value="{{ form_values.custom_altitude_m }}"><input name="custom_timezone_offset_hours" value="{{ form_values.custom_timezone_offset_hours }}"><input name="custom_fov_diameter_deg" value="{{ form_values.custom_fov_diameter_deg }}">
@@ -34,6 +34,7 @@
          data-custom-fov-diameter-deg="{{ form_values.custom_fov_diameter_deg }}"
          data-catalog-token="{{ form_values.catalog_token }}"
          data-catalog-tokens="{{ form_values.catalog_tokens }}"
+         data-alternative-catalog-token=""
          data-result-source-index="{{ source.index }}"
          data-result-source-key="{{ source.source_key }}"
          data-result-source-ra="{{ source.ra }}"
@@ -46,11 +47,13 @@
          data-highlight-indexes="{{ highlighted_indexes|join(',') }}"></div>
     <p class="section-label" data-i18n="windowResult">WINDOW RESULT</p>
     <h1 class="result-source-title">{{ source.display_name }}</h1>
-    <p><span data-i18n="j2000Coordinates">J2000 coordinates</span>: RA {{ '%.3f'|format(source.ra) }}°, Dec {{ '%+.3f'|format(source.dec) }}°. <span data-i18n="nominalExtension">Nominal extension</span> {% if source.footprint_known %}{{ '%.3f'|format(source.ext) }}° ± {{ '%.3f'|format(source.ext_err) ~ '°' if source.ext_err is not none else 'not provided' }}{% if form_values.nominal_radius_deg %} <span data-i18n="operatorNominalAssumption">Operator-supplied nominal assumption</span>{% endif %}{% else %}<span data-i18n="unknownFootprint">Not provided; full footprint not evaluated</span>{% endif %}.</p>
+    <p><span data-i18n="j2000Coordinates">J2000 coordinates</span>: RA {{ '%.3f'|format(source.ra) }}°, Dec {{ '%+.3f'|format(source.dec) }}°. <span data-i18n="nominalExtension">Nominal extension</span> {% if source.footprint_known %}{{ '%.3f'|format(source.ext) }}° ± {{ '%.3f'|format(source.ext_err) ~ '°' if source.ext_err is not none else 'not provided' }}{% if form_values.nominal_radius_deg %} <span data-i18n="operatorNominalAssumption">Operator-supplied nominal assumption</span>{% endif %}{% else %}<span data-i18n="unknownFootprint">Not provided; evaluated as a zero-radius point source; planning radius remains unknown</span>{% endif %}.</p>
   </div>
-  <div class="status-block status-{{ status.status|lower }}">
+  <div id="result-target-status" class="status-block status-{{ status.status|lower }}" data-initial-status="{{ status.status }}">
     <span data-i18n="startingStatus">Starting status</span>
-    <strong>{{ status.status }}</strong>
+    <strong data-status-value>{{ status.status }}</strong>
+    <small data-status-mode data-i18n="statusModeLabel">Mode: initial calculation</small>
+    <small data-status-time></small>
     <small data-reason-codes="{{ status.reasons|join('|') }}">{{ human_reason_text(status.reasons) }}</small>
   </div>
 </section>
@@ -64,18 +67,35 @@
 
 <div class="result-map-grid">
   <section class="sky-panel compact-panel">
-    <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="startTime">START TIME</p><h2 data-i18n="allSky">All-sky map</h2></div><div class="result-map-heading-actions">{% include "_catalogue_panel.html" %}<label class="heading-mode-control"><span data-i18n="resultStatusMode">Map status</span><select id="result-status-mode"><option value="instant" data-live-option data-i18n="statusInstant">Real-time</option><option value="trajectory" data-i18n="statusTrajectory">Observation window</option></select></label></div></div>
-    <div class="result-map-controls"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div>
+    <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="startTime">START TIME</p><h2 data-i18n="allSky">All-sky map</h2></div><div class="result-map-heading-actions"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div></div>
+    <div class="result-map-controls"><div class="result-map-selector-control">{% include "_catalogue_panel.html" %}</div><label class="heading-mode-control"><span data-i18n="resultStatusMode">Map status</span><select id="result-status-mode"><option value="instant" data-live-option data-i18n="statusInstant">Real-time</option><option value="trajectory" data-i18n="statusTrajectory">Observation window</option><option value="specified" data-i18n="statusSpecified">Specified time</option></select></label></div>
+    <div class="specified-time-controls" id="specified-time-controls" hidden>
+      <label><span data-i18n="specifiedTimeKind">Specified time type</span><select id="specified-time-kind"><option value="point" data-i18n="specifiedPoint">Time point</option><option value="range" data-i18n="specifiedRange">Time range</option></select></label>
+      <label><span data-i18n="specifiedStart">Start / point</span><input id="specified-time-start" type="datetime-local"></label>
+      <label id="specified-time-end-control" hidden><span data-i18n="specifiedEnd">End</span><input id="specified-time-end" type="datetime-local"></label>
+      <button id="specified-time-apply" class="secondary-button" type="button" data-i18n="applySpecifiedTime">Apply</button>
+      <p id="specified-time-error" class="form-error" role="alert" hidden></p>
+    </div>
     <div class="map-frame" data-result-sky-map data-map-frame>{{ sky_svg|safe }}</div>
     {% include "_map_legend.html" %}
     <p class="map-note" id="result-status-explanation" data-i18n="instantStatusExplanation">Real-time: colours describe observability at the current instant and shown positions are simultaneous.</p>
+    <p class="map-action-status" data-map-action-status="all-sky" role="status" aria-live="polite" hidden></p>
   </section>
   <section class="sky-panel compact-panel">
-    <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="pointingCentre">POINTING CENTRE</p><h2>{{ telescope.name }} {{ '%.2f'|format(telescope.fov_diameter_deg) }}° <span data-i18n="localFovTitle">local FoV</span></h2></div><label class="heading-mode-control"><span data-i18n="localFovMode">Local FoV mode</span><select id="local-fov-mode"><option value="live" data-live-option data-i18n="statusInstant">Real-time</option><option value="fixed" data-i18n="fixedSky">Specific time</option></select></label></div>
-    <div class="local-fov-time-controls"><label id="local-fov-time-control" hidden><span data-i18n="skyTime">Sky time</span><input id="local-fov-time" type="datetime-local"><button id="local-fov-time-apply" class="secondary-button" type="button" data-i18n="applySkyTime">Apply</button></label></div>
-    <div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div>
+    <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="pointingCentre">POINTING CENTRE</p><h2>10° <span data-i18n="localFovTitle">local view</span> · {{ telescope.name }} FoV {{ '%.2f'|format(telescope.fov_diameter_deg) }}°</h2></div><div class="result-map-heading-actions local-map-heading-actions"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div></div>
+    <div class="local-gaia-filter-controls" id="local-gaia-filter-controls">
+      <label><span data-i18n="gaiaRadiusFilter">Search radius</span><span class="unit-input"><input id="local-gaia-radius" type="number" min="0.1" max="5" step="0.1" value="1" inputmode="decimal"><span>°</span></span></label>
+      <label><span data-i18n="gaiaFaintestMagnitude">Faintest G magnitude</span><input id="local-gaia-max-mag" type="number" min="5" max="22" step="0.1" value="10" inputmode="decimal"></label>
+      <label><span data-i18n="gaiaMaximumSources">Maximum sources</span><input id="local-gaia-limit" type="number" min="1" max="500" step="1" value="10" inputmode="numeric"></label>
+      <button id="local-gaia-filter-apply" class="secondary-button" type="button" data-i18n="applyGaiaFilters">Load Gaia DR3</button>
+      <p id="local-gaia-filter-error" class="form-error" role="alert" hidden></p>
+    </div>
     <div class="map-frame" data-local-fov-map>{{ fov_svg|safe }}</div>
-    <p class="map-note" data-i18n="localFovNote">The grey solid circle is the local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension can be hidden beneath the central target marker.</p>
+    <div class="legend map-legend local-shared-legend" aria-label="Status and map symbol legend" data-i18n-aria-label="mapSymbolLegend"><span><i class="legend-star green" aria-hidden="true"></i><b data-i18n="legendGreenMeaning">Full source observable</b></span><span><i class="legend-star yellow" aria-hidden="true"></i><b data-i18n="legendYellowMeaning">Centre only</b></span><span><i class="legend-star red" aria-hidden="true"></i><b data-i18n="legendRedMeaning">Centre unavailable</b></span><span><i class="legend-extension" aria-hidden="true"></i><b data-i18n="trueExtension">True extension</b></span><span><i class="legend-star selected" aria-hidden="true"></i><b data-i18n="selectedTarget">Selected target</b></span><span id="local-tracked-fov-legend" hidden><i class="legend-star tracking" aria-hidden="true"></i><b data-i18n="trackedFovSource">Tracked-FoV source</b></span></div>
+    <div class="legend local-gaia-legend" id="local-fov-gaia-legend" hidden><span><i class="legend-cross" aria-hidden="true"></i><b data-i18n="gaiaSource">Gaia calibration star</b></span></div>
+    <section class="local-gaia-query-status" id="local-fov-gaia-status-panel" hidden aria-labelledby="local-gaia-status-title"><h3 id="local-gaia-status-title">Gaia DR3</h3><div data-gaia-status role="status" aria-live="polite"></div><p data-i18n="gaiaCandidateWarning">Candidates only; calibration suitability has not been assessed.</p></section>
+    <p class="map-note" data-i18n="localFovNote">The grey solid circle is the 10° local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension can be hidden beneath the central target marker.</p>
+    <p class="map-action-status" data-map-action-status="local-fov" role="status" aria-live="polite" hidden></p>
   </section>
 </div>
 
@@ -104,12 +124,13 @@
   <section class="windows-panel emphasized">
     <div class="panel-heading"><div><p class="section-label" data-i18n="fullExtension">FULL EXTENSION</p><h2 data-i18n="fullWindows">Full-footprint windows</h2></div><strong>{{ result.full_footprint_windows|length }}</strong></div>
     {% if result.full_footprint_windows %}
+    {% set planable_windows = result.full_footprint_windows | selectattr('plan_start') | selectattr('plan_end') | list %}
     <div class="window-list">
       {% for window in result.full_footprint_windows %}
       <article class="window-row">
         <div class="window-time"><strong data-time-display="single" data-utc="{{ window.start.isoformat() }}">{{ window.start.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }}</strong><span data-i18n="to">to</span><strong data-time-display="single" data-utc="{{ window.end.isoformat() }}">{{ window.end.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }}</strong></div>
         {% if window.plan_start and window.plan_end %}
-        <div class="plan-window-actions"><button class="secondary-button plan-window-button" type="button" data-plan-window data-window-start="{{ window.start.isoformat() }}" data-window-end="{{ window.end.isoformat() }}" data-plan-start="{{ window.plan_start.isoformat() }}" data-plan-end="{{ window.plan_end.isoformat() }}" data-window-kind="full" data-i18n="planObservation">Add to observing plan</button><button class="secondary-button" type="button" data-download-observation-plan data-i18n="downloadObservationPlan">Download observing plan</button></div>
+        <label class="plan-window-choice"><input type="checkbox" data-plan-window-select data-window-start="{{ window.start.isoformat() }}" data-window-end="{{ window.end.isoformat() }}" data-plan-start="{{ window.plan_start.isoformat() }}" data-plan-end="{{ window.plan_end.isoformat() }}" data-window-kind="full" checked> <span data-i18n="includePlanWindow">Include this window in the observing plan</span></label>
         {% else %}
         <p class="plan-unavailable" data-i18n="planSecondUnavailable">No whole-second plan interval is available within this window.</p>
         {% endif %}
@@ -118,7 +139,19 @@
       </article>
       {% endfor %}
     </div>
+    {% if planable_windows %}
+    <div class="alternative-catalogue-controls" id="alternative-catalogue-controls">
+      <div><strong data-i18n="alternativeCatalogue">专用备选源目录</strong><small data-i18n="alternativeCatalogueHelp">上传后只从该 CSV 选择备选源；未上传时使用当前已加载源表。</small></div>
+      <input id="alternative-catalogue-upload" class="sr-only" type="file" accept=".csv,text/csv" tabindex="-1">
+      <button id="alternative-catalogue-upload-trigger" class="secondary-button" type="button" data-i18n="chooseAlternativeCatalogue">上传备选源目录</button>
+      <span id="alternative-catalogue-name" aria-live="polite"></span>
+      <span id="alternative-catalogue-status" role="status" aria-live="polite"></span>
+    </div>
+    <div class="plan-window-actions"><button class="secondary-button plan-action-button" type="button" data-plan-window data-i18n="planObservation">Add to observing plan</button><button class="secondary-button plan-action-button" type="button" data-preview-observation-plan data-i18n="previewObservationPlan">Preview current observing plan</button><button class="secondary-button plan-action-button" type="button" data-download-observation-plan data-i18n="downloadObservationPlan">Download observing plan</button></div>
+    <p class="plan-selection-status" data-plan-selection-status role="status" aria-live="polite" hidden></p>
+    {% endif %}
     {% else %}<div class="empty-state" data-i18n="noFullWindows">The centre may pass, but the nominal extension has no full-footprint window.</div>{% endif %}
+    <p class="plan-alternative-status" data-plan-alternative-status role="status" aria-live="polite" hidden></p>
   </section>
 </div>
 

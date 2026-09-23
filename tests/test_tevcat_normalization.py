@@ -20,15 +20,26 @@ def test_shared_schema_identity_and_public_provenance():
     assert all(identifier.isdecimal() for identifier in ids)
 
 
-def test_coordinates_and_unknown_footprints_stay_evidence_based():
+def test_coordinates_and_reported_point_sources_stay_evidence_based():
+    point_sources = extended_sources = 0
     for source in CATALOGUE["sources"]:
         assert 0 <= source["ra_deg"] < 360
         assert -90 <= source["dec_deg"] <= 90
         assert 0 <= source["l_deg"] < 360
         assert -90 <= source["b_deg"] <= 90
-        assert source["planning_radius_deg"] is None
-        assert source["footprint_known"] is False
-        assert source["footprint_kind"] == "unknown_hard_boundary"
+        reported_extended = source["notes"]["physical_fields"]["reported_extent"]["value"]
+        if reported_extended == 0:
+            point_sources += 1
+            assert source["planning_radius_deg"] == 0.0
+            assert source["footprint_known"] is True
+            assert source["footprint_kind"] == "point_source"
+        else:
+            extended_sources += 1
+            assert reported_extended == 1
+            assert source["planning_radius_deg"] is None
+            assert source["footprint_known"] is False
+            assert source["footprint_kind"] == "unknown_hard_boundary"
+    assert (point_sources, extended_sources) == (223, 140)
 
 
 def test_notes_are_minimal_public_facts_not_raw_html_or_private_fields():

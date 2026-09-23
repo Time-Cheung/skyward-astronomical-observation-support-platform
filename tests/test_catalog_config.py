@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from app.catalog import Catalog, CatalogError, catalog, enrichment_store
+from app.catalog import Catalog, CatalogError, catalog, enrichment_store, installed_catalogue
 from app.config import (
     CATALOG_EXPECTED_ROWS,
     FOV_DIAMETER_DEG,
@@ -34,6 +34,14 @@ def test_catalogue_loads_all_rows_and_known_sources():
     )
     assert catalog.get(168).name == "Geminga"
     assert catalog.get(168).ext == 8.0
+
+
+def test_fermi_display_names_normalize_survey_prefix_without_changing_identity():
+    for identifier, prefix in (("fermi-3fhl", "3FHL"), ("fermi-fl16y", "FL16Y")):
+        row = installed_catalogue(identifier).sources[0]
+        assert row.display_name.startswith(prefix + " ")
+        assert (prefix + " " + prefix) not in row.display_name
+        assert row.source_key.endswith(row.name)
 
 
 def test_catalogue_search_understands_prefix_and_name():

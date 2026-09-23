@@ -32,8 +32,15 @@ def test_catalogue_draft_and_stable_key_contracts_are_explicit():
     assert "document.dispatchEvent(new Event('skyward:catalogues-change')); load();" in JS
     assert "item.dataset.sourceKey === sourceKey" in JS
     assert "option = new Option('', sourceKey)" in JS
-    assert "params.set('catalog_tokens', selectedCatalogueTokens().filter" in JS
+    assert "params.set('catalog_tokens', selectedCatalogueTokens().join(','))" in JS
     assert "params.set('include_gaia', 'false')" in JS
+    assert 'gaia-dr3' not in PANEL
+    assert 'id="local-fov-gaia-toggle"' not in RESULT
+    assert 'id="local-gaia-radius"' in RESULT and 'value="1"' in RESULT
+    assert 'id="local-gaia-max-mag"' in RESULT and 'value="10"' in RESULT
+    assert 'id="local-gaia-limit"' in RESULT and 'value="10"' in RESULT
+    assert 'id="local-gaia-filter-apply"' in RESULT
+    assert "kind!=='local-fov'" in JS
 
 
 @pytest.fixture
@@ -157,28 +164,42 @@ def test_browser_result_picker_is_inside_map_and_never_replaces_result_target(br
     assert context.get_attribute("data-catalog-tokens") == "fermi-3fhl"
 
 
-def test_browser_gaia_remains_a_separate_confirmed_layer(browser_page):
+def test_browser_gaia_is_result_local_only_and_preserves_catalogue_sources(browser_page):
     page = browser_page
     payload = {
-        "gaia": {"count": 1, "drawn_count": 1, "cached": True},
+        "gaia": {"count": 1, "drawn_count": 1, "cached": True, "radius_deg": 5},
         "sources": [{"index": 80001, "source_key": "gaia-dr3:123", "source_id": "123", "display_name": "Gaia DR3 123"}],
-        "overlay_svg": '<svg xmlns="http://www.w3.org/2000/svg"><g class="source-marker source-type-gaia" data-gaia-source-id="123" data-source-key="gaia-dr3:123"><circle cx="380" cy="250" r="8" /></g></svg>',
+        "overlay_svg": '<svg xmlns="http://www.w3.org/2000/svg"><g class="source-marker source-type-gaia" data-gaia-source-id="123" data-source-key="gaia-dr3:123"><path class="source-symbol gaia-cross" d="M 372 250 H 388 M 380 242 V 258" /></g></svg>',
     }
     gaia_calls = []
     page.route("**/api/v1/gaia?*", lambda route: (gaia_calls.append(route.request.url), route.fulfill(content_type="application/json", body=json.dumps(payload))))
-    page.locator("#catalogue-picker-toggle").click()
-    page.locator('[data-catalogue-id="gaia-dr3"]').check()
-    page.wait_for_timeout(250)
+    _load_result(page)
     assert gaia_calls == []
-    with page.expect_response(lambda response: "/api/v1/sky/current?" in response.url) as sky_info:
-        page.locator("#catalogue-confirm").click()
-    query = parse_qs(urlsplit(sky_info.value.url).query, keep_blank_values=True)
-    assert query["catalog_tokens"] == ["2lhaaso"]
-    assert query["include_gaia"] == ["false"]
-    page.wait_for_selector("[data-gaia-layer] [data-gaia-source-id]")
+    assert page.locator('[data-catalogue-id="gaia-dr3"]').count() == 0
+    assert page.locator("#local-fov-gaia-toggle").count() == 0
+    ordinary_before = page.locator("[data-local-fov-map] .source-type-catalogue").count()
+    page.locator("#local-gaia-filter-apply").click()
+    page.wait_for_selector("[data-local-fov-map] [data-gaia-layer] [data-gaia-source-id]")
     assert len(gaia_calls) == 1
     gaia_query = parse_qs(urlsplit(gaia_calls[0]).query, keep_blank_values=True)
-    assert gaia_query["map_kind"] == ["current"]
+    assert gaia_query["map_kind"] == ["local-fov"]
+    assert gaia_query["radius_deg"] == ["1"]
+    assert gaia_query["max_mag"] == ["10"]
+    assert gaia_query["limit"] == ["100"]
+    page.locator("#local-gaia-radius").fill("0.5")
+    page.locator("#local-gaia-max-mag").fill("16.5")
+    page.locator("#local-gaia-limit").fill("42")
+    with page.expect_response(lambda response: "/api/v1/gaia?" in response.url) as custom_info:
+        page.locator("#local-gaia-filter-apply").click()
+    custom_query = parse_qs(urlsplit(custom_info.value.url).query, keep_blank_values=True)
+    assert custom_query["radius_deg"] == ["0.5"]
+    assert custom_query["max_mag"] == ["16.5"]
+    assert custom_query["limit"] == ["42"]
+    assert page.locator("#local-fov-gaia-legend").is_visible()
+    assert page.locator("[data-local-fov-map] .source-type-catalogue").count() == ordinary_before
+    assert page.locator("[data-local-fov-map] [data-gaia-layer]").count() == 1
+    assert page.locator("#local-fov-gaia-legend").is_visible()
+    assert page.locator("[data-local-fov-map] .source-type-catalogue").count() == ordinary_before
 
 
 @pytest.mark.parametrize("language,theme", [("zh", "light"), ("en", "dark")])

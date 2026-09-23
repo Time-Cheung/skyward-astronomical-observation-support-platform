@@ -20,7 +20,7 @@ IERS_ONLINE_URL = "https://datacenter.iers.org/data/9/finals2000A.all"
 IERS_REFRESH_INTERVAL_SECONDS = 7 * 24 * 3600
 IERS_REQUEST_TIMEOUT_SECONDS = 6
 GAIA_TAP_URL = "https://gea.esac.esa.int/tap-server/tap/sync"
-GAIA_QUERY_TIMEOUT_SECONDS = 8
+GAIA_QUERY_TIMEOUT_SECONDS = 30
 GAIA_CACHE_TTL_SECONDS = 6 * 3600
 
 # Confirmed LACT site parameters. The legacy constants stay public because

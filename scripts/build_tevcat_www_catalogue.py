@@ -90,7 +90,9 @@ def source_note(row: dict, groups: dict, source_url: str) -> dict:
         "normalization_notes": [
             "Public www.tevcat.org record normalized from embedded data.",
             "Raw public notes HTML is not redistributed; only availability and digest are retained.",
-            "Reported extent/size is not treated as a hard planning boundary without a verified definition.",
+            ("The upstream Extended: No flag is normalized as a zero-radius point source for planning."
+             if row.get("ext") in (0, "0", False) else
+             "The upstream Extended: Yes flag does not define a verified angular hard boundary; planning footprint remains unknown."),
         ],
     }
 
@@ -116,11 +118,13 @@ def build(staging: Path) -> dict:
         if not name:
             raise ValueError(f"source {identifier} has no canonical name")
         source_url = f"https://www.tevcat.org/?id={identifier}"
+        is_point_source = row.get("ext") in (0, "0", False)
         sources.append({
             "original_id": identifier, "original_row": ordinal, "name": name,
             "ra_deg": ra, "dec_deg": dec, "l_deg": l, "b_deg": b,
-            "planning_radius_deg": None, "footprint_known": False,
-            "footprint_kind": "unknown_hard_boundary",
+            "planning_radius_deg": 0.0 if is_point_source else None,
+            "footprint_known": is_point_source,
+            "footprint_kind": "point_source" if is_point_source else "unknown_hard_boundary",
             "notes": source_note(row, groups, source_url),
         })
     group_counts = Counter(str(row["catalog_id"]) for row in rows)
@@ -140,7 +144,7 @@ def build(staging: Path) -> dict:
             "response_sha256": manifest["response_sha256"], "final_response_sha256": manifest["final_response_sha256"],
             "public_field_policy": "Private and operator-only fields are excluded before normalization.", "astropy_version": astropy_version,
             "redistribution_policy": "Normalized public structured fields only; raw notes HTML and private fields are excluded.",
-            "measurement_policy": "Reported website fields are catalogue facts, not independently verified measurements or hard planning boundaries.",
+            "measurement_policy": "Extended: No is interpreted as a point source with zero planning radius; Extended: Yes remains an unknown hard boundary unless a verified angular size is available. Other website fields are catalogue facts, not independently verified measurements.",
         },
         "sources": sources,
     }

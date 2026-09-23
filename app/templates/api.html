@@ -25,7 +25,8 @@
 <section class="method-section">
   <h2 data-i18n="windowRequestExample">Window request example</h2>
   <pre class="code-sample"><code>{
-  "source_index": 11,
+  "source_key": "2lhaaso:<source-id>",
+  "catalog_tokens": "2lhaaso",
   "start_time": "2026-12-15T10:00:00Z",
   "end_time": "2026-12-16T10:00:00Z",
   "constraints": {
@@ -37,5 +38,6 @@
   }
 }</code></pre>
   <p class="disclaimer"><span data-i18n="apiDisclaimer">A response with</span> <code>geometry_only=true</code> <span data-i18n="apiDisclaimerEnd">does not evaluate weather, telemetry, mechanical safety or joint-observation conditions.</span></p>
+  <p class="disclaimer" data-i18n="apiPlanWindowNote">The alternatives endpoint evaluates one target window per request. A browser plan containing multiple selected windows sends one bounded request for each window and stores each result with that window.</p>
 </section>
 {% endblock %}

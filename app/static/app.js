@@ -16,7 +16,7 @@
       brandHome: "Skyward 首页", brandDescriptor: "天文观测辅助平台", primaryNavigation: "主导航", displaySettings: "显示设置",
       navPlanner: "天区与规划", navData: "数据说明", language: "语言", switchTheme: "切换主题", themeAuto: "自动", themeLight: "亮色", themeDark: "暗色", timezoneLocal: "北京: UTC+8", timezoneUtc: "UTC",
       site: "站点", altitude: "海拔", geometryOnly: "仅几何判断", calculationContext: "计算上下文", footerDisclaimer: "局域网原型。未评估天气、设备状态、机械安全或 LHAASO 联合观测条件。",
-      currentSky: "当前天区", homeTitle: "从源表到可解释的几何窗口。", homeLead: "浏览 190 个 2LHAASO 源，设置日月与天顶角约束，并比较中心与完整源窗口。",
+      currentSky: "当前天区", homeTitle: "从源表到可解释的几何窗口。", homeLead: "选择多个源表图层，设置日月与天顶角约束，并比较中心与完整源窗口。",
       skySummary: "天区摘要", catalogue: "源表", aboveHorizon: "地平线上", belowHorizon: "地平线下", inputValidation: "输入校验", calculationConditions: "计算条件", windowPlanner: "观测窗口规划", blankDisables: "不可留空",
       targetSource: "目标源", sourceSearchPlaceholder: "输入源名筛选，例如 J0534 或 Geminga", startTime: "开始时间", endTime: "结束时间", maximum31Days: "最长 30 天", optionalConstraints: "几何约束",
       sunMaxAltitude: "太阳最大高度角", sunPlaceholder: "例如 -18", sunConstraintHelp: "要求太阳高度 ≤ 此值", moonMinSeparation: "月亮最小角距", moonPlaceholder: "例如 30", moonConstraintHelp: "目标中心与月心角距",
@@ -29,21 +29,20 @@
       centreWindows: "中心窗口", fullWindows: "完整源窗口", enabledConstraints: "启用约束", allSky: "全天图", green: "绿色", yellow: "黄色", red: "红色", pointingCentre: "指向中心", localFovTitle: "LACT 8.3°局部 FoV", hardBoundary: "硬边界",
       localFovNote: "灰色实线圆表示局部视场图的显示边界，蓝色虚线圆表示望远镜 FoV 硬边界，青色虚线圆表示目标源的名义 extension。名义 extension 很小时，青色圆可能被中央目标标记遮住而看不到。", conditionsOverTime: "条件随时间变化", plotTitle: "几何量与完整源窗口", plotHelp: "绿色背景表示完整源窗口",
       centreConditions: "中心条件", duration: "持续", minimumZenith: "最小天顶角", minimumMoonSeparation: "最小月距", noCentreWindows: "当前条件下没有中心窗口。", fullExtension: "完整 extension", maximumSunAltitude: "最大太阳高度", noFullWindows: "源中心可能满足，但名义 extension 没有完整窗口。",
-      sourceDetails: "源详情", catalogueAndEnrichment: "2LHAASO 与待核验补充信息", openDetails: "打开详情", galacticCoordinates: "银河坐标", positionError: "95% 位置误差", astropyWarnings: "Astropy 警告",
+      sourceDetails: "源详情", catalogueAndEnrichment: "源表数据与待核验补充信息", openDetails: "打开详情", galacticCoordinates: "银河坐标", positionError: "95% 位置误差", astropyWarnings: "Astropy 警告",
       methodAndBoundary: "方法与边界", aboutTitle: "数据、坐标和几何模型。", aboutLead: "记录第一稿采用的固定参数、数据版本和刻意未纳入的观测条件。", lactSite: "LACT 站点", longitude: "经度", latitude: "纬度", timezone: "时区", source: "来源",
-      diameter: "直径", radius: "半径", model: "模型", hardCircle: "理想圆形硬边界", notModelled: "未模拟", fovNotModelled: "离轴响应、PSF、遮挡和灵敏度衰减", catalogueTitle: "2LHAASO 源表", records: "记录数", coordinates: "坐标", extensionMeaning: "度，作为名义圆形半径",
-      iersOffline: "IERS 离线数据", currentCoverage: "当前覆盖", autoDownload: "自动下载", disabled: "关闭", file: "文件", statusDefinition: "绿黄红状态", greenDefinition: "源中心及名义 extension 均满足地平线、启用约束和 8.3°硬 FoV。",
-      yellowDefinition: "源中心满足，但 extension 边缘不能完整满足 FoV、地平线、天顶角或月距条件。", redDefinition: "源中心本身不满足基础地平线、太阳或启用的中心约束。", notEvaluated: "未评估条件", implemented: "已实现", notImplemented: "未实现", aboutDisclaimer: "计算结果不是正式观测批准。天气、设备状态、机械限位、跟踪误差和联合观测条件均未纳入。",
+      diameter: "直径", radius: "半径", model: "模型", hardCircle: "理想圆形硬边界", notModelled: "未模拟", fovNotModelled: "离轴响应、PSF、遮挡和灵敏度衰减", catalogueTitle: "当前源表", records: "记录数", coordinates: "坐标", extensionMeaning: "度，作为名义圆形半径",
+      iersOffline: "IERS 离线数据", currentCoverage: "当前覆盖", autoDownload: "自动下载", disabled: "关闭", file: "文件", statusDefinition: "源状态", gaiaSource: "Gaia 定标星", greenDefinition: "源中心及名义 extension 均满足当前几何约束。", yellowDefinition: "源中心满足，但完整源 footprint 未满足当前几何约束。", redDefinition: "源中心未满足当前几何约束。", greenStatusLabel: "绿色", yellowStatusLabel: "黄色", redStatusLabel: "红色", selectedDefinition: "蓝色空心星星轮廓表示计算时选定的目标源。", trackedDefinition: "紫色空心星星轮廓表示观测窗口计算期间跟踪视场内的源。", gaiaDefinition: "加粗十字符号表示按需查询的 Gaia 候选星；按两张图共享的状态，红/绿色分别表示不可观测/可观测，未评估其定标适用性。", extensionDefinition: "青色虚线圆表示存在已核验半径时的名义源 footprint。", notEvaluated: "未评估条件", implemented: "已实现", notImplemented: "未实现", aboutDisclaimer: "计算结果不是正式观测批准。天气、设备状态、机械限位、跟踪误差和联合观测条件均未纳入。",
       jsonApi: "JSON 接口", apiTitle: "局域网 API 参考。", apiLead: "所有接口均无账号认证，只能在受控局域网中开放。交互式 Swagger 已禁用，避免浏览器加载公网 CDN；机器可读 schema 保留在 <code>/openapi.json</code>。", endpoints: "端点", windowRequestExample: "窗口请求示例", apiDisclaimer: "响应中的", apiDisclaimerEnd: "表示未评估天气、遥测、机械安全或联合观测条件。",
-      apiDescription1: "源表、IERS 与补充数据健康状态", apiDescription2: "站点、FoV 与能力边界", apiDescription3: "检索 2LHAASO 源", apiDescription4: "源详情与指定时刻几何状态", apiDescription5: "全天图 SVG 与 190 源状态", apiDescription6: "中心和完整 footprint 观测窗口", apiDescription7: "机器可读 OpenAPI schema",
+      apiDescription1: "源表、IERS 与补充数据健康状态", apiDescription2: "站点、FoV 与能力边界", apiDescription3: "已安装、临时和结果页 Gaia 源表元数据", apiDescription4: "按已选源表检索普通目录源", apiDescription5: "源详情与指定时刻几何状态", apiDescription6: "全天图 SVG 与已选普通源表状态", apiDescription7: "目标中心局部图 SVG 与共享模式状态", apiDescription8: "按筛选条件查询并着色局部 Gaia 图层", apiDescription9: "中心和完整 footprint 观测窗口", apiDescription10: "单个目标窗口的观测计划备选源：粗筛后精确验证，最多返回 3 个；多窗口计划逐窗口调用", apiDescription11: "含 Zenith-Time 对比曲线的窗口 SVG", apiDescription12: "机器可读 OpenAPI schema",
       loading: "载入中", closeDetails: "关闭详情", loadingDetail: "正在计算当前地平坐标和状态。", failedDetail: "无法载入源详情", noData: "暂无数据，待核验", centrePass: "源中心通过", centreFail: "源中心未通过", footprintPass: "完整 extension 通过", footprintFail: "完整 extension 未通过",
-      sexagesimal: "时分秒 / 度分秒", extension: "Extension", positionErrorLabel: "95% 位置误差", altAzZenith: "高度 / 方位 / 天顶角", moonSeparation: "月亮角距", sunAltitude: "太阳高度", statusReasons: "状态原因", enrichment: "待核验扩展信息", verification: "核验状态", associatedSources: "关联源", sourceSearchEmpty: "没有匹配的源", allFieldsRequired: "所有项目必须填写", planningConstraints: "观测规划约束", sunConstraintLimited: "必须为 -15° 或更低", addTargetOption: "添加新目标", targetName: "目标名称", temporaryNamePlaceholder: "留空自动生成 TMP JHHMM±DDMM", temporaryNameHelp: "留空将根据 RA 和 Dec 自动生成 TMP JHHMM±DDMM 名称。", regionRa: "天区 RA（J2000）", regionDec: "天区 Dec（J2000）", regionRadius: "天区半径", skyMode: "全天图模式", liveSky: "实时，每分钟刷新", fixedSky: "指定时间", skyTime: "全天图时间", applySkyTime: "应用", localDateTime: "本地日期和时间", sunHorizonCoordinates: "太阳 高度 / 方位", moonHorizonCoordinates: "月亮 高度 / 方位", useForPlanner: "填入观测规划", replaceAndCalculate: "替换并重新计算", currentFovWindowResult: "当前 LACT 视野", currentFovTitle: "当前 LACT 视野内源的观测窗口。", currentFovLead: "在接入 LACT 实时指向前，指向占位为天顶。仅计算所选开始时刻处于 8.3°视野内的源。", fovSources: "视野内源", pointingMode: "指向", fixedZenith: "固定天顶", currentFovWindows: "当前视野窗口", noFovSources: "所选时刻的固定天顶视野内没有源", planObservation: "加入观测计划", observationPlan: "观测计划", plannedStart: "计划开始时间", plannedEnd: "计划结束时间", notes: "备注", planRangeHint: "默认填写当前完整源窗口中经逐秒复核有效的计划时间。计划时间必须留在该窗口内。", planRangeError: "计划时间必须位于当前完整源窗口内，且结束时间晚于开始时间。", planSecondUnavailable: "该窗口内没有可表示为完整秒的有效观测计划区间。", downloadPlan: "下载 TXT 计划表", planAdded: "已加入计划表", constraints: "约束条件",
+      sexagesimal: "时分秒 / 度分秒", extension: "Extension", positionErrorLabel: "95% 位置误差", altAzZenith: "高度 / 方位 / 天顶角", moonSeparation: "月亮角距", sunAltitude: "太阳高度", statusReasons: "状态原因", enrichment: "待核验扩展信息", verification: "核验状态", associatedSources: "关联源", sourceSearchEmpty: "没有匹配的源", allFieldsRequired: "所有项目必须填写", planningConstraints: "观测规划约束", sunConstraintLimited: "必须为 -15° 或更低", addTargetOption: "添加新目标", targetName: "目标名称", temporaryNamePlaceholder: "留空自动生成 TMP JHHMM±DDMM", temporaryNameHelp: "留空将根据 RA 和 Dec 自动生成 TMP JHHMM±DDMM 名称。", regionRa: "天区 RA（J2000）", regionDec: "天区 Dec（J2000）", regionRadius: "天区半径", skyMode: "全天图模式", liveSky: "实时，每分钟刷新", fixedSky: "指定时间", skyTime: "全天图时间", applySkyTime: "应用", localDateTime: "本地日期和时间", sunHorizonCoordinates: "太阳 高度 / 方位", moonHorizonCoordinates: "月亮 高度 / 方位", useForPlanner: "填入观测规划", replaceAndCalculate: "替换并重新计算", currentFovWindowResult: "当前 LACT 视野", currentFovTitle: "当前 LACT 视野内源的观测窗口。", currentFovLead: "在接入 LACT 实时指向前，指向占位为天顶。仅计算所选开始时刻处于 8.3°视野内的源。", fovSources: "视野内源", pointingMode: "指向", fixedZenith: "固定天顶", currentFovWindows: "当前视野窗口", noFovSources: "所选时刻的固定天顶视野内没有源", planObservation: "加入观测计划", previewObservationPlan: "预览当前观测计划", observationPlan: "观测计划", plannedStart: "计划开始时间", plannedEnd: "计划结束时间", notes: "备注", planRangeHint: "默认填写当前完整源窗口中经逐秒复核有效的计划时间。计划时间必须留在该窗口内。", planRangeError: "计划时间必须位于当前完整源窗口内，且结束时间晚于开始时间。", planSecondUnavailable: "该窗口内没有可表示为完整秒的有效观测计划区间。", downloadPlan: "下载 XLSX 计划表", planAdded: "已加入计划表", constraints: "约束条件",
     },
     en: {
       brandHome: "Skyward home", brandDescriptor: "ASTRONOMICAL OBSERVATION SUPPORT PLATFORM", primaryNavigation: "Primary navigation", displaySettings: "Display settings",
       navPlanner: "Sky map & planner", navData: "Data notes", language: "Language", switchTheme: "Switch theme", themeAuto: "Auto", themeLight: "Light", themeDark: "Dark", timezoneLocal: "Beijing: UTC+8", timezoneUtc: "UTC",
       site: "Site", altitude: "Altitude", geometryOnly: "GEOMETRY ONLY", calculationContext: "Calculation context", footerDisclaimer: "LAN prototype. Weather, device state, mechanical safety and LHAASO joint observation are not evaluated.",
-      currentSky: "CURRENT SKY", homeTitle: "Turn a source catalogue into observable geometry.", homeLead: "Browse 190 2LHAASO sources, apply optional solar, lunar and zenith constraints, then compare centre and full-footprint windows.",
+      currentSky: "CURRENT SKY", homeTitle: "Turn a source catalogue into observable geometry.", homeLead: "Select catalogue layers, apply solar, lunar and zenith constraints, then compare centre and full-footprint windows.",
       skySummary: "Sky summary", catalogue: "Catalogue", aboveHorizon: "Above horizon", belowHorizon: "Below horizon", inputValidation: "Input validation", calculationConditions: "CALCULATION CONDITIONS", windowPlanner: "Window planner", blankDisables: "Cannot be blank",
       targetSource: "Target source", sourceSearchPlaceholder: "Filter by source name, e.g. J0534 or Geminga", startTime: "Start time", endTime: "End time", maximum31Days: "Maximum 30 days", optionalConstraints: "Geometric constraints",
       sunMaxAltitude: "Maximum Sun altitude", sunPlaceholder: "e.g. -18", sunConstraintHelp: "Require Sun altitude ≤ value", moonMinSeparation: "Minimum Moon separation", moonPlaceholder: "e.g. 30", moonConstraintHelp: "Between target centre and Moon",
@@ -56,15 +55,14 @@
       centreWindows: "Centre windows", fullWindows: "Full-footprint windows", enabledConstraints: "Enabled constraints", allSky: "All-sky map", green: "Green", yellow: "Yellow", red: "Red", pointingCentre: "POINTING CENTRE", localFovTitle: "LACT 8.3° local FoV", hardBoundary: "Hard boundary",
       localFovNote: "The grey solid circle is the local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension can be hidden beneath the central target marker.", conditionsOverTime: "CONDITIONS OVER TIME", plotTitle: "Geometry and full-footprint windows", plotHelp: "Green shading marks full-footprint windows",
       centreConditions: "CENTRE CONDITIONS", duration: "Duration", minimumZenith: "Minimum zenith", minimumMoonSeparation: "Minimum Moon separation", noCentreWindows: "No centre windows under the current conditions.", fullExtension: "FULL EXTENSION", maximumSunAltitude: "Maximum Sun altitude", noFullWindows: "The centre may pass, but the nominal extension has no full-footprint window.",
-      sourceDetails: "SOURCE DETAILS", catalogueAndEnrichment: "2LHAASO and unverified enrichment", openDetails: "Open details", galacticCoordinates: "Galactic coordinates", positionError: "95% position error", astropyWarnings: "Astropy warnings",
+      sourceDetails: "SOURCE DETAILS", catalogueAndEnrichment: "Catalogue data and unverified enrichment", openDetails: "Open details", galacticCoordinates: "Galactic coordinates", positionError: "95% position error", astropyWarnings: "Astropy warnings",
       methodAndBoundary: "METHOD & BOUNDARY", aboutTitle: "Data, coordinates and geometry.", aboutLead: "Fixed parameters, catalogue provenance and the conditions intentionally excluded from this first release.", lactSite: "LACT site", longitude: "Longitude", latitude: "Latitude", timezone: "Time zone", source: "Source",
-      diameter: "Diameter", radius: "Radius", model: "Model", hardCircle: "Ideal circular hard boundary", notModelled: "Not modelled", fovNotModelled: "Off-axis response, PSF, obstruction or sensitivity falloff", catalogueTitle: "2LHAASO catalogue", records: "Records", coordinates: "Coordinates", extensionMeaning: "Degrees, used as a nominal circular radius",
-      iersOffline: "Offline IERS data", currentCoverage: "Current coverage", autoDownload: "Automatic download", disabled: "Disabled", file: "File", statusDefinition: "Green, yellow and red", greenDefinition: "The source centre and nominal extension both pass horizon, enabled constraints and the 8.3° hard FoV.",
-      yellowDefinition: "The centre passes, but an extension edge cannot fully meet FoV, horizon, zenith-angle or Moon-separation requirements.", redDefinition: "The centre itself fails the baseline horizon, solar or enabled centre constraints.", notEvaluated: "Not evaluated", implemented: "Implemented", notImplemented: "Not implemented", aboutDisclaimer: "This is not a formal observing approval. Weather, device state, mechanical limits, tracking error and joint-observation conditions are excluded.",
+      diameter: "Diameter", radius: "Radius", model: "Model", hardCircle: "Ideal circular hard boundary", notModelled: "Not modelled", fovNotModelled: "Off-axis response, PSF, obstruction or sensitivity falloff", catalogueTitle: "Selected catalogues", records: "Records", coordinates: "Coordinates", extensionMeaning: "Degrees, used as a nominal circular radius",
+      iersOffline: "Offline IERS data", currentCoverage: "Current coverage", autoDownload: "Automatic download", disabled: "Disabled", file: "File", statusDefinition: "Source status", gaiaSource: "Gaia calibration star", greenDefinition: "The source centre and nominal extension both pass the active geometric constraints.", yellowDefinition: "The centre passes, but the full source footprint does not.", redDefinition: "The source centre fails the active geometric constraints.", greenStatusLabel: "GREEN", yellowStatusLabel: "YELLOW", redStatusLabel: "RED", selectedDefinition: "A blue hollow star outline marks the source selected for calculation.", trackedDefinition: "A purple hollow star outline marks a source inside the tracked FoV during an observation-window calculation.", gaiaDefinition: "A thicker cross marks an on-demand Gaia candidate; under the shared map mode, red/green indicate unavailable/observable geometry, and calibration suitability is not assessed.", extensionDefinition: "A cyan dashed circle marks the nominal source footprint when a verified radius is available.", notEvaluated: "Not evaluated", implemented: "Implemented", notImplemented: "Not implemented", aboutDisclaimer: "This is not a formal observing approval. Weather, device state, mechanical limits, tracking error and joint-observation conditions are excluded.",
       jsonApi: "JSON API", apiTitle: "LAN API reference.", apiLead: "All endpoints are unauthenticated and must remain inside the controlled LAN. Interactive Swagger is disabled so a browser never tries to load a public CDN. The machine-readable schema remains at <code>/openapi.json</code>.", endpoints: "Endpoints", windowRequestExample: "Window request example", apiDisclaimer: "A response with", apiDisclaimerEnd: "does not evaluate weather, telemetry, mechanical safety or joint-observation conditions.",
-      apiDescription1: "Catalogue, IERS and enrichment health", apiDescription2: "Site, FoV and capability boundaries", apiDescription3: "Search 2LHAASO sources", apiDescription4: "Source detail and geometry at a chosen time", apiDescription5: "All-sky SVG and 190 source states", apiDescription6: "Centre and full-footprint observing windows", apiDescription7: "Machine-readable OpenAPI schema",
+      apiDescription1: "Catalogue, IERS and enrichment health", apiDescription2: "Site, FoV and capability boundaries", apiDescription3: "Installed, temporary, and result-local Gaia catalogue metadata", apiDescription4: "Search ordinary sources across selected catalogues", apiDescription5: "Source detail and geometry at a chosen time", apiDescription6: "All-sky SVG and selected ordinary-catalogue states", apiDescription7: "Target-centred local SVG and shared-mode states", apiDescription8: "Query and colour the filtered local Gaia layer", apiDescription9: "Centre and full-footprint observing windows", apiDescription10: "Alternatives for one target window from coarse screening and exact validation (maximum 3); multi-window plans call once per window", apiDescription11: "Window SVG with Zenith-Time comparison curves", apiDescription12: "Machine-readable OpenAPI schema",
       loading: "Loading", closeDetails: "Close details", loadingDetail: "Computing current horizon coordinates and status.", failedDetail: "Unable to load source details", noData: "No data, pending verification", centrePass: "Centre passes", centreFail: "Centre fails", footprintPass: "Full extension passes", footprintFail: "Full extension fails",
-      sexagesimal: "Sexagesimal", extension: "Extension", positionErrorLabel: "95% position error", altAzZenith: "Alt / Az / Zenith", moonSeparation: "Moon separation", sunAltitude: "Sun altitude", statusReasons: "Status reasons", enrichment: "Unverified enrichment", verification: "Verification", associatedSources: "Associated sources", sourceSearchEmpty: "No matching sources", allFieldsRequired: "All fields are required", planningConstraints: "Planning constraints", sunConstraintLimited: "Must be -15° or below", addTargetOption: "Add new target", targetName: "Target name", temporaryNamePlaceholder: "Leave blank for TMP JHHMM±DDMM", temporaryNameHelp: "Leave blank to derive a TMP JHHMM±DDMM name from RA and Dec.", regionRa: "Region RA (J2000)", regionDec: "Region Dec (J2000)", regionRadius: "Region radius", skyMode: "Sky mode", liveSky: "Live, refresh each minute", fixedSky: "Specific time", skyTime: "Sky time", applySkyTime: "Apply", localDateTime: "Local date and time", sunHorizonCoordinates: "Sun Alt / Az", moonHorizonCoordinates: "Moon Alt / Az", useForPlanner: "Use for planning", replaceAndCalculate: "Replace and recalculate", currentFovWindowResult: "CURRENT LACT FoV", currentFovTitle: "Windows for sources in the current LACT FoV.", currentFovLead: "The pointing placeholder is zenith until real LACT pointing telemetry is connected. Only sources inside the 8.3° FoV at the selected start time are evaluated.", fovSources: "FoV sources", pointingMode: "Pointing", fixedZenith: "Fixed zenith", currentFovWindows: "Current FoV windows", noFovSources: "No catalogue source lies inside the current fixed zenith FoV at the selected time.", planObservation: "Add to observing plan", observationPlan: "Observing plan", plannedStart: "Planned start", plannedEnd: "Planned end", notes: "Notes", planRangeHint: "The prefilled plan is checked at whole-second precision inside this full-footprint window. Planned times must stay within the valid interval.", planRangeError: "Planned times must lie inside this full-footprint window, with an end later than its start.", planSecondUnavailable: "No valid whole-second observing-plan interval exists within this window.", downloadPlan: "Download TXT plan", planAdded: "Added to plan", constraints: "Constraints",
+      sexagesimal: "Sexagesimal", extension: "Extension", positionErrorLabel: "95% position error", altAzZenith: "Alt / Az / Zenith", moonSeparation: "Moon separation", sunAltitude: "Sun altitude", statusReasons: "Status reasons", enrichment: "Unverified enrichment", verification: "Verification", associatedSources: "Associated sources", sourceSearchEmpty: "No matching sources", allFieldsRequired: "All fields are required", planningConstraints: "Planning constraints", sunConstraintLimited: "Must be -15° or below", addTargetOption: "Add new target", targetName: "Target name", temporaryNamePlaceholder: "Leave blank for TMP JHHMM±DDMM", temporaryNameHelp: "Leave blank to derive a TMP JHHMM±DDMM name from RA and Dec.", regionRa: "Region RA (J2000)", regionDec: "Region Dec (J2000)", regionRadius: "Region radius", skyMode: "Sky mode", liveSky: "Live, refresh each minute", fixedSky: "Specific time", skyTime: "Sky time", applySkyTime: "Apply", localDateTime: "Local date and time", sunHorizonCoordinates: "Sun Alt / Az", moonHorizonCoordinates: "Moon Alt / Az", useForPlanner: "Use for planning", replaceAndCalculate: "Replace and recalculate", currentFovWindowResult: "CURRENT LACT FoV", currentFovTitle: "Windows for sources in the current LACT FoV.", currentFovLead: "The pointing placeholder is zenith until real LACT pointing telemetry is connected. Only sources inside the 8.3° FoV at the selected start time are evaluated.", fovSources: "FoV sources", pointingMode: "Pointing", fixedZenith: "Fixed zenith", currentFovWindows: "Current FoV windows", noFovSources: "No catalogue source lies inside the current fixed zenith FoV at the selected time.", planObservation: "Add to observing plan", previewObservationPlan: "Preview current observing plan", observationPlan: "Observing plan", plannedStart: "Planned start", plannedEnd: "Planned end", notes: "Notes", planRangeHint: "The prefilled plan is checked at whole-second precision inside this full-footprint window. Planned times must stay within the valid interval.", planRangeError: "Planned times must lie inside this full-footprint window, with an end later than its start.", planSecondUnavailable: "No valid whole-second observing-plan interval exists within this window.", downloadPlan: "Download TXT plan", planAdded: "Added to plan", constraints: "Constraints",
     }
   };
 
@@ -73,35 +71,37 @@
   Object.assign(translations.zh, {
     mapSymbolLegend: '地图符号', nonGaiaSource: '非 Gaia 源', gaiaSource: 'Gaia 定标星', trueExtension: '真实 extension', selectedTarget: '已选目标', calculationInProgress: '正在计算观测窗口', calculationFailed: '计算未能完成', returnToForm: '返回修改条件', coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
     homeTitle: 'V0版本：仅几何判断', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
-    allSkyNote: '颜色由当前指向、望远镜硬视场和默认几何约束共同判定。实时指向尚未接入，当前固定为天顶；点击源标记查看源详情。',
+    allSkyNote: '颜色按地平线和已启用的几何约束判定；当前未接入可信实时指向，不使用“位于当前 FoV”约束。点击源标记查看源详情。',
     telescopeSettings: '望远镜设置', telescope: '望远镜', lactTelescope: 'LACT', customTelescope: '自定义望远镜',
     telescopeFutureHelp: '当前已接入 LACT；后续可扩展其他望远镜。', customTelescopeHelp: '本次计算临时使用 WGS-84 配置，不会保存到服务器。',
     customLongitude: '经度（WGS-84）', customLatitude: '纬度（WGS-84）', customAltitude: '海拔', customTimezone: '本地 UTC 偏移', customFov: '望远镜视场直径',
     skyZoom: '全天图缩放', zoomIn: '放大', zoomOut: '缩小', zoomReset: '重置缩放',
     reasonAllPass: '所有已启用的几何条件均满足', reasonRangeStart: '请求时间范围起点', reasonRangeEnd: '请求时间范围终点', reasonBoundary: '约束边界', reasonBecameValid: '在以下条件恢复有效后', reasonBecameInvalid: '在以下条件失效后', reasonCentre: '源中心', reasonExtension: '源边缘',
-    altAz: '高度 / 方位', addZenithOverlay: '添加 Zenith - Time 曲线', removeZenithOverlay: '撤回 Zenith - Time 曲线', savePlot: '保存几何量与完整源窗口图（SVG）', chooseZoomCentre: '指定缩放中心', resultStatusMode: '全天图状态', statusInstant: '实时', statusTrajectory: '观测窗口', instantStatusExplanation: '实时：绿色表示完整源在当前时刻可观测，黄色表示仅源中心可观测，红色表示源中心不可观测。', trajectoryStatusExplanation: '观测窗口：目标源完整源窗口内的可观测性；所有源、太阳和月亮统一显示在目标源第一个完整源窗口的起始时刻（无完整源窗口时使用计算开始时刻）的位置。', trackedFovSource: '跟踪视场内源', refreshRealtime: '更新实时全天图/视场图', localFovMode: '局部视场模式', zenithCurveManagement: 'Zenith-Time 曲线管理', curveColour: '曲线颜色', curveLineStyle: '曲线线形', removeCurve: '删除曲线', confirmAddPlan: '确认添加', downloadObservationPlan: '下载观测计划', duplicatePlanPrompt: '该源已存在计划记录。请选择覆盖之前的记录、作为新条目添加，或放弃本次添加。', duplicatePlanKicker: '重复计划', duplicatePlanTitle: '该源已有保存的观测计划', overwritePrevious: '覆盖', addAsNewEntry: '作为新条目添加', cancelAddition: '放弃添加', noSavedPlan: '尚未保存观测计划。', legendGreenMeaning: '完整源可观测', legendYellowMeaning: '仅源中心可观测', legendRedMeaning: '源中心不可观测', uploadCatalogue: '上传源表（CSV）', chooseFile: '选择文件', catalogueUploadHelp: 'UTF-8 CSV：必须包含 name、ra、dec；可选 ext。上传仅临时保存在内存中。', catalogueUploading: '正在上传源表', catalogueUploaded: '源表已加载', catalogueUploadFailed: '源表上传失败',
+    altAz: '高度 / 方位', addZenithOverlay: '添加 Zenith - Time 曲线', removeZenithOverlay: '撤回 Zenith - Time 曲线', savePlot: '保存局部视场和观测窗口图（SVG）', chooseZoomCentre: '指定缩放中心', resultStatusMode: '全天图状态', statusInstant: '实时', statusTrajectory: '观测窗口', instantStatusExplanation: '实时：绿色表示完整源在当前时刻可观测，黄色表示仅源中心可观测，红色表示源中心不可观测。', trajectoryStatusExplanation: '观测窗口：目标源完整源窗口内的可观测性；所有源、太阳和月亮统一显示在目标源第一个完整源窗口的起始时刻（无完整源窗口时使用计算开始时刻）的位置。', trackedFovSource: '跟踪视场内源', refreshRealtime: '更新实时全天图/视场图', localFovMode: '局部视场模式', zenithCurveManagement: 'Zenith-Time 曲线管理', curveColour: '曲线颜色', curveLineStyle: '曲线线形', removeCurve: '删除曲线', confirmAddPlan: '确认添加', savePlanChanges: '保存计划修改', editPlanEntry: '编辑计划', deletePlanEntry: '删除此计划', clearCurrentPlan: '清空当前观测计划', confirmClearPlan: '确认清空当前观测计划？', downloadObservationPlan: '下载观测计划', duplicatePlanPrompt: '该源已存在计划记录。请选择覆盖之前的记录、作为新条目添加，或放弃本次添加。', duplicatePlanKicker: '重复计划', duplicatePlanTitle: '该源已有保存的观测计划', overwritePrevious: '覆盖', addAsNewEntry: '作为新条目添加', cancelAddition: '放弃添加', noSavedPlan: '尚未保存观测计划。', legendGreenMeaning: '完整源可观测', legendYellowMeaning: '仅源中心可观测', legendRedMeaning: '源中心不可观测', uploadCatalogue: '上传源表（CSV）', chooseFile: '选择文件', catalogueUploadHelp: 'UTF-8 CSV：必须包含 name、ra、dec；可选 ext。上传仅临时保存在内存中。', catalogueUploading: '正在上传源表', catalogueUploaded: '源表已加载', catalogueUploadFailed: '源表上传失败',
     target_above_horizon: '目标高于地平线', target_inside_current_fov: '目标在当前视场内', sun_altitude: '太阳高度角', moon_separation: '月亮角距', target_min_zenith: '目标最小天顶角', target_max_zenith: '目标最大天顶角', extension_inside_fov: '源扩展落入视场', extension_inside_current_fov: '源扩展落入当前视场', extension_above_horizon: '源扩展高于地平线', extension_max_zenith: '源扩展不超出地平线限制', minimum_window: '最短连续窗口',
   });
   Object.assign(translations.en, {
     mapSymbolLegend: 'Map symbols', nonGaiaSource: 'Non-Gaia source', gaiaSource: 'Gaia calibration star', trueExtension: 'True extension', selectedTarget: 'Selected target', calculationInProgress: 'Calculating observation windows', calculationFailed: 'Calculation could not be completed', returnToForm: 'Return to edit conditions', coordinateFrame: "Coordinate frame", coordAltAz: "AltAz / Horizon", coordJ2000: "Equatorial (J2000)", coordGalactic: "Galactic", includeGaia: "Gaia DR3 calibration stars", iersSourceKind: "Active source", iersUpdate: "Update policy", iersLastError: "Last online error",
     homeTitle: 'V0: geometry assessment only', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
-    allSkyNote: 'Colours use the current pointing, telescope hard FoV and default geometric constraints. Pointing is fixed to zenith until telemetry is connected; select a star for details.',
+    allSkyNote: 'Colours use the horizon and enabled geometric constraints. Authoritative live pointing is not connected, so no current-FoV constraint is applied. Select a star for details.',
     telescopeSettings: 'Telescope settings', telescope: 'Telescope', lactTelescope: 'LACT', customTelescope: 'Custom telescope',
     telescopeFutureHelp: 'LACT is active now; additional observatories can be connected later.', customTelescopeHelp: 'This temporary WGS-84 configuration is used only by this calculation and is not saved.',
     customLongitude: 'Longitude (WGS-84)', customLatitude: 'Latitude (WGS-84)', customAltitude: 'Altitude', customTimezone: 'Local UTC offset', customFov: 'Telescope FoV diameter',
     skyZoom: 'Sky map zoom', zoomIn: 'Zoom in', zoomOut: 'Zoom out', zoomReset: 'Reset zoom',
     reasonAllPass: 'All enabled geometry conditions pass', reasonRangeStart: 'Requested-range start', reasonRangeEnd: 'Requested-range end', reasonBoundary: 'Constraint boundary', reasonBecameValid: 'Became valid after', reasonBecameInvalid: 'Became invalid after', reasonCentre: 'Target centre', reasonExtension: 'Source edge',
-    altAz: 'Alt / Az', addZenithOverlay: 'Add Zenith - Time curve', removeZenithOverlay: 'Remove Zenith - Time curve', savePlot: 'Save geometry and full-footprint plot (SVG)', chooseZoomCentre: 'Choose centre', resultStatusMode: 'Map status', statusInstant: 'Real-time', statusTrajectory: 'Observation window', instantStatusExplanation: 'Real-time: green means the full source is observable now, yellow means only its centre is observable, and red means its centre is unavailable.', trajectoryStatusExplanation: 'Observation window: observability inside the target full-footprint windows; all sources, Sun and Moon are shown at the target first full-footprint-window start, or the calculation start when none exists.', trackedFovSource: 'Tracked-FoV source', refreshRealtime: 'Refresh live all-sky / FoV maps', localFovMode: 'Local FoV mode', zenithCurveManagement: 'Zenith-Time curve management', curveColour: 'Curve colour', curveLineStyle: 'Curve line style', removeCurve: 'Remove curve', confirmAddPlan: 'Confirm addition', downloadObservationPlan: 'Download observing plan', duplicatePlanPrompt: 'A plan for this source already exists. Choose overwrite, add as a new entry, or cancel this addition.', duplicatePlanKicker: 'Duplicate plan', duplicatePlanTitle: 'This source already has a saved plan', overwritePrevious: 'Overwrite', addAsNewEntry: 'Add as new entry', cancelAddition: 'Cancel addition', noSavedPlan: 'No observing plan has been saved.', legendGreenMeaning: 'Full source observable', legendYellowMeaning: 'Centre only', legendRedMeaning: 'Centre unavailable', uploadCatalogue: 'Upload source catalogue (CSV)', chooseFile: 'Choose file', catalogueUploadHelp: 'UTF-8 CSV: name, ra, dec are required; ext is optional. Uploads are temporary and stored only in memory.', catalogueUploading: 'Uploading catalogue', catalogueUploaded: 'Catalogue loaded', catalogueUploadFailed: 'Catalogue upload failed',
+    altAz: 'Alt / Az', addZenithOverlay: 'Add Zenith - Time curve', removeZenithOverlay: 'Remove Zenith - Time curve', savePlot: 'Save local FoV and observing-window plots (SVG)', chooseZoomCentre: 'Choose centre', resultStatusMode: 'Map status', statusInstant: 'Real-time', statusTrajectory: 'Observation window', instantStatusExplanation: 'Real-time: green means the full source is observable now, yellow means only its centre is observable, and red means its centre is unavailable.', trajectoryStatusExplanation: 'Observation window: observability inside the target full-footprint windows; all sources, Sun and Moon are shown at the target first full-footprint-window start, or the calculation start when none exists.', trackedFovSource: 'Tracked-FoV source', refreshRealtime: 'Refresh live all-sky / FoV maps', localFovMode: 'Local FoV mode', zenithCurveManagement: 'Zenith-Time curve management', curveColour: 'Curve colour', curveLineStyle: 'Curve line style', removeCurve: 'Remove curve', confirmAddPlan: 'Confirm addition', savePlanChanges: 'Save plan changes', editPlanEntry: 'Edit plan', deletePlanEntry: 'Delete this plan', clearCurrentPlan: 'Clear current observing plan', confirmClearPlan: 'Clear the current observing plan?', downloadObservationPlan: 'Download observing plan', duplicatePlanPrompt: 'A plan for this source already exists. Choose overwrite, add as a new entry, or cancel this addition.', duplicatePlanKicker: 'Duplicate plan', duplicatePlanTitle: 'This source already has a saved plan', overwritePrevious: 'Overwrite', addAsNewEntry: 'Add as new entry', cancelAddition: 'Cancel addition', noSavedPlan: 'No observing plan has been saved.', legendGreenMeaning: 'Full source observable', legendYellowMeaning: 'Centre only', legendRedMeaning: 'Centre unavailable', uploadCatalogue: 'Upload source catalogue (CSV)', chooseFile: 'Choose file', catalogueUploadHelp: 'UTF-8 CSV: name, ra, dec are required; ext is optional. Uploads are temporary and stored only in memory.', catalogueUploading: 'Uploading catalogue', catalogueUploaded: 'Catalogue loaded', catalogueUploadFailed: 'Catalogue upload failed',
     target_above_horizon: 'target above horizon', target_inside_current_fov: 'target inside current FoV', sun_altitude: 'Sun altitude', moon_separation: 'Moon separation', target_min_zenith: 'minimum target zenith angle', target_max_zenith: 'maximum target zenith angle', extension_inside_fov: 'extension inside FoV', extension_inside_current_fov: 'extension inside current FoV', extension_above_horizon: 'extension above horizon', extension_max_zenith: 'extension within horizon limit', minimum_window: 'minimum continuous window',
   });
   Object.assign(translations.zh, {
-    catalogueLayers: '源表', layerScope: '勾选仅为草稿；确认加载后才更新天图与目标源选择器。', cataloguePicker: '选择源表', catalogueConfirm: '确认加载', catalogueCancel: '取消', catalogueDraftChanged: '选择尚未应用', catalogueCountUnit: '个源表', emptyLayers: '未选择源表', searchCatalogue: '搜索所有已选源表', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '源表清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按源表选择显示图层，检索目标并计算几何窗口。'
+    catalogueLayers: '源表', layerScope: '勾选仅为草稿；确认加载后才更新天图与目标源选择器。', cataloguePicker: '选择源表', catalogueConfirm: '确认加载', catalogueCancel: '取消', catalogueDraftChanged: '选择尚未应用', catalogueCountUnit: '个源表', emptyLayers: '未选择源表', searchCatalogue: '搜索所有已选源表', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '源表清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaFallback: '初始查询超时，已使用原始视场内的有界子锥；结果可能不完整', gaiaReason: '原因', gaiaAttempts: '查询次数', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按源表选择显示图层，检索目标并计算几何窗口。'
   });
   Object.assign(translations.en, {
-    catalogueLayers: 'Catalogues', layerScope: 'Checks are drafts. Confirm loading to update the sky map and target picker.', cataloguePicker: 'Select catalogues', catalogueConfirm: 'Confirm & load', catalogueCancel: 'Cancel', catalogueDraftChanged: 'Selection not applied', catalogueCountUnit: 'catalogues', emptyLayers: 'No catalogues selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
+    catalogueLayers: 'Catalogues', layerScope: 'Checks are drafts. Confirm loading to update the sky map and target picker.', cataloguePicker: 'Select catalogues', catalogueConfirm: 'Confirm & load', catalogueCancel: 'Cancel', catalogueDraftChanged: 'Selection not applied', catalogueCountUnit: 'catalogues', emptyLayers: 'No catalogues selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaFallback: 'The initial query timed out; bounded subcones inside the original field were used and the result may be incomplete.', gaiaReason: 'Reason', gaiaAttempts: 'Queries', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
   });
-  Object.assign(translations.zh, { gaiaUnorderedSubset: '按行数上限返回的无序子集；不是最亮 N 颗，也不是代表性抽样。', operatorNominalAssumption: '用户指定的名义半径假设', unknownFootprint: '未提供；未评估完整源范围' });
-  Object.assign(translations.en, { gaiaUnorderedSubset: 'Bounded unordered subset; not the brightest N stars and not a representative sample.', operatorNominalAssumption: 'Operator-supplied nominal assumption', unknownFootprint: 'Not provided; full footprint not evaluated' });
+  Object.assign(translations.zh, { gaiaUnorderedSubset: '按与目标的角距离由近到远选择最近 N 颗。', operatorNominalAssumption: '用户指定的名义半径假设', unknownFootprint: '未提供；按零半径点源评估，planning radius 仍未知', pointSourceFallback: '未知 footprint：按零半径点源评估；planning radius 仍未知', statusSpecified: '指定时间', statusModeLabel: '状态模式', statusTimeLabel: '状态时间', specifiedTimeKind: '指定时间类型', specifiedPoint: '时间点', specifiedRange: '时间段（最长 24 小时）', specifiedStart: '起始时间 / 时间点', specifiedEnd: '结束时间', applySpecifiedTime: '应用', specifiedTimeInvalid: '请输入有效的指定时间。', specifiedTimeOrder: '结束时间必须晚于开始时间。', specifiedTimeLimit: '指定时间段不能超过 24 小时。', specifiedStatusExplanation: '指定时间：时间点按该时刻分类；时间段按不超过 24 小时的区间分类，并统一在区间起点绘制位置。', localSharedStatus: '局部图与左侧全天图共用同一状态模式和时间。', loadGaiaLocal: '加载 Gaia DR3', gaiaRadiusFilter: '目标周围查询半径', gaiaFaintestMagnitude: '最暗 G 星等', gaiaMaximumSources: '最大源数量', applyGaiaFilters: '加载 Gaia DR3', gaiaFilterInvalid: 'Gaia 筛选条件无效：半径 0.1–5°，最暗 G 星等 5–22，最大源数 1–500。', gaiaQueryStrategy: '查询策略', localFovNote: '灰色实线圆表示以目标为中心、直径 10° 的局部图显示边界；蓝色虚线圆表示望远镜 FoV 硬边界；青色虚线圆表示目标源的名义 extension。名义 extension 很小时，青色圆可能被中央目标标记遮住。' });
+  Object.assign(translations.en, { gaiaUnorderedSubset: 'The nearest N eligible sources by angular distance to the target are returned.', operatorNominalAssumption: 'Operator-supplied nominal assumption', unknownFootprint: 'Not provided; evaluated as a zero-radius point source; planning radius remains unknown', pointSourceFallback: 'Unknown footprint: evaluated as a zero-radius point source; planning radius remains unknown', statusSpecified: 'Specified time', statusModeLabel: 'Status mode', statusTimeLabel: 'Status time', specifiedTimeKind: 'Specified time type', specifiedPoint: 'Time point', specifiedRange: 'Time range (maximum 24 h)', specifiedStart: 'Start / time point', specifiedEnd: 'End', applySpecifiedTime: 'Apply', specifiedTimeInvalid: 'Enter a valid specified time.', specifiedTimeOrder: 'End time must be later than start time.', specifiedTimeLimit: 'The specified range cannot exceed 24 hours.', specifiedStatusExplanation: 'Specified time: a point is classified at that instant; a range of up to 24 hours is classified over the interval and positions are drawn at its start.', localSharedStatus: 'The local map uses the same status mode and time as the all-sky map.', loadGaiaLocal: 'Load Gaia DR3', gaiaRadiusFilter: 'Radius around target', gaiaFaintestMagnitude: 'Faintest G magnitude', gaiaMaximumSources: 'Maximum sources', applyGaiaFilters: 'Load Gaia DR3', gaiaFilterInvalid: 'Invalid Gaia filters: radius 0.1–5°, faintest G magnitude 5–22, and maximum sources 1–500.', gaiaQueryStrategy: 'Query strategy', localFovNote: 'The grey solid circle is the target-centred 10° local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension may be hidden beneath the central target marker.' });
+  Object.assign(translations.zh, { curveAdding: '正在计算 Zenith-Time 曲线', curveAdded: '已成功添加 Zenith-Time 曲线', curveAddFailed: 'Zenith-Time 曲线添加失败', alternativeScreening: '正在筛选观测备选源', alternativeCatalogue: '专用备选源目录', alternativeCatalogueHelp: '上传后只从该 CSV 选择备选源；未上传时使用当前已加载源表。', chooseAlternativeCatalogue: '上传备选源目录', alternativeCatalogueUploaded: '专用备选源目录已加载', alternativeCatalogueDefault: '未上传专用目录，将使用当前已加载源表', gaiaStatusCounts: '可观测 / 不可观测', includePlanWindow: '将此窗口加入观测计划', planWindow: '观测窗口', noPlanWindowsSelected: '请至少勾选一个观测窗口。', planRangeHint: '已勾选的完整源窗口会分别预填计划时间；每段计划时间都必须位于对应的有效窗口内。', planRangeError: '每段计划时间都必须位于对应的完整源窗口内，且结束时间晚于开始时间。', apiPlanWindowNote: '备选源端点每次评估一个目标窗口。包含多个已选窗口的浏览器计划会逐窗口发送一次有界请求，并把结果保存在对应窗口下。' });
+  Object.assign(translations.en, { curveAdding: 'Calculating Zenith-Time curve', curveAdded: 'Zenith-Time curve added', curveAddFailed: 'Zenith-Time curve failed', alternativeScreening: 'Screening observing alternatives', alternativeCatalogue: 'Dedicated alternative-source catalogue', alternativeCatalogueHelp: 'After upload, alternatives are selected only from this CSV; without one, the selected ordinary catalogues are used.', chooseAlternativeCatalogue: 'Upload alternative catalogue', alternativeCatalogueUploaded: 'Dedicated alternative catalogue loaded', alternativeCatalogueDefault: 'No dedicated catalogue; selected ordinary catalogues will be used', gaiaStatusCounts: 'Observable / unavailable', includePlanWindow: 'Include this window in the observing plan', planWindow: 'Observation window', noPlanWindowsSelected: 'Select at least one observation window.', planRangeHint: 'Each selected full-footprint window is prefilled separately; every planned interval must stay inside its corresponding valid window.', planRangeError: 'Every planned interval must stay inside its corresponding full-footprint window, and its end must be later than its start.', apiPlanWindowNote: 'The alternatives endpoint evaluates one target window per request. A browser plan containing multiple selected windows sends one bounded request for each window and stores each result with that window.' });
   const formatCondition = (code) => translate(code, String(code || '').replaceAll('_', ' '));
   const formatReason = (code) => {
     const value = String(code || '');
@@ -118,6 +118,7 @@
     if (value === 'extension_edge_exceeds_current_fov') return translate('reasonExtension') + ': ' + translate('extension_inside_current_fov');
     if (value === 'extension_edge_below_horizon') return translate('reasonExtension') + ': ' + translate('extension_above_horizon');
     if (value === 'extension_edge_exceeds_horizon_limit') return translate('reasonExtension') + ': ' + translate('extension_max_zenith');
+    if (value === 'point_source_fallback') return translate('pointSourceFallback');
     if (value.startsWith('extension_edge_')) return translate('reasonExtension') + ': ' + formatCondition(value.slice(15));
     return value.replaceAll('_', ' ');
   };
@@ -368,16 +369,41 @@
 
   const statusClass = (status) => ['GREEN','YELLOW','RED','UNKNOWN'].includes(status) ? status.toLowerCase() : 'unknown';
 
+  const updateResultStatusCard = (payload, requestMode) => {
+    const card = document.getElementById('result-target-status');
+    const context = document.getElementById('detail-query-context');
+    if (!card || !context) return;
+    const key = context.dataset.resultSourceKey;
+    const row = (payload?.sources || []).find(item => String(item.source_key || '') === String(key));
+    if (!row) return;
+    card.className = `status-block status-${statusClass(row.status)}`;
+    const value = card.querySelector('[data-status-value]');
+    if (value) value.textContent = row.status || 'UNKNOWN';
+    const modeLabel = requestMode === 'trajectory' ? translate('statusTrajectory') : requestMode === 'specified' ? translate('statusSpecified') : translate('statusInstant');
+    const modeElement = card.querySelector('[data-status-mode]');
+    if (modeElement) modeElement.textContent = `${translate('statusModeLabel')}: ${modeLabel}`;
+    const timeElement = card.querySelector('[data-status-time]');
+    if (timeElement) {
+      const start = requestMode === 'trajectory' ? context.dataset.resultStart : activeSkyInstant?.toISOString();
+      const end = requestMode === 'trajectory' ? context.dataset.resultEnd : (requestMode === 'specified' ? payload.specified_end : '');
+      timeElement.textContent = start ? `${translate('statusTimeLabel')}: ${formatDisplayTime(start)}${end ? ` ${translate('to')} ${formatDisplayTime(end)}` : ''}` : '';
+    }
+    const reasons = card.querySelector('[data-reason-codes]');
+    if (reasons) { reasons.dataset.reasonCodes = (row.reasons || []).join('|'); refreshReasonText(); }
+  };
+
   const tevcatDetailMarkup = (data) => {
     const notes=data.notes || {}, physical=notes.physical_fields || {}, discovery=notes.discovery || {}, state=value => value?.value ?? value ?? translate('noData');
     const aliases=Array.isArray(notes.aliases) && notes.aliases.length ? notes.aliases.join(', ') : translate('noData');
     const source=safeExternalUrl(notes.source_url);
+    const reportedExtent=state(physical.reported_extent);
+    const reportedExtentLabel=reportedExtent === 0 ? 'No' : reportedExtent === 1 ? 'Yes' : displayValue(reportedExtent);
     return `<section class="detail-section"><h3>TeVCat</h3><dl class="detail-grid">
       <div><dt>Catalogue ID</dt><dd>${escapeHtml(displayValue(notes.catalogue_source_id))}</dd></div>
       <div><dt>Category</dt><dd>${escapeHtml(displayValue(notes.catalogue_group))}</dd></div>
       <div><dt>Aliases</dt><dd>${escapeHtml(aliases)}</dd></div>
       <div><dt>Discovery</dt><dd>${escapeHtml(displayValue(state(discovery.date)))} / ${escapeHtml(displayValue(state(discovery.observatory)))}</dd></div>
-      <div><dt>Reported extension</dt><dd>${escapeHtml(displayValue(state(physical.reported_extent)))}</dd></div>
+      <div><dt>Extended</dt><dd>${escapeHtml(reportedExtentLabel)}</dd></div>
       <div><dt>Flux / spectral index</dt><dd>${escapeHtml(displayValue(state(physical.reported_flux)))} / ${escapeHtml(displayValue(state(physical.spectral_index)))}</dd></div>
       <div><dt>Distance / variability</dt><dd>${escapeHtml(displayValue(state(physical.distance_or_redshift)))} / ${escapeHtml(displayValue(state(physical.variability)))}</dd></div>
       <div><dt>Source</dt><dd>${source ? `<a href="${escapeHtml(source)}" rel="noreferrer">www.tevcat.org</a>` : escapeHtml(translate('noData'))}</dd></div>
@@ -451,7 +477,13 @@
     return value === context.dataset.resultSourceKey || value === context.dataset.resultSourceIndex;
   };
   let sourceDetailGeneration=0, sourceDetailController;
-  const openSource = async (sourceIndex) => {
+  const setMapActionStatus = (mapKind, message = "", state = "") => {
+    if (!mapKind) return;
+    const element = document.querySelector(`[data-map-action-status="${mapKind}"]`);
+    if (!element) return;
+    element.textContent = message; element.dataset.state = state; element.hidden = !message;
+  };
+  const openSource = async (sourceIndex, mapKind = null) => {
     if (!dialog) return;
     const generation=++sourceDetailGeneration; sourceDetailController?.abort(); sourceDetailController=new AbortController();
     dialogTitle.textContent = translate("loading");
@@ -464,8 +496,9 @@
       const detailParameters = activeParameters();
       // A nominal footprint assumption belongs to one target, not the catalogue.
       if (!isResultTargetIdentity(sourceIndex)) detailParameters.delete('nominal_radius_deg');
-      const windowMode = document.getElementById('result-status-mode')?.value === 'trajectory';
-      detailParameters.set("enforce_current_pointing", windowMode ? "false" : "true");
+      // No authoritative live pointing is connected; details use the same
+      // geometry-only status policy as both result maps in every mode.
+      detailParameters.set("enforce_current_pointing", "false");
       const response = await fetch('/api/v1/sources/' + encodeURIComponent(sourceIndex) + '?' + detailParameters.toString(), { signal:sourceDetailController.signal, headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
@@ -473,23 +506,52 @@
       dialogTitle.textContent = data.display_name;
       dialogUseSource.dataset.useSource = data.source_key || String(data.index);
       replaceSourceOptions([data]);
-      // The dialog button fills the planner on the homepage or replaces the
-      // selected target on an individual result page. Bulk results expose
-      // neither route, so do not show an action that cannot be completed.
-      dialogUseSource.hidden = !(
-        document.getElementById("source_index")
-        || document.getElementById("replace-source-form")
-      );
+      // The selected result target is already the active plan target, but any
+      // other ordinary source may replace it through the preserved result form.
       dialogBody.innerHTML = detailMarkup(data) + rawDetailMarkup(data);
       const resultTarget = document.getElementById("detail-query-context")?.dataset.resultSourceKey;
       const sourceKey=data.source_key || String(data.index);
+      const isResultTarget = isResultTargetIdentity(sourceKey) || isResultTargetIdentity(data.index);
+      dialogUseSource.hidden = isResultTarget || !(
+        document.getElementById("source_index")
+        || document.getElementById("replace-source-form")
+      );
       if (dialogAddZenith) {
-        dialogAddZenith.hidden = !(resultTarget !== undefined && resultTarget !== sourceKey && !zenithOverlayIndexes.has(sourceKey));
+        const refreshZenithButton = () => {
+          const added = zenithOverlayIndexes.has(sourceKey);
+          dialogAddZenith.hidden = resultTarget === undefined || isResultTarget;
+          dialogAddZenith.textContent = translate(added ? 'removeZenithOverlay' : 'addZenithOverlay');
+          dialogAddZenith.dataset.i18n = added ? 'removeZenithOverlay' : 'addZenithOverlay';
+          dialogAddZenith.dataset.overlayAdded = String(added);
+        };
+        refreshZenithButton();
         dialogAddZenith.onclick = async () => {
+          if (zenithOverlayIndexes.has(sourceKey)) {
+            zenithOverlayGeneration++;
+            zenithOverlayController?.abort();
+            document.getElementById(overlayStyle(sourceKey).svgId || ('zenith-overlay-' + sourceKey))?.remove();
+            zenithOverlayIndexes.delete(sourceKey);
+            zenithOverlayStyles.delete(String(sourceKey));
+            renderZenithCurveControls();
+            refreshZenithButton();
+            void refreshZenithOverlays();
+            return;
+          }
           zenithOverlayIndexes.add(sourceKey);
           overlayStyle(sourceKey).label = data.display_name;
-          await refreshZenithOverlays();
-          dialogAddZenith.hidden = true;
+          refreshZenithButton();
+          setMapActionStatus(mapKind, `${translate('curveAdding')}: ${data.display_name}…`, 'loading');
+          const outcome = await refreshZenithOverlays();
+          let settled = outcome;
+          if (settled?.cancelled && zenithOverlayIndexes.has(sourceKey)) settled = await refreshZenithOverlays();
+          if (settled?.ok) {
+            setMapActionStatus(mapKind, `${translate('curveAdded')}: ${data.display_name}`, 'success');
+          } else if (!settled?.cancelled) {
+            zenithOverlayIndexes.delete(sourceKey);
+            zenithOverlayStyles.delete(String(sourceKey));
+            refreshZenithButton();
+            setMapActionStatus(mapKind, `${translate('curveAddFailed')}: ${settled?.error || translate('noData')}`, 'error');
+          }
         };
       }
     } catch (error) {
@@ -505,7 +567,6 @@
       const option=[...plannerSelect.options].find(option=>option.dataset.sourceKey===String(sourceIndex) || option.value===String(sourceIndex));
       if(!option)return;plannerSelect.value = option.value;
       plannerSelect.dispatchEvent(new Event("change", { bubbles: true }));
-      dialog?.close();
       document.getElementById('source-picker-toggle')?.scrollIntoView({block:'center'});
       document.getElementById('source-picker-toggle')?.focus();
       return;
@@ -529,6 +590,15 @@
       if (replacementForm.elements.display_theme) replacementForm.elements.display_theme.value = getThemePreference();
       if (replacementForm.elements.plot_theme) replacementForm.elements.plot_theme.value = document.documentElement.dataset.resolvedTheme || "light";
       if (replacementForm.elements.display_timezone) replacementForm.elements.display_timezone.value = getTimezonePreference();
+      const resultMode = document.getElementById('result-status-mode');
+      if (resultMode) {
+        sessionStorage.setItem('skyward.pending-result-map-state', JSON.stringify({
+          mode: resultMode.value,
+          specifiedKind: document.getElementById('specified-time-kind')?.value || 'point',
+          specifiedStart: document.getElementById('specified-time-start')?.value || '',
+          specifiedEnd: document.getElementById('specified-time-end')?.value || '',
+        }));
+      }
       replacementForm.requestSubmit();
     }
   };
@@ -599,6 +669,7 @@
     dialog.showModal();
   };
   const initialiseSourceDialog = () => {
+    const markerMapKind = marker => marker?.closest('[data-local-fov-map]') ? 'local-fov' : marker?.closest('[data-result-sky-map]') ? 'all-sky' : null;
     document.addEventListener("click", (event) => {
       const marker = event.target.closest('[data-gaia-source-id], [data-source-index]');
       const explicit = event.target.closest("[data-open-source]");
@@ -608,11 +679,11 @@
       else if (replaceSource) useSourceForPlanner(replaceSource.dataset.replaceSource);
       else if (explicit) openSource(explicit.dataset.openSource);
       else if (marker?.matches('.source-type-gaia, [data-gaia-source-id]')) openGaiaSource(marker);
-      else if (marker) openSource(marker.dataset.sourceKey || marker.dataset.sourceIndex);
+      else if (marker) openSource(marker.dataset.sourceKey || marker.dataset.sourceIndex, markerMapKind(marker));
       if (event.target.closest("[data-close-dialog]")) dialog?.close();
     });
     document.addEventListener("keydown", (event) => {
-      if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-source-index], [data-gaia-source-id]')) { event.preventDefault(); if(event.target.matches('.source-type-gaia, [data-gaia-source-id]'))openGaiaSource(event.target);else openSource(event.target.dataset.sourceKey || event.target.dataset.sourceIndex); }
+      if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-source-index], [data-gaia-source-id]')) { event.preventDefault(); if(event.target.matches('.source-type-gaia, [data-gaia-source-id]'))openGaiaSource(event.target);else openSource(event.target.dataset.sourceKey || event.target.dataset.sourceIndex, markerMapKind(event.target)); }
     });
     dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
   };
@@ -720,7 +791,7 @@
   const selectedCatalogueTokens = () => [...(appliedCatalogueTokens ?? draftCatalogueTokens())];
   const appendLayerParameters = (params) => {
     // Explicit empty is meaningful. Never fall back to a default catalogue.
-    params.set('catalog_tokens', selectedCatalogueTokens().filter(id => id !== 'gaia-dr3').join(','));
+    params.set('catalog_tokens', selectedCatalogueTokens().join(','));
     params.set('include_gaia', 'false');
     params.set('display_frame', getCoordinateFrame());
     return params;
@@ -747,10 +818,11 @@
     frame.dataset.cameraInstalled = 'true';
     const root = controls || document.querySelector('.sky-zoom-controls');
     const find = (selector, id) => root?.querySelector(selector) || document.getElementById(id);
-    let zoom = 1, cx = .5, cy = .5, choosing = false, drag = null, dragged = false;
+    let zoom = Math.max(1, Math.min(1000, Number(frame.dataset.zoom) || 1));
+    let cx = Number(frame.dataset.cameraCx) || .5, cy = Number(frame.dataset.cameraCy) || .5, choosing = false, drag = null, dragged = false;
     const reset = find('[data-zoom-reset]', 'sky-zoom-reset');
     const centreButton = find('[data-zoom-centre]', 'sky-zoom-centre') || explicitCentreButton;
-    const input = document.createElement('input'); input.type = 'number'; input.min = '1'; input.max = '1000'; input.step = 'any'; input.value = '1'; input.className = 'zoom-factor'; input.setAttribute('aria-label', 'Zoom factor (1x-1000x)');
+    const input = document.createElement('input'); input.type = 'number'; input.min = '1'; input.max = '1000'; input.step = 'any'; input.value = String(Number(zoom.toFixed(4))); input.className = 'zoom-factor'; input.setAttribute('aria-label', 'Zoom factor (1x-1000x)');
     root?.insertBefore(input, reset || null);
     const dimensions = () => {
       const svg = frame.querySelector('svg');
@@ -776,6 +848,8 @@
       });
       input.value = String(Number(zoom.toFixed(4)));
       frame.dataset.zoom = String(zoom);
+      frame.dataset.cameraCx = String(cx);
+      frame.dataset.cameraCy = String(cy);
       if (reset) reset.textContent = translate('zoomReset');
       if(notify){clearTimeout(cameraTimer);cameraTimer=setTimeout(()=>frame.dispatchEvent(new Event('skyward:camera-change')),240);}
     };
@@ -810,7 +884,7 @@
     }, true);
     frame.addEventListener('skyward:map-replaced', () => apply(zoom,false));
     document.addEventListener('skyward:language-change', () => apply(zoom,false));
-    apply(1,false);
+    apply(zoom,false);
   };
 
   const updateTelescopeContext = (telescope = null) => {
@@ -913,7 +987,7 @@
       if (!select) return;
       controller?.abort(); controller = new AbortController(); const current=++generation;
       const offset=append ? nextOffset : 0;
-      const ids=selectedCatalogueTokens().filter(id=>id!=='gaia-dr3');
+      const ids=selectedCatalogueTokens();
       if (!ids.length) { rows=[]; nextOffset=null; more.hidden=true; searchStatus.textContent=translate('emptyLayers'); renderSourcePicker(); return; }
       const query=new URLSearchParams({catalog_tokens:ids.join(','),q:input.value.trim(),limit:'100',offset:String(offset || 0)});
       searchStatus.textContent=translate('loading');
@@ -1007,19 +1081,42 @@
 
   const gaiaRequests = new Map();
   const gaiaDetails = new Map();
-  const gaiaSelected = () => selectedCatalogueTokens().includes('gaia-dr3');
+  const gaiaSelected = () => document.getElementById('local-gaia-filter-apply')?.dataset.gaiaEnabled === 'true';
+  const gaiaFilterParameters = () => {
+    const radius = Number(document.getElementById('local-gaia-radius')?.value ?? 1);
+    const maxMag = Number(document.getElementById('local-gaia-max-mag')?.value ?? 10);
+    const limit = Number(document.getElementById('local-gaia-limit')?.value ?? 10);
+    if (!Number.isFinite(radius) || radius < 0.1 || radius > 5 || !Number.isFinite(maxMag) || maxMag < 5 || maxMag > 22 || !Number.isInteger(limit) || limit < 1 || limit > 500) return null;
+    return {radius_deg:String(radius), max_mag:String(maxMag), limit:String(limit)};
+  };
+  const showGaiaFilterError = (message = '') => {
+    const error = document.getElementById('local-gaia-filter-error');
+    if (!error) return;
+    error.textContent = message; error.hidden = !message;
+  };
   const renderGaiaStatus = () => {
-    const panel=document.querySelector('[data-gaia-status]'); if(!panel)return;
-    if(!gaiaSelected()){panel.textContent=translate('gaiaUnselected');return;}
+    const panel=document.querySelector('[data-gaia-status]');
+    const statusPanel=document.getElementById('local-fov-gaia-status-panel');
+    const legend=document.getElementById('local-fov-gaia-legend');
+    const enabled=gaiaSelected();
+    if(statusPanel)statusPanel.hidden=!enabled;
+    if(legend)legend.hidden=!enabled;
+    if(!panel)return;
+    if(!enabled){panel.textContent='';return;}
     panel.replaceChildren(...[...gaiaRequests.values()].map(state=>{
       const row=document.createElement('div');
       const meta=state.meta || {};
       const key=state.state==='loading'?'gaiaLoading':state.state==='error'?'gaiaError':meta.count===0?'gaiaZero':(meta.cached || meta.cache_hit)?'gaiaCached':'gaiaSuccess';
       row.textContent=`${state.kind==='local-fov'?translate('localFovTitle'):translate('allSky')}: ${translate(key)}`;
       if(state.state!=='loading') {
-        const info=document.createElement('p');info.textContent=`${translate('gaiaCount')}: ${meta.count ?? '-'} / ${meta.drawn_count ?? '-'}; ${translate('gaiaLimits')}: ${meta.radius_deg ?? 5}° / ${meta.max_mag ?? meta.magnitude_limit ?? 18} mag / ${meta.limit ?? meta.row_limit ?? 500}`;row.append(info);
+        const info=document.createElement('p');info.textContent=`${translate('gaiaCount')}: ${meta.count ?? '-'} / ${meta.drawn_count ?? '-'}; ${translate('gaiaLimits')}: ${meta.radius_deg ?? 1}° / ${meta.max_mag ?? meta.magnitude_limit ?? 10} mag / ${meta.limit ?? meta.row_limit ?? 10}; ${translate('gaiaAttempts')}: ${meta.attempts ?? 1}`;row.append(info);
+        if(meta.status_counts){const note=document.createElement('p');note.textContent=`${translate('gaiaStatusCounts')}: ${meta.status_counts.GREEN ?? 0} / ${meta.status_counts.RED ?? 0}`;row.append(note);}
+        if(meta.query_strategy){const note=document.createElement('p');note.textContent=`${translate('gaiaQueryStrategy')}: ${meta.query_strategy}`;row.append(note);}
         if(meta.truncated || meta.limit_reached){const note=document.createElement('p');note.textContent=translate('gaiaTruncated');row.append(note);}
-        if(meta.selection==='bounded_unordered_subset' || meta.ordering==='unspecified' || meta.brightest_n===false){const note=document.createElement('p');note.dataset.gaiaSelectionWarning='true';note.textContent=translate('gaiaUnorderedSubset');row.append(note);}
+        if(meta.fallback_used){const note=document.createElement('p');note.textContent=translate('gaiaFallback');row.append(note);}
+        if(meta.fallback_reason){const note=document.createElement('p');note.textContent=`${translate('gaiaReason')}: ${meta.fallback_reason}`;row.append(note);}
+        if(Array.isArray(meta.fallback_errors) && meta.fallback_errors.length){const note=document.createElement('p');note.textContent=`${translate('gaiaReason')}: ${meta.fallback_errors.join('; ')}`;row.append(note);}
+        if(meta.selection==='bounded_unordered_subset' || meta.ordering==='unspecified'){const note=document.createElement('p');note.dataset.gaiaSelectionWarning='true';note.textContent=translate('gaiaUnorderedSubset');row.append(note);} else if(meta.selection==='nearest_by_angular_distance'){const note=document.createElement('p');note.dataset.gaiaSelectionInfo='true';note.textContent=translate('gaiaUnorderedSubset');row.append(note);}
       }
       if(state.error){const error=document.createElement('p');error.textContent=state.error;row.append(error);}
       return row;
@@ -1028,27 +1125,23 @@
   const invalidateGaia = frame => {
     const previous=gaiaRequests.get(frame);previous?.controller?.abort();
     frame.querySelector('[data-gaia-layer]')?.remove();
-    gaiaRequests.set(frame,{generation:(previous?.generation || 0)+1,state:gaiaSelected()?'loading':'unselected',kind:frame.hasAttribute('data-local-fov-map')?'local-fov':'current'});
+    if(!gaiaSelected())gaiaDetails.clear();
+    gaiaRequests.set(frame,{generation:(previous?.generation || 0)+1,state:gaiaSelected()?'loading':'unselected',kind:'local-fov'});
     renderGaiaStatus();
   };
   const refreshGaiaLayer = async (frame, mapParams, kind) => {
-    if(!gaiaSelected())return;
+    if(!gaiaSelected() || kind!=='local-fov' || !frame.hasAttribute('data-local-fov-map'))return;
     const state=gaiaRequests.get(frame) || {generation:0}; const generation=state.generation;
-    const controller=new AbortController();Object.assign(state,{controller,state:'loading',kind});gaiaRequests.set(frame,state);renderGaiaStatus();
-    const params=new URLSearchParams(mapParams); params.set('map_kind',kind);params.set('limit','500');params.set('max_mag','18');
-    if(kind === 'current') {
-      // All-sky Gaia follows its own camera centre. It must not inherit the
-      // result target, which belongs exclusively to the local FoV layer.
-      params.delete('selected_source_key'); params.delete('target_source_key');
-      params.delete('target_ra_deg'); params.delete('target_dec_deg');
-      const zoom=Math.max(1, Number(frame.dataset.zoom) || 1);
-      params.set('radius_deg', String(Math.max(.1, Math.min(15, 15 / Math.sqrt(zoom)))));
-    } else params.set('radius_deg','5');
-    if(params.has('trajectory_display_time'))params.set('at_time',params.get('trajectory_display_time'));
+    const filters=gaiaFilterParameters();
+    if(!filters){Object.assign(state,{state:'error',kind,error:translate('gaiaFilterInvalid'),meta:{count:0,drawn_count:0,radius_deg:null,max_mag:null,limit:null}});gaiaRequests.set(frame,state);showGaiaFilterError(translate('gaiaFilterInvalid'));renderGaiaStatus();return;}
+    showGaiaFilterError();
+    const controller=new AbortController();Object.assign(state,{controller,state:'loading',kind,error:null});gaiaRequests.set(frame,state);renderGaiaStatus();
+    const params=new URLSearchParams(mapParams); params.set('map_kind',kind);params.set('limit',filters.limit);params.set('max_mag',filters.max_mag);
+    params.set('radius_deg',filters.radius_deg);
     try {
       const response=await fetch('/api/v1/gaia?'+params,{signal:controller.signal});const data=await response.json();
       if(controller.signal.aborted || gaiaRequests.get(frame)?.generation!==generation || !gaiaSelected())return;
-      const meta=data.gaia || data; if(!response.ok || meta.error)throw new Error(meta.error || data.detail || 'HTTP '+response.status);
+      const meta=data.gaia || data; if(!response.ok || meta.error || meta.status === 'error')throw new Error(meta.error || data.detail || 'HTTP '+response.status); Object.assign(state,{meta:{...meta}});
       const svg=frame.querySelector('svg'); if(!svg)return;
       const parsed=new DOMParser().parseFromString(data.overlay_svg || data.svg || '<svg/>','image/svg+xml');
       const layer=document.createElementNS('http://www.w3.org/2000/svg','g');layer.dataset.gaiaLayer='true';
@@ -1073,7 +1166,18 @@
     if (!mapFrame || !mode || !timeInput) return;
     let activeDate = new Date(), requestGeneration = 0, requestController;
     installZoomControls(mapFrame, null, document.getElementById('sky-zoom-centre'));
+    const updateHomepageSummary = (data) => {
+      const catalogueCount = data?.catalogue?.count ?? (Array.isArray(data?.sources) ? data.sources.length : null);
+      const visibleCount = data?.visible_source_count;
+      const belowCount = data?.below_horizon_source_count;
+      const values = [["home-catalog-count", catalogueCount], ["home-visible-count", visibleCount], ["home-below-count", belowCount]];
+      values.forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element && Number.isFinite(Number(value))) element.textContent = String(value);
+      });
+    };
     const renderReadout = (data, date) => {
+      updateHomepageSummary(data);
       // The global header always represents real time; fixed maps do not own it.
       if (mode.value === 'live') {
         if (sun) sun.textContent = Number(data.sun.altitude_deg).toFixed(2) + '° / ' + Number(data.sun.azimuth_deg).toFixed(2) + '°';
@@ -1086,7 +1190,6 @@
       activeSkyInstant = date;
       const generation=++requestGeneration; requestController?.abort(); requestController=new AbortController();
       const params=appendCameraParameters(skyQueryParameters(date),mapFrame);
-      invalidateGaia(mapFrame);
       try {
         const response = await fetch('/api/v1/sky/current?' + params.toString(), { signal:requestController.signal, headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -1094,7 +1197,6 @@
         if(generation!==requestGeneration)return;
         mapFrame.innerHTML = data.svg;
         mapFrame.dispatchEvent(new Event('skyward:map-replaced'));
-        refreshGaiaLayer(mapFrame,params,'current');
         renderReadout(data, date);
         if (mode.value === 'live') stampLiveOption(mode.querySelector('[data-live-option]'), date);
       } catch (error) { console.warn('Sky refresh failed', error); }
@@ -1121,15 +1223,15 @@
     configure();
   };
 
-  let zenithOverlayGeneration = 0, zenithOverlayController;
-  const refreshZenithOverlays = async () => {
+  let zenithOverlayGeneration = 0, zenithOverlayController, zenithRefreshTail = Promise.resolve();
+  const runZenithOverlayRefresh = async () => {
     const context = document.getElementById('detail-query-context');
     const target = document.querySelector('[data-plan-source-name]');
     const plot = document.querySelector('.scientific-plot');
-    if (!context || !target || !plot) return;
+    if (!context || !target || !plot) return { ok: false, cancelled: false, error: 'plot context unavailable' };
     const generation = ++zenithOverlayGeneration;
-    zenithOverlayController?.abort();
-    zenithOverlayController = new AbortController();
+    const controller = new AbortController();
+    zenithOverlayController = controller;
     const requestedSources = [...zenithOverlayIndexes].join('\n');
     const params = activeParameters();
     params.set('catalog_token', context.dataset.catalogToken || '');
@@ -1154,19 +1256,42 @@
     params.set('timezone_label', requestedTimezone === 'utc' ? 'UTC' : observerTimezoneLabel());
     let payload;
     try {
-      const response = await fetch('/api/v1/windows/plot-overlay?' + params.toString(), {signal: zenithOverlayController.signal});
+      const response = await fetch('/api/v1/windows/plot-overlay?' + params.toString(), {signal: controller.signal});
       if (!response.ok) throw new Error('HTTP ' + response.status);
       payload = await response.json();
     } catch (error) {
-      if (error.name !== 'AbortError' && generation === zenithOverlayGeneration) console.warn('Comparison plot refresh failed', error);
-      return;
+      const changed = generation !== zenithOverlayGeneration || requestedSources !== [...zenithOverlayIndexes].join('\n');
+      if (changed || error.name === 'AbortError') return { ok: false, cancelled: true, error: 'request superseded' };
+      console.warn('Comparison plot refresh failed', error);
+      return { ok: false, cancelled: false, error: String(error.message || error) };
+    } finally {
+      if (zenithOverlayController === controller) zenithOverlayController = null;
     }
-    if (generation !== zenithOverlayGeneration || requestedSources !== [...zenithOverlayIndexes].join('\n')) return;
-    if (requestedTheme !== (document.documentElement.dataset.resolvedTheme || 'light') || requestedTimezone !== getTimezonePreference()) return;
+    if (generation !== zenithOverlayGeneration || requestedSources !== [...zenithOverlayIndexes].join('\n')) return { ok: false, cancelled: true, error: 'request superseded' };
+    if (requestedTheme !== (document.documentElement.dataset.resolvedTheme || 'light') || requestedTimezone !== getTimezonePreference()) return { ok: false, cancelled: true, error: 'display settings changed' };
     plot.innerHTML = payload.svg;
     const preferences = document.getElementById('result-display-preferences');
     if (preferences) { preferences.dataset.plotTheme = requestedTheme; preferences.dataset.plotTimezoneLabel = requestedTimezone === 'utc' ? 'UTC' : observerTimezoneLabel(); preferences.dataset.plotOffsetHours = String(requestedTimezone === 'utc' ? 0 : observerOffsetHours()); }
     payload.comparison_sources?.forEach((source) => { const style=overlayStyle(source.source_key || String(source.index)); style.label = source.display_name; style.svgId = 'zenith-overlay-' + source.index; });
+    renderZenithCurveControls();
+    return { ok: true, cancelled: false };
+  };
+  const refreshZenithOverlays = () => {
+    const operation = zenithRefreshTail.then(() => runZenithOverlayRefresh());
+    zenithRefreshTail = operation.catch(() => ({ ok: false, cancelled: true, error: 'request superseded' }));
+    return operation;
+  };
+
+  const restoreZenithOverlayState = () => {
+    document.querySelectorAll('#zenith-curve-list .zenith-curve-row').forEach((row) => {
+      const sourceIndex = row.dataset.sourceIndex;
+      if (!sourceIndex) return;
+      zenithOverlayIndexes.add(sourceIndex);
+      const name = row.querySelector('.zenith-legend-source')?.textContent || ('Source ' + sourceIndex);
+      const colour = row.querySelector('input[type=color]')?.value || overlayPalette[zenithOverlayIndexes.size % overlayPalette.length];
+      const lineStyle = row.querySelector('select')?.value || 'dashdot';
+      zenithOverlayStyles.set(sourceIndex, { colour, lineStyle, label: name, svgId: row.dataset.svgId || ('zenith-overlay-' + sourceIndex) });
+    });
     renderZenithCurveControls();
   };
 
@@ -1178,6 +1303,8 @@
     list.replaceChildren(...[...zenithOverlayIndexes].map((sourceIndex) => {
       const style = overlayStyle(sourceIndex);
       const row = document.createElement('div'); row.className = 'zenith-curve-row';
+      row.dataset.sourceIndex = String(sourceIndex);
+      row.dataset.svgId = style.svgId || ('zenith-overlay-' + sourceIndex);
       const name = document.createElement('button'); name.type = 'button'; name.className = 'zenith-legend-source'; name.textContent = style.label;
       const colour = document.createElement('input'); colour.type = 'color'; colour.value = style.colour; colour.setAttribute('aria-label', translate('curveColour'));
       const line = document.createElement('select'); [['solid','—'],['dotted','··'],['dashdot','-·']].forEach(([value,label]) => line.add(new Option(label, value))); line.value = style.lineStyle; line.setAttribute('aria-label', translate('curveLineStyle'));
@@ -1190,7 +1317,7 @@
       };
       const update = () => { style.colour = colour.value; style.lineStyle = line.value; applyVisualStyle(); };
       colour.addEventListener('input', update); colour.addEventListener('change', update); line.addEventListener('change', update);
-      remove.addEventListener('click', () => { zenithOverlayGeneration++; zenithOverlayController?.abort(); curveGroup()?.remove(); zenithOverlayIndexes.delete(sourceIndex); zenithOverlayStyles.delete(String(sourceIndex)); renderZenithCurveControls(); });
+      remove.addEventListener('click', () => { zenithOverlayGeneration++; zenithOverlayController?.abort(); curveGroup()?.remove(); zenithOverlayIndexes.delete(sourceIndex); zenithOverlayStyles.delete(String(sourceIndex)); renderZenithCurveControls(); void refreshZenithOverlays(); if (dialogAddZenith?.dataset.useSource === String(sourceIndex) || dialogUseSource?.dataset.useSource === String(sourceIndex)) { dialogAddZenith.textContent = translate('addZenithOverlay'); dialogAddZenith.dataset.i18n = 'addZenithOverlay'; dialogAddZenith.dataset.overlayAdded = 'false'; } });
       name.addEventListener('click', () => { row.classList.toggle('editing'); colour.focus(); });
       row.append(name, colour, line, remove); return row;
     }));
@@ -1202,18 +1329,38 @@
     if (!context || !allSky) return;
     document.querySelectorAll('[data-map-zoom-controls]').forEach((controls) => installZoomControls(controls.closest('.sky-panel')?.querySelector('.map-frame'), controls));
     const mode = document.getElementById('result-status-mode');
+    const specifiedControls = document.getElementById('specified-time-controls');
+    const specifiedKind = document.getElementById('specified-time-kind');
+    const specifiedStart = document.getElementById('specified-time-start');
+    const specifiedEnd = document.getElementById('specified-time-end');
+    const specifiedEndControl = document.getElementById('specified-time-end-control');
+    const specifiedApply = document.getElementById('specified-time-apply');
+    const specifiedError = document.getElementById('specified-time-error');
+    const restoredFromPageCache = document.documentElement.dataset.skywardResultRestored === 'true';
+    let restoredMapState = null;
+    try {
+      restoredMapState = JSON.parse(sessionStorage.getItem('skyward.pending-result-map-state') || 'null');
+    } catch (_) { restoredMapState = null; }
+    sessionStorage.removeItem('skyward.pending-result-map-state');
+    if (mode && ['instant', 'trajectory', 'specified'].includes(restoredMapState?.mode)) mode.value = restoredMapState.mode;
+    if (specifiedKind && ['point', 'range'].includes(restoredMapState?.specifiedKind)) specifiedKind.value = restoredMapState.specifiedKind;
+    const restoredStart = restoredMapState?.specifiedStart ? selectedInputDate({ value: restoredMapState.specifiedStart }) : null;
+    const restoredEnd = restoredMapState?.specifiedEnd ? selectedInputDate({ value: restoredMapState.specifiedEnd }) : null;
+    let specifiedStartInstant = restoredStart && Number.isFinite(restoredStart.getTime()) ? restoredStart : new Date(context.dataset.resultStart || Date.now());
+    let specifiedEndInstant = restoredEnd && Number.isFinite(restoredEnd.getTime()) ? restoredEnd : new Date(Math.min(new Date(context.dataset.resultEnd || specifiedStartInstant.getTime() + 3600000).getTime(), specifiedStartInstant.getTime() + 3600000));
+    let sharedLiveInstant = new Date();
     let allSkyRequestGeneration = 0, allSkyController;
-    const refresh = async () => {
-      const generation = ++allSkyRequestGeneration;
-      allSkyController?.abort(); allSkyController=new AbortController(); invalidateGaia(allSky);
-      const requestMode = mode?.value || 'instant';
-      const params = appendCameraParameters(appendLayerParameters(activeParameters()),allSky);
-      params.set('language', getLanguage());
-      params.set('display_frame', getCoordinateFrame());
-      if (requestMode === 'trajectory' && context.dataset.highlightIndexes) {
-        params.set('highlight_indexes', context.dataset.highlightIndexes);
-      }
-      if (Number(context.dataset.resultSourceIndex) >= 0) params.set('selected_source_key', context.dataset.resultSourceKey || context.dataset.resultSourceIndex);
+    const setSpecifiedInputs = () => {
+      if (specifiedStart) specifiedStart.value = localDatetimeValue(specifiedStartInstant);
+      if (specifiedEnd) specifiedEnd.value = localDatetimeValue(specifiedEndInstant);
+    };
+    const configureSpecifiedControls = () => {
+      const active = mode?.value === 'specified';
+      if (specifiedControls) specifiedControls.hidden = !active;
+      if (specifiedEndControl) specifiedEndControl.hidden = !active || specifiedKind?.value !== 'range';
+      if (active && specifiedStart && !specifiedStart.value) setSpecifiedInputs();
+    };
+    const mapStatusParameters = (params, requestMode) => {
       if (requestMode === 'trajectory') {
         activeSkyInstant = new Date(context.dataset.windowDisplayTime || context.dataset.resultStart);
         params.set('at_time', context.dataset.resultStart);
@@ -1222,77 +1369,131 @@
         params.set('trajectory_end', context.dataset.resultEnd);
         params.set('trajectory_enforce_current_pointing', 'false');
         if (context.dataset.fullWindowRanges) params.set('trajectory_ranges', context.dataset.fullWindowRanges);
-      } else {
-        activeSkyInstant = new Date();
+      } else if (requestMode === 'specified') {
+        activeSkyInstant = new Date(specifiedStartInstant);
         params.set('at_time', activeSkyInstant.toISOString());
+        params.set('status_mode', 'specified');
+        params.set('specified_kind', specifiedKind?.value || 'point');
+        params.delete('trajectory_ranges');
+        params.set('trajectory_enforce_current_pointing', 'false');
+        params.set('trajectory_display_time', activeSkyInstant.toISOString());
+        if (specifiedKind?.value === 'range') params.set('specified_end', specifiedEndInstant.toISOString());
+        else params.delete('specified_end');
+      } else {
+        activeSkyInstant = sharedLiveInstant;
+        params.set('at_time', activeSkyInstant.toISOString());
+        params.set('status_mode', 'instant');
+        params.delete('trajectory_end'); params.delete('trajectory_ranges'); params.delete('specified_end');
       }
+      return params;
+    };
+    const validateSpecified = () => {
+      const start = selectedInputDate(specifiedStart), end = selectedInputDate(specifiedEnd);
+      if (!Number.isFinite(start.getTime())) return translate('specifiedTimeInvalid');
+      specifiedStartInstant = start;
+      if ((specifiedKind?.value || 'point') === 'point') return null;
+      if (!Number.isFinite(end.getTime()) || end <= start) return translate('specifiedTimeOrder');
+      if ((end - start) > 86400000) return translate('specifiedTimeLimit');
+      specifiedEndInstant = end;
+      return null;
+    };
+    if (restoredFromPageCache) {
+      const cachedStart = specifiedStart ? selectedInputDate(specifiedStart) : null;
+      const cachedEnd = specifiedEnd ? selectedInputDate(specifiedEnd) : null;
+      if (cachedStart && Number.isFinite(cachedStart.getTime())) specifiedStartInstant = cachedStart;
+      if (cachedEnd && Number.isFinite(cachedEnd.getTime())) specifiedEndInstant = cachedEnd;
+    } else {
+      setSpecifiedInputs();
+    }
+    const cachedDisplayTime = allSky.dataset.skywardDisplayTime || document.querySelector('[data-local-fov-map]')?.dataset.skywardDisplayTime;
+    if (restoredFromPageCache && cachedDisplayTime && Number.isFinite(new Date(cachedDisplayTime).getTime())) {
+      activeSkyInstant = new Date(cachedDisplayTime);
+      sharedLiveInstant = new Date(cachedDisplayTime);
+    }
+    configureSpecifiedControls();
+    const refresh = async () => {
+      const generation = ++allSkyRequestGeneration;
+      allSkyController?.abort(); allSkyController=new AbortController();
+      const requestMode = mode?.value || 'instant';
+      const params = appendCameraParameters(appendLayerParameters(activeParameters()),allSky);
+      params.set('language', getLanguage());
+      params.set('display_frame', getCoordinateFrame());
+      if (requestMode === 'trajectory' && context.dataset.highlightIndexes) {
+        params.set('highlight_indexes', context.dataset.highlightIndexes);
+      }
+      if (Number(context.dataset.resultSourceIndex) >= 0) params.set('selected_source_key', context.dataset.resultSourceKey || context.dataset.resultSourceIndex);
+      mapStatusParameters(params, requestMode);
       try {
       const response = await fetch('/api/v1/sky/current?' + params.toString(),{signal:allSkyController.signal});
       const payload=await response.json();
       if(!response.ok)throw new Error('HTTP '+response.status);
+      allSky.dataset.skywardDisplayTime = activeSkyInstant.toISOString();
       const timeLabel = document.querySelector('[data-result-map-time]');
       if (timeLabel) { timeLabel.dataset.utc = activeSkyInstant.toISOString(); timeLabel.textContent = formatDisplayTime(activeSkyInstant); }
       if (response.ok && generation === allSkyRequestGeneration && mode?.value === requestMode) {
         allSky.innerHTML = payload.svg;
-        if (requestMode !== 'trajectory') stampLiveOption(mode?.querySelector('[data-live-option]'), activeSkyInstant);
+        updateResultStatusCard(payload, requestMode);
+        if (requestMode === 'instant') stampLiveOption(mode?.querySelector('[data-live-option]'), activeSkyInstant);
         allSky.dispatchEvent(new Event('skyward:map-replaced'));
-        refreshGaiaLayer(allSky,params,'current');
       }
       } catch(error) { if(error.name!=='AbortError')console.warn('All-sky refresh failed',error); }
     };
-    const localMode = document.getElementById('local-fov-mode');
-    const localTimeControl = document.getElementById('local-fov-time-control');
-    const localTimeInput = document.getElementById('local-fov-time');
     let localRequestGeneration = 0, localController;
-    const refreshLocal = async (explicitDate = null) => {
+    const refreshLocal = async () => {
       const generation = ++localRequestGeneration;
-      const requestMode = localMode?.value || 'live';
+      const requestMode = mode?.value || 'instant';
       const local = document.querySelector('[data-local-fov-map]'); if (!local) return;
       localController?.abort(); localController=new AbortController(); invalidateGaia(local);
-      const date = explicitDate || (localMode?.value === 'fixed' && localTimeInput?.value ? selectedInputDate(localTimeInput) : new Date());
-      const params = appendCameraParameters(appendLayerParameters(activeParameters()),local); params.set('language', getLanguage()); params.set('at_time', date.toISOString());
+      const params = appendCameraParameters(appendLayerParameters(activeParameters()),local);
+      params.set('language', getLanguage()); params.set('display_frame', getCoordinateFrame());
+      if (requestMode === 'trajectory' && context.dataset.highlightIndexes) params.set('highlight_indexes', context.dataset.highlightIndexes);
+      mapStatusParameters(params, requestMode);
       if (Number(context.dataset.resultSourceIndex) >= 0) params.set('target_source_key', context.dataset.resultSourceKey || context.dataset.resultSourceIndex);
       else { params.set('target_ra_deg', context.dataset.resultSourceRa); params.set('target_dec_deg', context.dataset.resultSourceDec); params.set('target_radius_deg', context.dataset.resultSourceRadius); }
       try {
         const response = await fetch('/api/v1/sky/local-fov?' + params.toString(),{signal:localController.signal});
         const payload=await response.json(); if(!response.ok)throw new Error('HTTP '+response.status);
-        if (generation === localRequestGeneration && localMode?.value === requestMode) {
+        if (generation === localRequestGeneration && mode?.value === requestMode) {
           local.innerHTML = payload.svg;
-          if (requestMode !== 'fixed') stampLiveOption(localMode?.querySelector('[data-live-option]'), date);
+          local.dataset.skywardDisplayTime = activeSkyInstant.toISOString();
           local.dispatchEvent(new Event('skyward:map-replaced')); refreshGaiaLayer(local,params,'local-fov');
         }
       } catch(error) { if(error.name!=='AbortError')console.warn('Local FoV refresh failed',error); }
     };
     allSky.addEventListener('skyward:camera-change',()=>refresh());
     document.querySelector('[data-local-fov-map]')?.addEventListener('skyward:camera-change',()=>refreshLocal());
-    const configureLocalMode = () => {
-      const live = localMode?.value !== 'fixed'; if (localTimeControl) localTimeControl.hidden = live;
-      if (live) refreshLocal(new Date()); else { if (localTimeInput && !localTimeInput.value) localTimeInput.value = localDatetimeValue(new Date()); refreshLocal(selectedInputDate(localTimeInput)); }
-    };
-    let localFixedInstant = null;
-    localMode?.addEventListener('change', configureLocalMode);
-    document.getElementById('local-fov-time-apply')?.addEventListener('click', () => { localFixedInstant = selectedInputDate(localTimeInput); refreshLocal(localFixedInstant); });
-    document.addEventListener('skyward:refresh-realtime', () => { if (localMode?.value !== 'fixed') refreshLocal(new Date()); });
+    document.getElementById('local-gaia-filter-apply')?.addEventListener('click', () => {
+      const filters=gaiaFilterParameters();
+      if(!filters){showGaiaFilterError(translate('gaiaFilterInvalid'));return;}
+      showGaiaFilterError();
+      const button=document.getElementById('local-gaia-filter-apply');
+      if(button){button.dataset.gaiaEnabled='true';button.setAttribute('aria-pressed','true');}
+      refreshLocal();
+    });
+    ['local-gaia-radius','local-gaia-max-mag','local-gaia-limit'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>showGaiaFilterError()));
     const refreshExplanation = () => {
       const note = document.getElementById('result-status-explanation');
       document.getElementById('tracked-fov-legend')?.toggleAttribute('hidden', mode?.value !== 'trajectory');
+      document.getElementById('local-tracked-fov-legend')?.toggleAttribute('hidden', mode?.value !== 'trajectory');
+      configureSpecifiedControls();
       if (!note) return;
-      const key = mode?.value === 'trajectory' ? 'trajectoryStatusExplanation' : 'instantStatusExplanation';
+      const key = mode?.value === 'trajectory' ? 'trajectoryStatusExplanation' : mode?.value === 'specified' ? 'specifiedStatusExplanation' : 'instantStatusExplanation';
       note.dataset.i18n = key;
       note.textContent = translate(key);
     };
-    mode?.addEventListener('change', () => { refreshExplanation(); refresh(); });
-    document.addEventListener('skyward:refresh-realtime', () => { if (mode?.value !== 'trajectory') refresh(); });
+    mode?.addEventListener('change', () => { if (mode.value === 'instant') sharedLiveInstant = new Date(); refreshExplanation(); refresh(); refreshLocal(); });
+    specifiedKind?.addEventListener('change', () => { configureSpecifiedControls(); });
+    specifiedApply?.addEventListener('click', () => { const error = validateSpecified(); if (specifiedError) { specifiedError.textContent = error || ''; specifiedError.hidden = !error; } if (!error) { refreshExplanation(); refresh(); refreshLocal(); } });
+    specifiedStart?.addEventListener('change', validateSpecified);
+    specifiedEnd?.addEventListener('change', validateSpecified);
+    document.addEventListener('skyward:refresh-realtime', () => { if (mode?.value === 'instant') { sharedLiveInstant = new Date(); refresh(); refreshLocal(); } });
     document.addEventListener('skyward:language-change', refreshExplanation);
     refreshExplanation();
-    window.queueMicrotask(() => { refresh(); configureLocalMode(); });
+    if (restoredFromPageCache) restoreZenithOverlayState();
+    if (!restoredFromPageCache) window.queueMicrotask(() => { refresh(); refreshLocal(); });
     document.addEventListener('skyward:language-change', () => { refresh(); refreshLocal(); });
     document.addEventListener('skyward:coordinate-change', () => { refresh(); refreshLocal(); });
     document.addEventListener('skyward:catalogues-change', () => { refresh(); refreshLocal(); });
-    document.addEventListener('skyward:timezone-will-change', () => { if (localMode?.value === 'fixed' && localTimeInput?.value) localFixedInstant = selectedInputDate(localTimeInput); });
-    document.addEventListener('skyward:timezone-change', () => {
-      if (localMode?.value === 'fixed' && localTimeInput?.value && localFixedInstant) localTimeInput.value = localDatetimeValue(localFixedInstant);
-    });
   };
 
   refreshTimeDisplays = () => {
@@ -1374,12 +1575,80 @@
 
   const initialiseObservationPlan = () => {
     const dialog = document.getElementById("observation-plan-dialog"), form = document.getElementById("observation-plan-form");
-    const startInput = document.getElementById("plan-start"), endInput = document.getElementById("plan-end"), notesInput = document.getElementById("plan-notes");
+    const windowEditor = document.getElementById("plan-window-editor"), notesInput = document.getElementById("plan-notes");
     const sourceElement = document.getElementById("plan-source-name"), constraintsElement = document.getElementById("plan-constraints"), errorElement = document.getElementById("plan-range-error");
     const savePlot = document.getElementById("plan-save-plot"), pagePlanContext = document.querySelector("[data-plan-source-name]");
+    const selectionStatus = document.querySelector('[data-plan-selection-status]');
+    const alternativeProgress = document.querySelector('[data-plan-alternative-status]');
+    const detailContext = document.getElementById("detail-query-context");
+    const alternativeUpload = document.getElementById('alternative-catalogue-upload');
+    const alternativeUploadTrigger = document.getElementById('alternative-catalogue-upload-trigger');
+    const alternativeUploadName = document.getElementById('alternative-catalogue-name');
+    const alternativeUploadStatus = document.getElementById('alternative-catalogue-status');
+    let alternativeCatalogueToken = detailContext?.dataset.alternativeCatalogToken || null;
+    const syncAlternativeCatalogue = (data = null) => {
+      alternativeCatalogueToken = data?.token || null;
+      if (detailContext) detailContext.dataset.alternativeCatalogToken = alternativeCatalogueToken || '';
+      if (alternativeUploadName && data) alternativeUploadName.textContent = data.label || '';
+      if (alternativeUploadStatus) alternativeUploadStatus.textContent = data ? translate('alternativeCatalogueUploaded') : translate('alternativeCatalogueDefault');
+    };
+    alternativeUploadTrigger?.addEventListener('click', () => alternativeUpload?.click());
+    alternativeUpload?.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0]; if (!file) return;
+      if (alternativeUploadName) alternativeUploadName.textContent = file.name;
+      if (alternativeUploadStatus) alternativeUploadStatus.textContent = translate('catalogueUploading');
+      try {
+        const body = new FormData(); body.append('file', file);
+        const response = await fetch('/api/v1/catalogues/upload', { method: 'POST', body });
+        const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'HTTP ' + response.status);
+        syncAlternativeCatalogue(data);
+      } catch (error) {
+        if (alternativeUploadStatus) alternativeUploadStatus.textContent = translate('catalogueUploadFailed') + ': ' + error.message;
+      }
+    });
+    if (alternativeCatalogueToken) syncAlternativeCatalogue({token: alternativeCatalogueToken, label: alternativeCatalogueToken});
     const duplicateDialog = document.getElementById("duplicate-plan-dialog");
-    if (!dialog || !form || !pagePlanContext || !startInput || !endInput) return;
-    let activeWindow = null; const planEntries = [];
+    const clearPlanDialog = document.getElementById("clear-plan-dialog");
+    const previewDialog = document.getElementById("observation-plan-preview-dialog");
+    const previewList = document.getElementById("observation-plan-preview-list");
+    if (!dialog || !form || !pagePlanContext || !windowEditor || !detailContext) return;
+    const storageKey = "skyward.observation-plan.v3";
+    let activeWindows = [];
+    let planEntries = [];
+    const normalisePlanEntry = (entry) => {
+      const legacyWindow = entry?.windowStart && entry?.windowEnd ? [{
+        windowStart: entry.windowStart, windowEnd: entry.windowEnd,
+        planStart: entry.planStart || entry.windowStart, planEnd: entry.planEnd || entry.windowEnd,
+        alternatives: entry.alternatives, alternativeSummary: entry.alternativeSummary,
+        alternativeStatus: entry.alternativeStatus, alternativeError: entry.alternativeError,
+      }] : [];
+      const rawWindows = Array.isArray(entry?.windows) && entry.windows.length ? entry.windows : legacyWindow;
+      const windows = rawWindows.filter((window) => window?.windowStart && window?.windowEnd).map((window, index) => ({
+        windowId: String(window.windowId || (entry.id + "-window-" + (index + 1))),
+        windowStart: window.windowStart, windowEnd: window.windowEnd,
+        planStart: window.planStart || window.windowStart, planEnd: window.planEnd || window.windowEnd,
+        alternatives: Array.isArray(window.alternatives) ? window.alternatives : [],
+        alternativeSummary: window.alternativeSummary || null,
+        alternativeStatus: window.alternativeStatus || (entry.catalogueTarget ? "pending" : "unavailable"),
+        alternativeError: window.alternativeError || null,
+      }));
+      return { ...entry, windows };
+    };
+    try { sessionStorage.removeItem("skyward.observation-plan.v2"); } catch (_) {}
+    try {
+      const stored = JSON.parse(sessionStorage.getItem(storageKey) || "null");
+      if (stored?.version === 3 && Array.isArray(stored.entries)) {
+        planEntries = stored.entries.filter((entry) => entry && typeof entry.id === "string" && typeof entry.source === "string").map(normalisePlanEntry).filter((entry) => entry.windows.length);
+      }
+    } catch (_) { planEntries = []; }
+    const savePlanEntries = () => {
+      try { sessionStorage.setItem(storageKey, JSON.stringify({ version: 3, entries: planEntries })); return true; }
+      catch (error) {
+        console.warn("Unable to persist observing plan", error);
+        window.alert(getLanguage() === "zh" ? "浏览器存储空间不足，当前观测计划未能持久保存。" : "Browser storage is full; the current observing plan could not be persisted.");
+        return false;
+      }
+    };
     let resolveDuplicateChoice = null;
     const chooseDuplicateAction = () => new Promise((resolve) => {
       if (!duplicateDialog) { resolve('cancel'); return; }
@@ -1393,10 +1662,309 @@
     duplicateDialog?.addEventListener('cancel', (event) => { event.preventDefault(); const resolve = resolveDuplicateChoice; resolveDuplicateChoice = null; duplicateDialog.close(); resolve?.('cancel'); });
     const localPlanTime = (iso) => localDatetimeValue(new Date(iso), displayTimezone(), true);
     const showError = (message = "") => { errorElement.textContent = message; errorElement.hidden = !message; };
-    const withinActiveWindow = () => { if (!activeWindow) return false; const a = selectedInputDate(startInput), b = selectedInputDate(endInput); return a >= new Date(activeWindow.start) && b <= new Date(activeWindow.end) && b > a; };
     const constraintText = () => { const raw = pagePlanContext.dataset.planConstraints || ""; return getLanguage() !== "zh" ? raw : raw.replace("Sun altitude", "太阳高度").replace("Moon separation", "月亮角距").replace("Zenith", "天顶角").replace("minimum", "最短窗口"); };
     const safeName = (value) => String(value || "target").replace(/[^\p{L}\p{N}._+-]+/gu, "_").replace(/^_+|_+$/g, "") || "target";
-    const buildEntry = () => ({ source: pagePlanContext.dataset.planSourceName || "", ra: pagePlanContext.dataset.planRa || "", dec: pagePlanContext.dataset.planDec || "", radius: pagePlanContext.dataset.planRadius || "", constraints: pagePlanContext.dataset.planConstraints || "", windowStart: activeWindow.start, windowEnd: activeWindow.end, planStart: selectedInputDate(startInput).toISOString(), planEnd: selectedInputDate(endInput).toISOString(), notes: notesInput?.value.trim() || "", plotSvg: savePlot?.checked ? document.querySelector('.scientific-plot svg')?.outerHTML || null : null });
+    const exportLocalFovSvg = () => {
+      const live = document.querySelector("[data-local-fov-map] svg");
+      if (!live) return null;
+      const svg = live.cloneNode(true);
+      const namespace = "http://www.w3.org/2000/svg";
+      const viewBox = (svg.getAttribute("viewBox") || "0 0 680 620").split(/\s+/).map(Number);
+      const [vx, vy, vw, vh] = viewBox.length === 4 && viewBox.every(Number.isFinite) ? viewBox : [0, 0, 680, 620];
+      // Saved local maps must be standalone, readable light-background figures.
+      // The live map keeps theme variables and interactive hit areas; this copy
+      // receives its own presentation layer without mutating the visible map.
+      const exportStyle = document.createElementNS(namespace, "style");
+      exportStyle.textContent = `.fov-map-svg{--sky:#ffffff;--surface:#ffffff;--line:#8993a7;--muted:#49515d;--text:#151820;background:#ffffff;overflow:visible}.fov-map-svg .export-background{fill:#ffffff}.fov-map-svg .fov-surface{fill:#ffffff!important;stroke:#8993a7!important}.fov-map-svg .map-clipped{opacity:1}.fov-map-svg .source-marker .source-symbol{filter:none}.fov-map-svg .coordinate-grid{stroke:#aab1bb!important}.fov-map-svg text{font-family:Arial,sans-serif}.export-source-id{font:700 11px Arial,sans-serif;fill:#111820;paint-order:stroke;stroke:#ffffff;stroke-width:3px;pointer-events:none}.export-source-legend rect{fill:#ffffff;fill-opacity:.94;stroke:#6b7280;stroke-width:1}.export-source-legend text{font:11px Arial,sans-serif;fill:#111820}`;
+      svg.insertBefore(exportStyle, svg.firstChild);
+      const background = document.createElementNS(namespace, "rect");
+      background.setAttribute("class", "export-background"); background.setAttribute("x", String(vx)); background.setAttribute("y", String(vy)); background.setAttribute("width", String(vw)); background.setAttribute("height", String(vh));
+      svg.insertBefore(background, exportStyle.nextSibling);
+      const targetKey = svg.dataset.centerSourceKey || "";
+      const markers = [...svg.querySelectorAll(".source-marker[data-source-key]")];
+      const unique = new Map();
+      markers.forEach((marker) => {
+        const key = marker.dataset.sourceKey || "";
+        if (key && !unique.has(key)) unique.set(key, marker);
+      });
+      const ordered = [...unique.entries()].sort(([left], [right]) => {
+        if (left === targetKey) return -1;
+        if (right === targetKey) return 1;
+        return left.localeCompare(right);
+      });
+      const sourceIds = new Map(ordered.map(([key], index) => [key, index + 1]));
+      const idLayer = document.createElementNS(namespace, "g");
+      idLayer.setAttribute("class", "export-source-ids");
+      ordered.forEach(([key, marker]) => {
+        const x = Number(marker.dataset.x), y = Number(marker.dataset.y);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        const label = document.createElementNS(namespace, "text");
+        label.setAttribute("class", "export-source-id"); label.setAttribute("x", String(x + 7)); label.setAttribute("y", String(y - 7));
+        label.textContent = String(sourceIds.get(key)); idLayer.append(label);
+      });
+      const columns = Math.max(1, Math.min(3, Math.ceil(ordered.length / 15)));
+      const rows = Math.max(1, Math.ceil(ordered.length / columns));
+      const legend = document.createElementNS(namespace, "g");
+      legend.setAttribute("class", "export-source-legend");
+      const legendX = vx + 10, legendY = vy + vh + 10, columnWidth = 245;
+      const legendWidth = columns * columnWidth + 16, legendHeight = rows * 16 + 27;
+      const exportWidth = Math.max(vw, legendX + legendWidth + 10 - vx);
+      const exportHeight = Math.max(vh, legendY + legendHeight + 10 - vy);
+      svg.setAttribute("viewBox", [vx, vy, exportWidth, exportHeight].join(" "));
+      background.setAttribute("width", String(exportWidth)); background.setAttribute("height", String(exportHeight));
+      const legendRect = document.createElementNS(namespace, "rect");
+      legendRect.setAttribute("x", String(legendX)); legendRect.setAttribute("y", String(legendY));
+      legendRect.setAttribute("width", String(legendWidth)); legendRect.setAttribute("height", String(legendHeight)); legend.append(legendRect);
+      const heading = document.createElementNS(namespace, "text"); heading.setAttribute("x", String(legendX + 8)); heading.setAttribute("y", String(legendY + 16)); heading.setAttribute("font-weight", "700"); heading.textContent = getLanguage() === "zh" ? "源编号 / 源名" : "Source ID / name"; legend.append(heading);
+      ordered.forEach(([key, marker], index) => {
+        const title = marker.dataset.sourceName || marker.querySelector("title")?.textContent || key;
+        const column = Math.floor(index / rows), row = index % rows;
+        const item = document.createElementNS(namespace, "text");
+        item.setAttribute("x", String(legendX + 8 + column * columnWidth)); item.setAttribute("y", String(legendY + 32 + row * 16));
+        item.textContent = `${sourceIds.get(key)}: ${title}`; legend.append(item);
+      });
+      svg.append(idLayer, legend);
+      return svg.outerHTML;
+    };
+    const entryId = () => globalThis.crypto?.randomUUID?.() || (Date.now().toString(36) + "-" + Math.random().toString(36).slice(2));
+    const numberOrNull = (value) => value === undefined || value === null || String(value).trim() === "" ? null : Number(value);
+    const editorInput = (kind, windowId) => [...windowEditor.querySelectorAll("[data-plan-window-" + kind + "-input]")].find((input) => input.dataset["planWindow" + kind[0].toUpperCase() + kind.slice(1) + "Input"] === windowId);
+    const renderWindowEditor = () => {
+      windowEditor.replaceChildren();
+      activeWindows.forEach((window, index) => {
+        const row = document.createElement("fieldset"); row.className = "plan-window-edit-row"; row.dataset.planWindowEditorRow = window.windowId;
+        const legend = document.createElement("legend"); legend.textContent = translate("planWindow") + " " + (index + 1); row.append(legend);
+        const grid = document.createElement("div"); grid.className = "plan-window-edit-grid";
+        const startField = document.createElement("div"); startField.className = "form-field";
+        const startLabel = document.createElement("label"); startLabel.htmlFor = "plan-start-" + index; startLabel.textContent = translate("plannedStart");
+        const start = document.createElement("input"); start.id = "plan-start-" + index; start.type = "datetime-local"; start.step = "1"; start.required = true; start.dataset.planWindowStartInput = window.windowId; start.value = localPlanTime(window.planStart);
+        startField.append(startLabel, start);
+        const endField = document.createElement("div"); endField.className = "form-field";
+        const endLabel = document.createElement("label"); endLabel.htmlFor = "plan-end-" + index; endLabel.textContent = translate("plannedEnd");
+        const endInput = document.createElement("input"); endInput.id = "plan-end-" + index; endInput.type = "datetime-local"; endInput.step = "1"; endInput.required = true; endInput.dataset.planWindowEndInput = window.windowId; endInput.value = localPlanTime(window.planEnd);
+        endField.append(endLabel, endInput); grid.append(startField, endField); row.append(grid); windowEditor.append(row);
+      });
+    };
+    const readEditedWindows = () => activeWindows.map((window) => ({
+      ...window,
+      planStart: selectedInputDate(editorInput("start", window.windowId)).toISOString(),
+      planEnd: selectedInputDate(editorInput("end", window.windowId)).toISOString(),
+    }));
+    const withinActiveWindows = (windows) => windows.length > 0 && windows.every((window) => {
+      const startTime = new Date(window.planStart), endTime = new Date(window.planEnd);
+      return startTime >= new Date(window.windowStart) && endTime <= new Date(window.windowEnd) && endTime > startTime;
+    });
+    const selectedResultWindows = () => [...document.querySelectorAll("[data-plan-window-select]:checked")].map((choice, index) => ({
+      windowId: entryId() + "-window-" + (index + 1),
+      windowStart: choice.dataset.windowStart, windowEnd: choice.dataset.windowEnd,
+      planStart: choice.dataset.planStart || choice.dataset.windowStart, planEnd: choice.dataset.planEnd || choice.dataset.windowEnd,
+      alternatives: [], alternativeSummary: null,
+      alternativeStatus: Number(detailContext.dataset.resultSourceIndex) >= 0 ? "pending" : "unavailable", alternativeError: null,
+    }));
+    const buildEntry = (windows) => {
+      const telescopeQuery = Object.fromEntries(appendTelescopeParameters(new URLSearchParams(), detailContext));
+      return {
+        id: entryId(), source: pagePlanContext.dataset.planSourceName || "",
+        sourceKey: detailContext.dataset.resultSourceKey || "",
+        catalogueTarget: Number(detailContext.dataset.resultSourceIndex) >= 0,
+        ra: pagePlanContext.dataset.planRa || "", dec: pagePlanContext.dataset.planDec || "",
+        radius: pagePlanContext.dataset.planRadius || "", constraints: pagePlanContext.dataset.planConstraints || "",
+        constraintValues: {
+          sun_max_altitude_deg: numberOrNull(detailContext.dataset.sunMaxAltitudeDeg),
+          moon_min_separation_deg: numberOrNull(detailContext.dataset.moonMinSeparationDeg),
+          target_min_zenith_deg: numberOrNull(detailContext.dataset.targetMinZenithDeg),
+          target_max_zenith_deg: numberOrNull(detailContext.dataset.targetMaxZenithDeg),
+          minimum_window_seconds: numberOrNull(detailContext.dataset.minimumWindowSeconds),
+        },
+        catalogToken: detailContext.dataset.catalogToken || null, catalogTokens: detailContext.dataset.catalogTokens || null,
+        alternativeCatalogToken: alternativeCatalogueToken || null,
+        nominalRadiusDeg: numberOrNull(detailContext.dataset.nominalRadiusDeg),
+        searchStart: detailContext.dataset.resultStart, searchEnd: detailContext.dataset.resultEnd,
+        windows,
+        notes: notesInput?.value.trim() || "",
+        plotSvg: savePlot?.checked ? document.querySelector(".scientific-plot svg")?.outerHTML || null : null,
+        localFovSvg: savePlot?.checked ? exportLocalFovSvg() : null,
+        telescopeQuery,
+      };
+    };
+    const planCopy = (zh, en) => getLanguage() === "zh" ? zh : en;
+    const alternativeLabel = (window) => {
+      if (window.alternativeStatus === "pending") return planCopy("正在计算备选源…", "Calculating alternatives…");
+      if (window.alternativeStatus === "failed") return planCopy("备选源计算失败：", "Alternative calculation failed: ") + (window.alternativeError || "-");
+      if (window.alternativeStatus === "unavailable") return planCopy("自定义目标没有目录备选源。", "No catalogue alternatives are available for a custom target.");
+      const count = Array.isArray(window.alternatives) ? window.alternatives.length : 0;
+      const shortfall = window.alternativeSummary?.candidate_shortfall;
+      return planCopy("已精确验证备选源：", "Exactly validated alternatives: ") + count + (shortfall ? " · " + shortfall : "");
+    };
+    const updateStoredWindow = (entryIdValue, windowId, patch) => {
+      const entryIndex = planEntries.findIndex((item) => item.id === entryIdValue);
+      if (entryIndex < 0) return;
+      const windows = planEntries[entryIndex].windows.map((window) => window.windowId === windowId ? { ...window, ...patch } : window);
+      planEntries[entryIndex] = { ...planEntries[entryIndex], windows };
+      savePlanEntries();
+      if (previewDialog?.open) renderPreview();
+    };
+    const alternativesInFlight = new Set();
+    const alternativeRequestKey = (entry, window) => entry.id + ":" + window.windowId;
+    const renderAlternativeProgress = () => {
+      if (!alternativeProgress) return;
+      let activeEntry = null;
+      let activeWindowIndex = -1;
+      for (const entry of planEntries) {
+        const index = entry.windows.findIndex((window) => alternativesInFlight.has(alternativeRequestKey(entry, window)));
+        if (index >= 0) { activeEntry = entry; activeWindowIndex = index; break; }
+      }
+      alternativeProgress.textContent = activeEntry ? translate("alternativeScreening") + ": " + activeEntry.source + " · " + translate("planWindow") + " " + (activeWindowIndex + 1) + "…" : "";
+      alternativeProgress.hidden = !activeEntry;
+    };
+    const requestWindowAlternatives = async (entry, window) => {
+      if (!entry.catalogueTarget || !entry.sourceKey) {
+        updateStoredWindow(entry.id, window.windowId, { alternativeStatus: "unavailable", alternativeError: null });
+        return;
+      }
+      const requestKey = alternativeRequestKey(entry, window);
+      if (alternativesInFlight.has(requestKey)) return;
+      alternativesInFlight.add(requestKey);
+      renderAlternativeProgress();
+      const query = new URLSearchParams(entry.telescopeQuery || {});
+      try {
+        const response = await fetch("/api/v1/windows/alternatives?" + query.toString(), {
+          method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            source_key: entry.sourceKey, catalog_token: entry.catalogToken, catalog_tokens: entry.catalogTokens,
+            alternative_catalog_token: entry.alternativeCatalogToken,
+            nominal_radius_deg: entry.nominalRadiusDeg, search_start: entry.searchStart, search_end: entry.searchEnd,
+            target_window_start: window.windowStart, target_window_end: window.windowEnd,
+            constraints: entry.constraintValues, max_alternatives: 3, coarse_step_seconds: 900, shortlist_limit: 8,
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          const detail = typeof payload.detail === "string" ? payload.detail : JSON.stringify(payload.detail || payload);
+          throw new Error(detail || ("HTTP " + response.status));
+        }
+        updateStoredWindow(entry.id, window.windowId, {
+          alternatives: Array.isArray(payload.alternatives) ? payload.alternatives : [],
+          alternativeSummary: payload.search_summary || null, alternativeStatus: "complete", alternativeError: null,
+        });
+      } catch (error) {
+        updateStoredWindow(entry.id, window.windowId, { alternativeStatus: "failed", alternativeError: String(error.message || error) });
+      } finally {
+        alternativesInFlight.delete(requestKey);
+        renderAlternativeProgress();
+      }
+    };
+    const requestAlternatives = async (entry) => {
+      for (const window of entry.windows.filter((candidate) => candidate.alternativeStatus === "pending")) {
+        await requestWindowAlternatives(entry, window);
+      }
+    };
+    const editPlanEntry = (entry) => {
+      if (!entry || !dialog) return;
+      activeWindows = entry.windows.map((window) => ({ ...window }));
+      sourceElement.textContent = entry.source || "";
+      constraintsElement.textContent = entry.constraints || "";
+      renderWindowEditor();
+      if (notesInput) notesInput.value = entry.notes || "";
+      if (savePlot) savePlot.checked = Boolean(entry.plotSvg || entry.localFovSvg);
+      form.dataset.editEntryId = entry.id;
+      showError();
+      previewDialog?.close();
+      dialog.showModal();
+    };
+    const clearCurrentPlan = () => {
+      if (!planEntries.length) return;
+      clearPlanDialog?.showModal();
+    };
+    clearPlanDialog?.addEventListener("click", (event) => {
+      const choice = event.target.closest("[data-clear-plan-choice]")?.dataset.clearPlanChoice;
+      if (!choice) return;
+      if (choice === "confirm") { planEntries = []; savePlanEntries(); renderPreview(); }
+      clearPlanDialog.close();
+    });
+    clearPlanDialog?.addEventListener("cancel", (event) => { event.preventDefault(); clearPlanDialog.close(); });
+    const renderPreview = () => {
+      if (!previewList) return;
+      previewList.replaceChildren();
+      if (!planEntries.length) {
+        const empty = document.createElement("p"); empty.textContent = translate("noSavedPlan"); previewList.append(empty); return;
+      }
+      planEntries.forEach((entry, index) => {
+        const card = document.createElement("article"); card.className = "plan-preview-entry";
+        const title = document.createElement("h3"); title.textContent = (index + 1) + ". " + entry.source; card.append(title);
+        const details = document.createElement("p");
+        const savedPlots = Number(Boolean(entry.plotSvg)) + Number(Boolean(entry.localFovSvg));
+        details.textContent = "J2000 RA/Dec/radius: " + entry.ra + "° / " + entry.dec + "° / " + entry.radius + "° · " + (savedPlots ? planCopy("已保存 SVG：" + savedPlots + " 张", "saved SVGs: " + savedPlots) : planCopy("未保存图像", "plots not saved")); card.append(details);
+        if (entry.notes) { const notes = document.createElement("p"); notes.textContent = planCopy("备注：", "Notes: ") + entry.notes; card.append(notes); }
+        const windowList = document.createElement("div"); windowList.className = "plan-preview-windows";
+        entry.windows.forEach((window, windowIndex) => {
+          const windowCard = document.createElement("section"); windowCard.className = "plan-preview-window";
+          const heading = document.createElement("h4"); heading.textContent = translate("planWindow") + " " + (windowIndex + 1); windowCard.append(heading);
+          const interval = document.createElement("p"); interval.textContent = planCopy("计划时段（UTC）：", "Planned interval (UTC): ") + window.planStart + " — " + window.planEnd; windowCard.append(interval);
+          const valid = document.createElement("p"); valid.textContent = planCopy("完整源窗口（UTC）：", "Full-footprint window (UTC): ") + window.windowStart + " — " + window.windowEnd; windowCard.append(valid);
+          const status = document.createElement("p"); status.textContent = alternativeLabel(window); windowCard.append(status);
+          if (window.alternatives?.length) {
+            const list = document.createElement("ol"); list.className = "plan-preview-alternatives";
+            window.alternatives.forEach((alternative) => {
+              const item = document.createElement("li");
+              const metrics = alternative.metrics || {}, windowData = alternative.window || {}, source = alternative.source || {};
+              item.textContent = (source.name || source.source_key || "-") + " · " + (windowData.start || "-") + " — " + (windowData.end || "-") + " · " + planCopy("重叠 ", "overlap ") + (metrics.overlap_seconds ?? 0) + " s · " + planCopy("间隔 ", "gap ") + (metrics.gap_seconds ?? 0) + " s";
+              list.append(item);
+            });
+            windowCard.append(list);
+          }
+          windowList.append(windowCard);
+        });
+        card.append(windowList);
+        const actions = document.createElement("div"); actions.className = "plan-preview-entry-actions";
+        const edit = document.createElement("button"); edit.type = "button"; edit.className = "secondary-button"; edit.dataset.planEdit = entry.id; edit.textContent = translate("editPlanEntry"); actions.append(edit);
+        const remove = document.createElement("button"); remove.type = "button"; remove.className = "secondary-button"; remove.dataset.planDelete = entry.id; remove.textContent = translate("deletePlanEntry"); actions.append(remove);
+        card.append(actions); previewList.append(card);
+      });
+    };
+    const planTable = () => {
+      const columns = ["record_type", "plan_entry", "window_number", "target_source", "source_name", "source_key", "ra_deg", "dec_deg", "radius_deg", "full_window_start_utc", "full_window_end_utc", "planned_start_utc", "planned_end_utc", "alternative_rank", "overlap_seconds", "gap_seconds", "target_window_seconds", "candidate_window_seconds", "duration_difference_seconds", "selection_stage", "alternative_status", "warnings", "constraints", "notes", "window_plot_file", "local_fov_file"];
+      const rows = [];
+      planEntries.forEach((entry, index) => {
+        const stem = String(index + 1).padStart(3, "0") + "-" + safeName(entry.source);
+        const windowPlotFile = entry.plotSvg ? "plots/" + stem + "-observing-window.svg" : "";
+        const localFovFile = entry.localFovSvg ? "plots/" + stem + "-local-fov.svg" : "";
+        entry.windows.forEach((window, windowIndex) => {
+          rows.push(["target", index + 1, windowIndex + 1, entry.source, entry.source, entry.sourceKey, numberOrNull(entry.ra), numberOrNull(entry.dec), numberOrNull(entry.radius), window.windowStart, window.windowEnd, window.planStart, window.planEnd, "", "", "", "", "", "", "", window.alternativeStatus || "not_requested", [window.alternativeError, window.alternativeSummary?.candidate_shortfall, ...(window.alternativeSummary?.warnings || [])].filter(Boolean).join(" | "), entry.constraints, entry.notes, windowPlotFile, localFovFile]);
+          (window.alternatives || []).forEach((alternative) => {
+            const source = alternative.source || {}, metrics = alternative.metrics || {}, windowData = alternative.window || {};
+            rows.push(["alternative", index + 1, windowIndex + 1, entry.source, source.name || "", source.source_key || "", numberOrNull(source.ra), numberOrNull(source.dec), numberOrNull(source.ext), windowData.start || "", windowData.end || "", "", "", alternative.rank ?? metrics.rank ?? "", metrics.overlap_seconds ?? "", metrics.gap_seconds ?? "", metrics.target_window_seconds ?? "", metrics.candidate_window_seconds ?? "", metrics.duration_difference_seconds ?? "", alternative.selection_stage || "", "complete", (alternative.warnings || []).join(" | "), entry.constraints, "", "", ""]);
+          });
+        });
+      });
+      return { columns, rows };
+    };
+    const xmlText = (value) => String(value ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[character]));
+    const spreadsheetColumn = (index) => { let name = ""; for (let value = index + 1; value; value = Math.floor((value - 1) / 26)) name = String.fromCharCode(65 + ((value - 1) % 26)) + name; return name; };
+    const buildXlsxFiles = () => {
+      const table = planTable(), rows = [table.columns, ...table.rows];
+      const widths = table.columns.map((_, columnIndex) => Math.min(55, Math.max(10, rows.reduce((maximum, row) => Math.max(maximum, String(row[columnIndex] ?? "").length), 0) + 2)));
+      const rowXml = rows.map((row, rowIndex) => {
+        const cells = row.map((value, columnIndex) => {
+          const reference = spreadsheetColumn(columnIndex) + (rowIndex + 1), numeric = typeof value === 'number' && Number.isFinite(value);
+          const rowStyle = rowIndex === 0 ? 1 : row[0] === 'target' ? 2 : row[0] === 'alternative' ? 3 : 0;
+          return `<c r="${reference}" s="${rowStyle}"${numeric ? '' : ' t="inlineStr"'}>${numeric ? `<v>${value}</v>` : `<is><t xml:space="preserve">${xmlText(value)}</t></is>`}</c>`;
+        }).join("");
+        return `<row r="${rowIndex + 1}">${cells}</row>`;
+      }).join("");
+      const worksheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${spreadsheetColumn(table.columns.length - 1)}${rows.length}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`).join("")}</cols><sheetData>${rowXml}</sheetData><autoFilter ref="A1:${spreadsheetColumn(table.columns.length - 1)}${rows.length}"/></worksheet>`;
+      const created = new Date().toISOString();
+      return [
+        { name: '[Content_Types].xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>' },
+        { name: '_rels/.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>' },
+        { name: 'docProps/core.xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Skyward Observing Plan</dc:title><dc:creator>Skyward</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${created}</dcterms:created></cp:coreProperties>` },
+        { name: 'docProps/app.xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Skyward</Application></Properties>' },
+        { name: 'xl/workbook.xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Observing Plan" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+        { name: 'xl/_rels/workbook.xml.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+        { name: 'xl/styles.xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF000000"/><bgColor rgb="FF000000"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFFF99"/><bgColor rgb="FFFFFF99"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFC6EFCE"/><bgColor rgb="FFC6EFCE"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>' },
+        { name: 'xl/worksheets/sheet1.xml', content: worksheet },
+      ];
+    };
     const utf8 = new TextEncoder();
     const crcTable = Array.from({ length: 256 }, (_, value) => { let crc = value; for (let bit = 0; bit < 8; bit += 1) crc = (crc & 1) ? (0xedb88320 ^ (crc >>> 1)) : (crc >>> 1); return crc >>> 0; });
     const crc32 = (bytes) => { let crc = 0xffffffff; bytes.forEach((byte) => { crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8); }); return (crc ^ 0xffffffff) >>> 0; };
@@ -1405,7 +1973,7 @@
       const u16 = (value) => [value & 255, (value >>> 8) & 255];
       const u32 = (value) => [value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255];
       files.forEach(({ name, content }) => {
-        const filename = utf8.encode(name), data = utf8.encode(content), crc = crc32(data);
+        const filename = utf8.encode(name), data = content instanceof Uint8Array ? content : utf8.encode(content), crc = crc32(data);
         const local = new Uint8Array([0x50,0x4b,0x03,0x04,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(filename.length),...u16(0),...filename]);
         chunks.push(local, data);
         central.push(new Uint8Array([0x50,0x4b,0x01,0x02,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(filename.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...filename]));
@@ -1413,36 +1981,217 @@
       });
       const centralSize = central.reduce((sum, chunk) => sum + chunk.length, 0);
       const end = new Uint8Array([0x50,0x4b,0x05,0x06,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(centralSize),...u32(offset),...u16(0)]);
-      return new Blob([...chunks, ...central, end], { type: 'application/zip' });
+      const length = [...chunks, ...central, end].reduce((sum, chunk) => sum + chunk.length, 0);
+      const output = new Uint8Array(length); let position = 0;
+      [...chunks, ...central, end].forEach((chunk) => { output.set(chunk, position); position += chunk.length; });
+      return output;
     };
     const downloadPlan = () => {
       if (!planEntries.length) { window.alert(translate('noSavedPlan')); return; }
-      const heading = getLanguage() === "zh" ? "Skyward 观测计划" : "Skyward observing plan";
-      const text = [heading, "Generated: " + new Date().toISOString(), "", ...planEntries.flatMap((entry, index) => ["[" + (index + 1) + "] " + entry.source, "J2000 RA/Dec/radius: " + entry.ra + " deg / " + entry.dec + " deg / " + entry.radius + " deg", "Constraints: " + entry.constraints, "Full-footprint window (UTC): " + entry.windowStart + " to " + entry.windowEnd, "Planned interval (UTC): " + entry.planStart + " to " + entry.planEnd, "Notes: " + (entry.notes || "-"), ""])].join("\n");
-      const files = [{ name: 'skyward-observing-plan.txt', content: text }];
-      planEntries.forEach((entry, index) => { if (entry.plotSvg) files.push({ name: "skyward-" + safeName(entry.source) + "-" + (index + 1) + "-geometry-full-footprint.svg", content: entry.plotSvg }); });
-      const link = document.createElement('a'); link.href = URL.createObjectURL(zipBytes(files)); link.download = 'skyward-observing-plan.zip'; link.click(); window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      const pending = planEntries.filter((entry) => entry.windows.some((window) => window.alternativeStatus === "pending"));
+      if (pending.length) {
+        pending.forEach((entry) => { void requestAlternatives(entry); });
+        window.alert(planCopy("备选源仍在计算，请稍后再次下载，以免 XLSX 缺少备选源。", "Alternatives are still being calculated. Download again shortly so the XLSX includes them."));
+        return;
+      }
+      const workbook = zipBytes(buildXlsxFiles());
+      const files = [{ name: 'skyward-observing-plan.xlsx', content: workbook }];
+      planEntries.forEach((entry, index) => {
+        const stem = String(index + 1).padStart(3, "0") + "-" + safeName(entry.source);
+        if (entry.plotSvg) files.push({ name: "plots/" + stem + "-observing-window.svg", content: entry.plotSvg });
+        if (entry.localFovSvg) files.push({ name: "plots/" + stem + "-local-fov.svg", content: entry.localFovSvg });
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([zipBytes(files)], { type: 'application/zip' })); link.download = 'skyward-observing-plan.zip'; link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     };
     document.addEventListener("click", (event) => {
       const button = event.target.closest("[data-plan-window]");
-      if (button) { activeWindow = { start: button.dataset.windowStart, end: button.dataset.windowEnd, planStart: button.dataset.planStart || button.dataset.windowStart, planEnd: button.dataset.planEnd || button.dataset.windowEnd }; sourceElement.textContent = pagePlanContext.dataset.planSourceName || ""; constraintsElement.textContent = constraintText(); startInput.value = localPlanTime(activeWindow.planStart); endInput.value = localPlanTime(activeWindow.planEnd); if (notesInput) notesInput.value = ""; if (savePlot) savePlot.checked = false; showError(); dialog.showModal(); }
+      if (button) {
+        activeWindows = selectedResultWindows();
+        if (!activeWindows.length) {
+          if (selectionStatus) { selectionStatus.textContent = translate("noPlanWindowsSelected"); selectionStatus.hidden = false; }
+          return;
+        }
+        if (selectionStatus) { selectionStatus.textContent = ""; selectionStatus.hidden = true; }
+        sourceElement.textContent = pagePlanContext.dataset.planSourceName || ""; constraintsElement.textContent = constraintText(); renderWindowEditor();
+        if (notesInput) notesInput.value = ""; if (savePlot) savePlot.checked = false; delete form.dataset.editEntryId; showError(); dialog.showModal();
+      }
+      if (event.target.closest("[data-preview-observation-plan]")) { renderPreview(); previewDialog?.showModal(); }
+      const editButton = event.target.closest("[data-plan-edit]");
+      if (editButton) editPlanEntry(planEntries.find((entry) => entry.id === editButton.dataset.planEdit));
+      const deleteButton = event.target.closest("[data-plan-delete]");
+      if (deleteButton) { planEntries = planEntries.filter((entry) => entry.id !== deleteButton.dataset.planDelete); savePlanEntries(); renderPreview(); }
+      if (event.target.closest("[data-clear-observation-plan]")) clearCurrentPlan();
       if (event.target.closest("[data-download-observation-plan]")) downloadPlan();
       if (event.target.closest("[data-close-plan-dialog]")) dialog.close();
+      if (event.target.closest("[data-close-plan-preview]")) previewDialog?.close();
+    });
+    document.addEventListener("change", (event) => {
+      if (event.target.matches("[data-plan-window-select]") && selectionStatus) { selectionStatus.textContent = ""; selectionStatus.hidden = true; }
     });
     form.addEventListener("submit", async (event) => {
-      event.preventDefault(); if (!withinActiveWindow()) { showError(translate("planRangeError")); return; }
-      showError(); const entry = buildEntry(); const matches = planEntries.map((item, index) => item.source === entry.source ? index : -1).filter((index) => index >= 0);
+      event.preventDefault();
+      const editedWindows = readEditedWindows();
+      if (!withinActiveWindows(editedWindows)) { showError(translate("planRangeError")); return; }
+      showError();
+      const editingId = form.dataset.editEntryId || "";
+      if (editingId) {
+        const existing = planEntries.find((item) => item.id === editingId);
+        if (existing) {
+          existing.windows = editedWindows;
+          existing.notes = notesInput?.value.trim() || "";
+          if (!savePlot?.checked) {
+            existing.plotSvg = null;
+            existing.localFovSvg = null;
+          } else {
+            if (!existing.plotSvg) existing.plotSvg = document.querySelector(".scientific-plot svg")?.outerHTML || null;
+            if (!existing.localFovSvg) existing.localFovSvg = exportLocalFovSvg();
+          }
+          savePlanEntries();
+          delete form.dataset.editEntryId;
+          renderPreview();
+          dialog.close();
+          return;
+        }
+        delete form.dataset.editEntryId;
+      }
+      const entry = buildEntry(editedWindows); const matches = planEntries.map((item, index) => (item.sourceKey || item.source) === (entry.sourceKey || entry.source) ? index : -1).filter((index) => index >= 0);
       if (matches.length) {
         const choice = await chooseDuplicateAction();
-        if (choice === 'cancel') return;
-        if (choice === 'overwrite') planEntries[matches[matches.length - 1]] = entry;
-        else if (choice === 'append') planEntries.push(entry);
+        if (choice === "cancel") return;
+        if (choice === "overwrite") planEntries[matches[matches.length - 1]] = entry;
+        else if (choice === "append") planEntries.push(entry);
       } else planEntries.push(entry);
+      savePlanEntries();
+      void requestAlternatives(entry);
       form.querySelector("#plan-confirm").textContent = translate("planAdded"); window.setTimeout(() => { form.querySelector("#plan-confirm").textContent = translate("confirmAddPlan"); }, 1300); dialog.close();
     });
-    document.addEventListener("skyward:timezone-change", () => { if (activeWindow) { startInput.value = localPlanTime(activeWindow.planStart); endInput.value = localPlanTime(activeWindow.planEnd); showError(); } });
-    document.addEventListener("skyward:language-change", () => { if (activeWindow) constraintsElement.textContent = constraintText(); });
+    document.addEventListener("skyward:timezone-will-change", () => { if (activeWindows.length && dialog.open) activeWindows = readEditedWindows(); });
+    document.addEventListener("skyward:timezone-change", () => { if (activeWindows.length) { renderWindowEditor(); showError(); } });
+    document.addEventListener("skyward:language-change", () => { if (activeWindows.length) { if (dialog.open) activeWindows = readEditedWindows(); constraintsElement.textContent = constraintText(); renderWindowEditor(); } if (previewDialog?.open) renderPreview(); });
     dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+    previewDialog?.addEventListener("click", (event) => { if (event.target === previewDialog) previewDialog.close(); });
+    previewDialog?.addEventListener("cancel", (event) => { event.preventDefault(); previewDialog.close(); });
+    planEntries.filter((entry) => entry.windows.some((window) => window.alternativeStatus === "pending")).forEach((entry) => { void requestAlternatives(entry); });
+  };
+
+  const RESULT_PAGE_CACHE_KEY = 'skyward.result-page-cache.v1';
+
+  const snapshotResultPage = () => {
+    if (!document.getElementById('detail-query-context')) return false;
+    try {
+      const clone = document.documentElement.cloneNode(true);
+      clone.dataset.skywardResultRestored = 'true';
+      const liveControls = [...document.querySelectorAll('input, textarea, select')];
+      const clonedControls = [...clone.querySelectorAll('input, textarea, select')];
+      liveControls.forEach((control, index) => {
+        const copy = clonedControls[index];
+        if (!copy) return;
+        if (control instanceof HTMLSelectElement) {
+          [...copy.options].forEach((option, optionIndex) => option.toggleAttribute('selected', Boolean(control.options[optionIndex]?.selected)));
+        } else if (control instanceof HTMLTextAreaElement) {
+          copy.textContent = control.value;
+        } else if (control instanceof HTMLInputElement) {
+          if (control.type === 'checkbox' || control.type === 'radio') copy.toggleAttribute('checked', control.checked);
+          else copy.setAttribute('value', control.value);
+        }
+      });
+      clone.querySelectorAll('dialog[open]').forEach(dialog => dialog.removeAttribute('open'));
+      // Runtime listeners and injected zoom inputs are recreated by the
+      // restored document. Keep the SVG viewBox plus camera datasets, but do
+      // not leave the installed marker that would suppress re-initialisation.
+      clone.querySelectorAll('[data-map-zoom-controls]').forEach(controls => controls.querySelectorAll('.zoom-factor').forEach(input => input.remove()));
+      clone.querySelectorAll('[data-camera-installed]').forEach(frame => frame.removeAttribute('data-camera-installed'));
+      const localFrame = document.querySelector('[data-local-fov-map]');
+      const localGaiaState = localFrame ? gaiaRequests.get(localFrame) : null;
+      const gaiaSources = [...new Map([...gaiaDetails.values()].map(source => [String(source.source_key || source.source_id || source.index), source])).values()];
+      sessionStorage.setItem(RESULT_PAGE_CACHE_KEY, JSON.stringify({
+        version: 1,
+        url: window.location.href,
+        savedAt: Date.now(),
+        html: '<!doctype html>\n' + clone.outerHTML,
+        gaiaSources,
+        gaiaRequest: localGaiaState ? { generation: localGaiaState.generation || 0, state: localGaiaState.state, kind: localGaiaState.kind, error: localGaiaState.error || null, meta: localGaiaState.meta || null } : null,
+      }));
+      return true;
+    } catch (error) {
+      // A large SVG or a restricted browser storage quota must never block
+      // ordinary navigation. The server-rendered /result URL remains a safe
+      // recovery path.
+      try { sessionStorage.removeItem(RESULT_PAGE_CACHE_KEY); } catch (_) {}
+      console.warn('Result-page snapshot unavailable', error);
+      return false;
+    }
+  };
+
+  const restoreCachedResultPage = (returnUrl) => {
+    let record;
+    try { record = JSON.parse(sessionStorage.getItem(RESULT_PAGE_CACHE_KEY) || 'null'); } catch (_) { record = null; }
+    if (!record || record.version !== 1 || typeof record.html !== 'string' || !record.html) return false;
+    let parsed;
+    try { parsed = new URL(record.url || returnUrl, window.location.origin); } catch (_) { return false; }
+    if (parsed.origin !== window.location.origin || parsed.pathname !== '/result') return false;
+    try {
+      history.pushState(null, '', parsed.href);
+      document.open();
+      document.write(record.html);
+      document.close();
+      return true;
+    } catch (error) {
+      console.warn('Result-page snapshot restore failed', error);
+      return false;
+    }
+  };
+
+  const restoreCachedDynamicState = () => {
+    if (document.documentElement.dataset.skywardResultRestored !== 'true') return;
+    let record;
+    try { record = JSON.parse(sessionStorage.getItem(RESULT_PAGE_CACHE_KEY) || 'null'); } catch (_) { record = null; }
+    (record?.gaiaSources || []).forEach(source => {
+      gaiaDetails.set(String(source.source_key || source.source_id || source.index), source);
+      gaiaDetails.set(String(source.source_id || source.index), source);
+    });
+    const localFrame = document.querySelector('[data-local-fov-map]');
+    if (localFrame && record?.gaiaRequest) gaiaRequests.set(localFrame, { ...record.gaiaRequest });
+  };
+
+  const initialiseNavigationContext = () => {
+    const key = 'skyward.result-return-context';
+    const resultPage = Boolean(document.getElementById('detail-query-context'));
+    if (!resultPage && document.getElementById('planner-form')) {
+      // The user explicitly returned to the home planner. Subsequent Data/API
+      // navigation must return here rather than resurrecting an older result.
+      sessionStorage.removeItem(key);
+      sessionStorage.removeItem(RESULT_PAGE_CACHE_KEY);
+      return;
+    }
+    if (resultPage) {
+      sessionStorage.setItem(key, window.location.href);
+      // Capture live select/input values, Gaia layers, map mode, zoom and
+      // comparison curves before any ordinary navigation leaves the page.
+      const saveBeforeNavigation = () => { snapshotResultPage(); };
+      document.addEventListener('click', event => {
+        const link = event.target.closest('a[href]');
+        if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+        let href;
+        try { href = new URL(link.href, window.location.origin); } catch (_) { return; }
+        if (href.origin === window.location.origin && ['/','/about','/api/v1'].includes(href.pathname)) saveBeforeNavigation();
+      }, true);
+      window.addEventListener('pagehide', saveBeforeNavigation);
+      return;
+    }
+    const plannerLinks = [...document.querySelectorAll('a[data-i18n=\"navPlanner\"], a[data-about-i18n=\"openPlanner\"]')];
+    if (!plannerLinks.length) return;
+    plannerLinks.forEach(plannerLink => plannerLink.addEventListener('click', event => {
+      const returnUrl = sessionStorage.getItem(key);
+      if (!returnUrl) return;
+      let parsed;
+      try { parsed = new URL(returnUrl, window.location.origin); } catch (_) { sessionStorage.removeItem(key); return; }
+      if (parsed.origin !== window.location.origin || parsed.pathname !== '/result') { sessionStorage.removeItem(key); return; }
+      event.preventDefault();
+      if (!restoreCachedResultPage(parsed.href)) window.location.assign(parsed.href);
+    }));
   };
 
   const initialiseCalculationSubmission = () => {
@@ -1468,7 +2217,17 @@
         const html=await response.text(); if(requestController.signal.aborted)return;
         if(!response.ok && !response.headers.get('content-type')?.includes('text/html'))throw new Error('HTTP '+response.status);
         // Server validation pages are rendered normally and carry their own errors.
-        history.pushState(null,'',response.url || form.action);
+        // Keep the calculated result reconstructible after navigating away. The
+        // POST response itself is not a browser-history resource, so encode the
+        // form state in a GET /result URL before replacing the document.
+        const resultQuery = new URLSearchParams();
+        body.forEach((value, key) => {
+          if (typeof value !== 'string') return;
+          if (value.trim() === '') return;
+          resultQuery.append(key, value);
+        });
+        const resultUrl = form.action + '?' + resultQuery.toString();
+        history.pushState(null, '', resultUrl);
         document.open();document.write(html);document.close();
       } catch(error){
         if(error.name==='AbortError')return;
@@ -1498,6 +2257,8 @@
   };
 
   document.addEventListener("skyward:timezone-change", () => { refreshTimeDisplays(); refreshLiveOptionLabels(); });
+  restoreCachedDynamicState();
+  initialiseNavigationContext();
   initialiseDisplaySettings();
   initialiseResultDisplayPreferences();
   initialiseResultThemePlot();

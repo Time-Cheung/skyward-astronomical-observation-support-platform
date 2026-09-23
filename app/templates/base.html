@@ -92,9 +92,9 @@
     <div id="dialog-body" class="dialog-body" aria-live="polite"></div>
   </dialog>
 
-  <!-- The plan editor stores nothing on the server. Its TXT record is generated
-       only in the operator's browser, keeping the current LAN-only, no-account
-       boundary intact. -->
+  <!-- The plan editor stores nothing on the server. Its XLSX and optional SVG
+       files are generated only in the operator's browser, keeping the current
+       LAN-only, no-account boundary intact. -->
   <dialog id="observation-plan-dialog" class="source-dialog plan-dialog" aria-labelledby="plan-dialog-title">
     <form id="observation-plan-form" method="dialog">
       <div class="dialog-head">
@@ -106,17 +106,33 @@
           <div><dt data-i18n="targetSource">Target source</dt><dd id="plan-source-name"></dd></div>
           <div><dt data-i18n="constraints">Constraints</dt><dd id="plan-constraints"></dd></div>
         </dl>
-        <p class="plan-range-hint" data-i18n="planRangeHint">The current full-footprint window is prefilled. Planned times must stay within the valid full-footprint interval.</p>
+        <p class="plan-range-hint" data-i18n="planRangeHint">Each selected full-footprint window is prefilled. Every planned interval must stay inside its corresponding valid window.</p>
+        <div id="plan-window-editor" class="plan-window-editor" aria-live="polite"></div>
         <div class="plan-form-grid">
-          <div class="form-field"><label for="plan-start" data-i18n="plannedStart">Planned start</label><input id="plan-start" type="datetime-local" step="1" required></div>
-          <div class="form-field"><label for="plan-end" data-i18n="plannedEnd">Planned end</label><input id="plan-end" type="datetime-local" step="1" required></div>
           <div class="form-field field-wide"><label for="plan-notes" data-i18n="notes">Notes</label><textarea id="plan-notes" rows="4" maxlength="2000"></textarea></div>
-          <label class="plan-image-option field-wide"><input id="plan-save-plot" type="checkbox"> <span data-i18n="savePlot">Save geometry and full-footprint plot (SVG)</span></label>
+          <label class="plan-image-option field-wide"><input id="plan-save-plot" type="checkbox"> <span data-i18n="savePlot">Save local FoV and observing-window plots (SVG)</span></label>
         </div>
         <p id="plan-range-error" class="form-error" role="alert" hidden></p>
         <div class="dialog-actions"><button class="primary-button dialog-planner-button" id="plan-confirm" type="submit" data-i18n="confirmAddPlan">Confirm addition</button></div>
       </div>
     </form>
+  </dialog>
+  <dialog id="observation-plan-preview-dialog" class="source-dialog plan-preview-dialog" aria-labelledby="plan-preview-title">
+    <div class="dialog-head">
+      <div><p class="dialog-kicker" data-i18n="observationPlan">Observing plan</p><h2 id="plan-preview-title" data-i18n="previewObservationPlan">Preview current observing plan</h2></div>
+      <button class="icon-button" type="button" data-close-plan-preview aria-label="Close preview" data-i18n-aria-label="closeDetails">×</button>
+    </div>
+    <div class="dialog-body"><div class="plan-preview-toolbar"><button class="secondary-button" type="button" data-clear-observation-plan data-i18n="clearCurrentPlan">Clear current observing plan</button></div><div id="observation-plan-preview-list" class="plan-preview-list"></div></div>
+  </dialog>
+  <dialog id="clear-plan-dialog" class="source-dialog choice-dialog" aria-labelledby="clear-plan-title">
+    <div class="dialog-head"><div><p class="dialog-kicker" data-i18n="observationPlan">Observing plan</p><h2 id="clear-plan-title" data-i18n="clearCurrentPlan">Clear current observing plan</h2></div></div>
+    <div class="dialog-body">
+      <p data-i18n="confirmClearPlan">Clear the current observing plan?</p>
+      <div class="dialog-actions">
+        <button class="secondary-button" type="button" data-clear-plan-choice="cancel" data-i18n="cancelAddition">Cancel</button>
+        <button class="primary-button compact-primary-button" type="button" data-clear-plan-choice="confirm" data-i18n="clearCurrentPlan">Clear current observing plan</button>
+      </div>
+    </div>
   </dialog>
   <dialog id="duplicate-plan-dialog" class="source-dialog choice-dialog" aria-labelledby="duplicate-plan-title">
     <div class="dialog-head"><div><p class="dialog-kicker" data-i18n="duplicatePlanKicker">Duplicate plan</p><h2 id="duplicate-plan-title" data-i18n="duplicatePlanTitle">This source already has a saved plan</h2></div></div>

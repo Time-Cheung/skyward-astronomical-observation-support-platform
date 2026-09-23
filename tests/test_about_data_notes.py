@@ -32,9 +32,20 @@ def test_data_notes_have_usage_and_separate_current_goal_future_scope():
         assert f'data-about-i18n="{key}"' in about
         assert key in script
     assert "只有确认后才加载所选源表数据并绘制标记" in script
-    assert "geometry-only" in script
+    assert "geometric-feasibility candidates" in script
     assert "不构成观测批准" in script
     assert "天气与大气" in script and "机械轨迹限位" in script and "联合观测证据" in script
+    assert 'data-about-i18n="observingPlanTitle"' in about
+    assert 'data-about-i18n="observingPlanBody"' in about
+    assert 'data-about-i18n="observingPlanFormat"' in about
+    assert "完整源窗口区域只保留一组计划操作" in script
+    assert "one shared set of plan actions" in script
+    assert "纯黑色表头" in script and "solid black header" in script
+    api = (TEMPLATES / "api.html").read_text(encoding="utf-8")
+    app_script = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert 'data-i18n="apiPlanWindowNote"' in api
+    assert "多窗口计划逐窗口调用" in app_script
+    assert "multi-window plans call once per window" in app_script
 
 
 def test_catalogue_guide_is_one_select_with_five_targeted_choices():
@@ -50,18 +61,19 @@ def test_catalogue_guide_is_one_select_with_five_targeted_choices():
 
 def test_catalogue_counts_and_scientific_boundaries_are_explicit_in_both_languages():
     script = (STATIC / "about.js").read_text(encoding="utf-8")
-    for value in ("190 installed records", "7,224 installed records", "1,556 installed records"):
-        assert value in script
-    assert "361-row snapshot · cutoff 2026-09-16" in script
-    assert "2,000 hard maximum per request" in script
-    assert "no fixed local record total" in script
+    assert "Installed row count is provided by the catalogue API" in script
+    assert "363-row snapshot · cutoff 2026-09-19" in script
+    assert "500 hard maximum per request" in script
+    assert "Installed row count is provided by the catalogue API" in script
     assert "Localization uncertainty is not physical extension" in script
-    assert "All 361 hard footprints are unknown" in script
-    assert "not the brightest N or a representative sample" in script
-    for value in ("本地已安装 190 条记录", "本地已安装 7,224 条记录", "本地已安装 1,556 条记录"):
-        assert value in script
-    assert "本地快照 361 条 · 截止 2026-09-16" in script
-    assert "硬上限 2,000 条/次" in script
+    assert "223 upstream Extended: No rows are zero-radius point sources" in script
+    assert "140 Extended: Yes rows" in script
+    assert "nearest N sources by angular distance" in script
+    assert "does not appear in an all-sky catalogue picker or layer" in script
+    assert "本地记录数由源表接口提供" in script
+    assert "本地快照 363 条 · 截止 2026-09-19" in script
+    assert "硬上限 500 条/次" in script
+    assert "仅在计算结果页的局部视场图中" in script
 
 
 def test_about_assets_are_local_and_follow_shared_language_event():
@@ -72,5 +84,10 @@ def test_about_assets_are_local_and_follow_shared_language_event():
     assert "path='/about.js'" in base
     assert 'localStorage.getItem("skyward.language")' in script
     assert 'document.addEventListener("skyward:language-change", applyLanguage)' in script
-    assert "fetch(" not in script
+    assert "fetch(\"/api/v1/catalogues\")" in script
     assert "@media (max-width: 760px)" in stylesheet
+    about = (TEMPLATES / "about.html").read_text(encoding="utf-8")
+    app_script = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert 'class="legend-cross"' in about
+    assert "加粗十字符号表示按需查询的 Gaia 候选星" in app_script
+    assert "A thicker cross marks an on-demand Gaia candidate" in app_script

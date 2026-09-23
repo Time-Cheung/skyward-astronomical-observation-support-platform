@@ -193,8 +193,12 @@ def test_skyward_display_controls_and_bilingual_assets_are_local():
         },
     )
     assert result.status_code == 200
-    assert "LACT 8.30°" in result.text
+    assert "10°" in result.text
+    assert "LACT FoV 8.30°" in result.text
     assert 'data-i18n="localFovTitle"' in result.text
+    assert 'id="local-fov-gaia-toggle"' not in result.text
+    assert 'id="local-gaia-filter-apply"' in result.text
+    assert 'value="10"' in result.text
     assert "Full-footprint windows" in result.text
     assert 'data-i18n="fullWindows"' in result.text
     assert "extension-ring" in result.text
@@ -431,7 +435,8 @@ def test_frontend_timezone_and_observation_plan_regressions_are_guarded():
     assert "skyward:timezone-will-change" in script
     assert "planner-start-utc" in script and "planner-end-utc" in script
     assert "localDatetimeValue(new Date(iso), displayTimezone(), true)" in script
-    assert 'step="1"' in base
+    assert 'id="plan-window-editor"' in base
+    assert 'start.step = "1"' in script and 'endInput.step = "1"' in script
     theme_block = script[script.index("const initialiseResultThemePlot"):script.index("const initialiseSourceDialog")]
     assert "recolourPlot" in theme_block
     assert "requestSubmit" not in theme_block and "fetch(" not in theme_block
@@ -454,6 +459,8 @@ def test_frontend_timezone_and_observation_plan_regressions_are_guarded():
     dark = render_window_plot(result, theme="dark", timezone_label="Beijing UTC+8")
     assert "#ffffff" in light.lower()
     assert "#0c1117" in dark.lower()
+    overlay = render_window_plot(result, timezone_label="UTC", zenith_overlays=[(999, "Comparison source", result.series.target_zenith_deg, "#ff0000", "dashdot")])
+    assert "Comparison source" in overlay and "Target zenith" in overlay
     assert "matplotlib.org" not in light
 
     too_bright = {
@@ -681,15 +688,15 @@ def test_result_map_exposes_full_windows_and_fixed_size_symbol_controls():
     assert "trajectory_enforce_current_pointing" in script
     assert "trajectory_ranges" in script
     assert "--map-icon-scale" in script and "--map-icon-scale" in stylesheet
-    assert ".tracking-ring" in stylesheet and "#8b5cf6" in stylesheet
+    assert ".trajectory-highlight .source-symbol" in stylesheet and "#8b5cf6" in stylesheet
     assert 'data-i18n="legendGreenMeaning"' in response.text
     assert 'data-i18n="legendYellowMeaning"' in response.text
     assert 'data-i18n="legendRedMeaning"' in response.text
     assert 'id="tracked-fov-legend" hidden' in response.text
 
 
-def test_source_detail_can_match_current_pointing_map_status():
-    """A map click asks the detail endpoint for the very same pointing rule."""
+def test_source_detail_ignores_legacy_current_pointing_flag():
+    """Detail and map status share geometry-only observability without telemetry."""
     moment = "2026-12-15T16:00:00Z"
     sky = client.get("/api/v1/sky/current", params={"at_time": moment}).json()
     marker = next(item for item in sky["sources"] if item["index"] == 1)
@@ -697,7 +704,7 @@ def test_source_detail_can_match_current_pointing_map_status():
     assert detail.status_code == 200
     payload = detail.json()
     assert payload["status"]["status"] == marker["status"]
-    assert payload["status"]["current_pointing_enforced"] is True
+    assert payload["status"]["current_pointing_enforced"] is False
 
 
 def test_minimal_uploaded_catalogue_derives_coordinates_without_fake_uncertainties():
@@ -807,7 +814,8 @@ def test_latest_result_map_realtime_and_curve_controls_contracts():
     assert 'class="result-source-title"' in text
     assert 'data-window-display-time=' in text
     assert text.count('data-zoom-max="1000"') >= 2
-    assert 'id="local-fov-mode"' in text and 'id="local-fov-time"' in text
+    assert 'id="local-fov-mode"' not in text and 'id="local-fov-time"' not in text
+    assert 'id="specified-time-kind"' in text and 'id="specified-time-start"' in text
     assert 'id="zenith-curve-controls"' in text
     assert 'id="refresh-realtime"' in text
     assert 'id="sky-clock"' in text and 'id="sun-coordinates"' in text and 'id="moon-coordinates"' in text
@@ -863,8 +871,8 @@ def test_review_edge_cases_empty_ranges_custom_context_and_temporary_marker():
     script = (Path(__file__).resolve().parents[1] / "app" / "static" / "app.js").read_text(encoding="utf-8")
     assert "params.set('trajectory_ranges', context.dataset.fullWindowRanges)" in script
     assert "resultTelescopeContext" in script
-    assert "skyward:timezone-will-change" in script and "localFixedInstant" in script
-    assert "if (mode.value === 'live')" in script
+    assert "specifiedTimeLimit" in script
+    assert "mapStatusParameters" in script
     response = client.post(
         "/result",
         data={
@@ -887,10 +895,10 @@ def test_latest_live_map_plan_and_fast_curve_contracts():
     index = (Path(__file__).parents[1] / "app" / "templates" / "index.html").read_text()
     js = (Path(__file__).parents[1] / "app" / "static" / "app.js").read_text()
     assert "window.setInterval(() => refresh(new Date()), 60_000)" not in js
-    assert "data-live-option" in index and result.count("data-live-option") == 2
+    assert "data-live-option" in index and result.count("data-live-option") == 1
     assert "refreshLiveOptionLabels" in js and "liveTimestamp" in js
     assert "data-result-map-time" not in result
-    assert result.count("heading-mode-control") == 2
+    assert result.count("heading-mode-control") == 1
     assert "data-download-observation-plan" in result
     assert 'id="plan-download"' not in base
     assert 'data-i18n="confirmAddPlan"' in base
@@ -935,7 +943,7 @@ def test_display_only_theme_plan_zip_and_compact_controls_contracts():
     assert 'data-duplicate-choice="append"' in base
     assert 'data-duplicate-choice="cancel"' in base
     assert "window.confirm" not in js
-    assert "choice === 'cancel'" in js and "choice === 'overwrite'" in js and "choice === 'append'" in js
+    assert 'choice === "cancel"' in js and 'choice === "overwrite"' in js and 'choice === "append"' in js
     assert "application/zip" in js and "skyward-observing-plan.zip" in js
     assert "zipBytes(files)" in js
     assert "saveFile(" not in js

@@ -9,7 +9,7 @@ import numpy as np
 from astropy.time import Time
 
 from .astronomy import GeometrySeries, compute_catalog_geometry, compute_geometry
-from .catalog import Source
+from .catalog import POINT_SOURCE_FALLBACK_WARNING, Source
 from .config import (
     BOUNDARY_TOLERANCE_SECONDS,
     DEFAULT_GRID_STEP_SECONDS,
@@ -67,9 +67,8 @@ class WindowResult:
     telescope: TelescopeConfig = LACT_TELESCOPE
 
     def __post_init__(self):
-        if not self.source.footprint_known:
-            self.full_footprint_windows = []
-            self.warnings = [*self.warnings, "full_footprint_not_evaluated: supply an explicit nominal radius to assess a footprint"]
+        if self.source.point_source_fallback and POINT_SOURCE_FALLBACK_WARNING not in self.warnings:
+            self.warnings = [*self.warnings, POINT_SOURCE_FALLBACK_WARNING]
 
     def to_dict(self, max_samples: int = 1200) -> dict:
         sample_indices = _downsample_indices(len(self.sample_times), max_samples)
@@ -81,7 +80,7 @@ class WindowResult:
         return {
             "geometry_only": True,
             "full_footprint_evaluated": self.source.footprint_known,
-            "footprint_assessment": "nominal_radius" if self.source.footprint_known else "full_footprint_not_evaluated",
+            "footprint_assessment": "nominal_radius" if self.source.footprint_known else "point_source_fallback",
             "source": self.source.to_dict(),
             "start": iso_utc(self.start),
             "end": iso_utc(self.end),
@@ -580,7 +579,7 @@ def calculate_windows_from_series(
         series.target_zenith_deg,
         series.sun_altitude_deg,
         series.moon_separation_deg,
-        source.ext,
+        source.evaluation_radius_deg,
         constraints,
         fov_radius_deg=telescope.fov_radius_deg,
     )
@@ -588,7 +587,7 @@ def calculate_windows_from_series(
         source, start, end, times, series, evaluation, 0.0, constraints, "center", telescope
     )
     full_windows = _build_intervals(
-        source, start, end, times, series, evaluation, source.ext, constraints, "footprint", telescope
+        source, start, end, times, series, evaluation, source.evaluation_radius_deg, constraints, "footprint", telescope
     )
     return WindowResult(
         source=source,
@@ -757,11 +756,11 @@ def _calculate_windows_streamed(
         series = _geometry_for_telescope(source, chunk_times, telescope)
         evaluation = evaluate_constraints(
             series.target_altitude_deg, series.target_zenith_deg, series.sun_altitude_deg,
-            series.moon_separation_deg, source.ext, interval_constraints,
+            series.moon_separation_deg, source.evaluation_radius_deg, interval_constraints,
             fov_radius_deg=telescope.fov_radius_deg,
         )
         center_intervals.extend(_build_intervals(source, chunk_start, chunk_end, chunk_times, series, evaluation, 0.0, interval_constraints, "center", telescope))
-        footprint_intervals.extend(_build_intervals(source, chunk_start, chunk_end, chunk_times, series, evaluation, source.ext, interval_constraints, "footprint", telescope))
+        footprint_intervals.extend(_build_intervals(source, chunk_start, chunk_end, chunk_times, series, evaluation, source.evaluation_radius_deg, interval_constraints, "footprint", telescope))
         offset = 0 if first_chunk else 1
         retained = [index for index in range(offset, len(chunk_times)) if int((chunk_times[index] - start).total_seconds()) % display_stride == 0]
         if chunk_end == end and len(chunk_times) - 1 not in retained:
@@ -807,7 +806,7 @@ def calculate_windows(
         series.target_zenith_deg,
         series.sun_altitude_deg,
         series.moon_separation_deg,
-        source.ext,
+        source.evaluation_radius_deg,
         constraints,
         fov_radius_deg=telescope.fov_radius_deg,
     )
@@ -832,7 +831,7 @@ def calculate_windows(
         times,
         series,
         evaluation,
-        source.ext,
+        source.evaluation_radius_deg,
         constraints,
         "footprint",
         telescope,
