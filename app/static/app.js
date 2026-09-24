@@ -70,7 +70,7 @@
   // API contracts keep machine codes; the local UI maps them to readable bilingual labels.
   Object.assign(translations.zh, {
     mapSymbolLegend: '地图符号', nonGaiaSource: '非 Gaia 源', gaiaSource: 'Gaia 定标星', trueExtension: '真实 extension', selectedTarget: '已选目标', calculationInProgress: '正在计算观测窗口', calculationFailed: '计算未能完成', returnToForm: '返回修改条件', coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
-    homeTitle: 'V0版本：仅几何判断', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
+    homeTitle: 'V2.1：仅几何判断', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
     allSkyNote: '颜色按地平线和已启用的几何约束判定；当前未接入可信实时指向，不使用“位于当前 FoV”约束。点击源标记查看源详情。',
     telescopeSettings: '望远镜设置', telescope: '望远镜', lactTelescope: 'LACT', customTelescope: '自定义望远镜',
     telescopeFutureHelp: '当前已接入 LACT；后续可扩展其他望远镜。', customTelescopeHelp: '本次计算临时使用 WGS-84 配置，不会保存到服务器。',
@@ -82,7 +82,7 @@
   });
   Object.assign(translations.en, {
     mapSymbolLegend: 'Map symbols', nonGaiaSource: 'Non-Gaia source', gaiaSource: 'Gaia calibration star', trueExtension: 'True extension', selectedTarget: 'Selected target', calculationInProgress: 'Calculating observation windows', calculationFailed: 'Calculation could not be completed', returnToForm: 'Return to edit conditions', coordinateFrame: "Coordinate frame", coordAltAz: "AltAz / Horizon", coordJ2000: "Equatorial (J2000)", coordGalactic: "Galactic", includeGaia: "Gaia DR3 calibration stars", iersSourceKind: "Active source", iersUpdate: "Update policy", iersLastError: "Last online error",
-    homeTitle: 'V0: geometry assessment only', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
+    homeTitle: 'V2.1: geometry assessment only', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
     allSkyNote: 'Colours use the horizon and enabled geometric constraints. Authoritative live pointing is not connected, so no current-FoV constraint is applied. Select a star for details.',
     telescopeSettings: 'Telescope settings', telescope: 'Telescope', lactTelescope: 'LACT', customTelescope: 'Custom telescope',
     telescopeFutureHelp: 'LACT is active now; additional observatories can be connected later.', customTelescopeHelp: 'This temporary WGS-84 configuration is used only by this calculation and is not saved.',
@@ -409,6 +409,19 @@
       <div><dt>Source</dt><dd>${source ? `<a href="${escapeHtml(source)}" rel="noreferrer">www.tevcat.org</a>` : escapeHtml(translate('noData'))}</dd></div>
     </dl><p>${escapeHtml(notes.public_notes?.summary || (notes.public_notes?.available ? 'Public notes are available at the source site; raw HTML is not redistributed.' : 'No public note was provided for this record.'))}</p></section>`;
   };
+  const oneLhaasoDetailMarkup = (data) => {
+    const notes = data.notes || {};
+    const components = Array.isArray(notes.components) ? notes.components : [];
+    const number = (value, unit = '') => value === null || value === undefined || value === '' ? translate('noData') : String(value) + unit;
+    const limitOrValue = (row, field, errorField, limitField, unit = '') => row[limitField] !== null && row[limitField] !== undefined
+      ? '< ' + number(row[limitField], unit) + (field === 'r39_deg' ? ' (95% CL)' : '')
+      : number(row[field], unit) + (row[errorField] !== null && row[errorField] !== undefined ? ' ± ' + number(row[errorField], unit) + (field === 'r39_deg' ? ' (1σ stat.)' : '') : '');
+    const rows = components.map((row) => `<tr><td>${escapeHtml(displayValue(row.component))}</td><td>${escapeHtml(number(row.ra_deg, '°'))} / ${escapeHtml(number(row.dec_deg, '°'))}</td><td>${escapeHtml(limitOrValue(row, 'r39_deg', 'r39_error_deg', 'r39_upper_limit_deg', '°'))}</td><td>${escapeHtml(number(row.ts))}</td><td>${escapeHtml(limitOrValue(row, 'n0_value', 'n0_error', 'n0_upper_limit'))}<br><small>${escapeHtml(displayValue(row.n0_units))}; E0=${escapeHtml(number(row.reference_energy_tev, ' TeV'))}</small></td><td>${escapeHtml(number(row.photon_index))}${row.photon_index_error !== null && row.photon_index_error !== undefined ? ' ± ' + escapeHtml(number(row.photon_index_error)) : ''}</td><td>${escapeHtml(number(row.ts100))}</td><td>${escapeHtml(displayValue(row.association))}</td></tr>`).join('');
+    return `<section class="detail-section"><h3>1LHAASO Table 2</h3><dl class="detail-grid">
+      <div><dt>Published name</dt><dd>${escapeHtml(displayValue(notes.published_name))}</dd></div>
+      <div><dt>Representative component</dt><dd>${escapeHtml(displayValue(notes.representative_component))}</dd></div>
+    </dl><div class="detail-table-wrap"><table class="detail-component-table"><thead><tr><th>Component</th><th>RA / Dec</th><th>r39</th><th>TS</th><th>N0</th><th>Index</th><th>TS100</th><th>Table 2 preliminary positional counterpart</th></tr></thead><tbody>${rows}</tbody></table></div><p>${escapeHtml(notes.scientific_boundary || '')}</p></section>`;
+  };
   const gaiaDetailMarkup = (data) => {
     const fields=data.notes?.query_fields || {}, distance=data.notes?.distance || {}, val=(value, unit='') => value === null || value === undefined ? escapeHtml(translate('noData')) : escapeHtml(String(value)) + unit;
     return `<section class="detail-section"><h3>Gaia DR3</h3><dl class="detail-grid">
@@ -425,7 +438,7 @@
 
   const detailMarkup = (data) => {
     const status = data.status || {}, geometry = status.geometry || {}, enrichment = data.enrichment || {}, reasons = status.reasons || [];
-    const catalogueSpecific = data.catalogue_id === "tevcat" ? tevcatDetailMarkup(data) : data.source_type === "gaia" ? gaiaDetailMarkup(data) : "";
+    const catalogueSpecific = data.catalogue_id === "1lhaaso" ? oneLhaasoDetailMarkup(data) : data.catalogue_id === "tevcat" ? tevcatDetailMarkup(data) : data.source_type === "gaia" ? gaiaDetailMarkup(data) : "";
     const centreLabel = status.center_pass ? translate("centrePass") : translate("centreFail");
     const footprintLabel = status.footprint_pass ? translate("footprintPass") : translate("footprintFail");
     const measured = (value, digits = 3) => (value === null || value === undefined || value === "")
@@ -446,7 +459,7 @@
       </dl>
       <section class="detail-section"><h3>${escapeHtml(translate("statusReasons"))}</h3><ul class="reason-list">${reasons.map((reason) => `<li>${escapeHtml(formatReason(reason))}</li>`).join("")}</ul></section>
       ${catalogueSpecific}
-      <section class="detail-section" ${data.catalogue_id === "2lhaaso" ? "" : "hidden"}><h3>${escapeHtml(translate("enrichment"))}</h3><dl class="detail-grid">
+      <section class="detail-section" hidden><h3>${escapeHtml(translate("enrichment"))}</h3><dl class="detail-grid">
         <div><dt>Spectral model</dt><dd>${escapeHtml(displayValue(enrichment.spectral_model))}</dd></div>
         <div><dt>Spatial model</dt><dd>${escapeHtml(displayValue(enrichment.spatial_model))}</dd></div>
         <div><dt>Distance</dt><dd>${escapeHtml(displayValue(enrichment.distance))}</dd></div>

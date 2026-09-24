@@ -21,7 +21,7 @@ def test_catalogue_picker_is_inside_each_all_sky_panel_and_has_explicit_actions(
     assert 'id="catalogue-picker-popup"' in PANEL
     assert 'id="catalogue-confirm"' in PANEL
     assert "data-catalogue-cancel" in PANEL
-    assert "Currently imported: the 2LHAASO source catalogue." not in INDEX
+    assert "Currently imported: the 1LHAASO source catalogue." not in INDEX
 
 
 def test_catalogue_draft_and_stable_key_contracts_are_explicit():
@@ -78,10 +78,10 @@ def test_browser_draft_cancel_confirm_empty_and_real_source_identity(browser_pag
 
     page.locator("[data-catalogue-cancel]").last.click()
     assert not page.locator('[data-catalogue-id="fermi-3fhl"]').is_checked()
-    assert page.locator("#catalogue-picker-summary").inner_text() == "2LHAASO"
+    assert page.locator("#catalogue-picker-summary").inner_text() == "1LHAASO"
 
     page.locator("#catalogue-picker-toggle").click()
-    page.locator('[data-catalogue-id="2lhaaso"]').uncheck()
+    page.locator('[data-catalogue-id="1lhaaso"]').uncheck()
     page.locator('[data-catalogue-id="fermi-3fhl"]').check()
     with page.expect_response(lambda response: "/api/v1/sky/current?" in response.url) as sky_info:
         with page.expect_response(lambda response: "/api/v1/sources?" in response.url) as search_info:
@@ -117,7 +117,7 @@ def test_browser_draft_cancel_confirm_empty_and_real_source_identity(browser_pag
 
 def _load_result(page):
     form = {
-        "source_key": "2lhaaso:J0534+2200", "source_index": "region", "catalog_tokens": "2lhaaso",
+        "source_key": "1lhaaso:J0534+2200u", "source_index": "region", "catalog_tokens": "1lhaaso",
         "start_time": "2026-09-16T19:00", "end_time": "2026-09-16T19:01",
         "sun_max_altitude_deg": "-18", "moon_min_separation_deg": "30",
         "target_min_zenith_deg": "0", "target_max_zenith_deg": "60", "minimum_window_seconds": "0",
@@ -146,7 +146,7 @@ def test_browser_result_picker_is_inside_map_and_never_replaces_result_target(br
     assert not page.locator('[data-catalogue-id="fermi-3fhl"]').is_checked()
 
     page.locator("#catalogue-picker-toggle").click()
-    page.locator('[data-catalogue-id="2lhaaso"]').uncheck()
+    page.locator('[data-catalogue-id="1lhaaso"]').uncheck()
     page.locator('[data-catalogue-id="fermi-3fhl"]').check()
     with page.expect_response(lambda response: "/api/v1/sky/current?" in response.url) as sky_info:
         page.locator("#catalogue-confirm").click()

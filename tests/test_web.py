@@ -32,7 +32,7 @@ def test_health_and_config_expose_provenance_and_scope_boundaries():
     assert health.status_code == 200
     data = health.json()
     assert data["status"] == "ok"
-    assert data["catalogue"]["rows"] == 190
+    assert data["catalogue"]["rows"] == 90
     assert data["iers"]["covers_current_time"] is True
 
     config = client.get("/api/v1/config").json()
@@ -45,9 +45,9 @@ def test_health_and_config_expose_provenance_and_scope_boundaries():
 
 
 def test_source_list_search_and_detail_contract():
-    response = client.get("/api/v1/sources", params={"q": "Geminga"})
+    response = client.get("/api/v1/sources", params={"q": "J0634+1741u"})
     assert response.status_code == 200
-    assert response.json()["sources"][0]["display_name"] == "2LHAASO Geminga"
+    assert response.json()["sources"][0]["display_name"] == "1LHAASO J0634+1741u"
 
     detail = client.get(
         "/api/v1/sources/11", params={"at_time": "2026-12-15T16:00:00Z"}
@@ -55,15 +55,17 @@ def test_source_list_search_and_detail_contract():
     assert detail.status_code == 200
     data = detail.json()
     assert data["coordinate_frame"] == "FK5 J2000"
-    assert data["display_name"].startswith("2LHAASO ")
+    assert data["display_name"].startswith("1LHAASO ")
     assert "p_err(95%)" in data
-    assert data["enrichment"]["verification_status"] == "unverified"
+    assert data["enrichment"]["published_name"].startswith("1LHAASO ")
+    assert len(data["enrichment"]["components"]) == 2
+    assert "r39" in data["enrichment"]["scientific_boundary"]
     assert data["geometry_only"] is True
 
 
 def test_unknown_source_and_invalid_query_are_clean_errors():
     assert client.get("/api/v1/sources/999").status_code == 404
-    assert client.get("/api/v1/sources/190").status_code == 404
+    assert client.get("/api/v1/sources/90").status_code == 404
     assert client.get("/api/v1/sources", params={"limit": 2001}).status_code == 422
     invalid_range = {"target_min_zenith_deg": 70, "target_max_zenith_deg": 20}
     assert client.get("/api/v1/sources/11", params=invalid_range).status_code == 422
@@ -77,8 +79,8 @@ def test_sky_api_has_clickable_stable_source_ids_and_counts():
     )
     assert response.status_code == 200
     data = response.json()
-    assert len(data["sources"]) == 190
-    assert data["visible_source_count"] + data["below_horizon_source_count"] == 190
+    assert len(data["sources"]) == 90
+    assert data["visible_source_count"] + data["below_horizon_source_count"] == 90
     assert 'data-source-index="11"' in data["svg"]
     # English is the documented API default. Labels are selected explicitly
     # through language=zh for the Chinese UI, not inferred from the browser.
@@ -496,7 +498,7 @@ def test_telescope_controls_and_current_fov_contract_are_rendered_and_local():
     assert 'id="sky-zoom-out"' in home.text
     assert 'data-i18n="allFieldsRequired"' not in home.text
     assert 'data-i18n="blankDisables"' not in home.text
-    assert 'V0: geometry assessment only' in home.text
+    assert 'V2.1: geometry assessment only' in home.text
 
     custom = {
         "telescope_mode": "custom",
@@ -654,9 +656,9 @@ def test_empty_full_window_ranges_classify_every_source_red():
     )
     assert response.status_code == 200
     payload = response.json()
-    assert len(payload["sources"]) == 190
+    assert len(payload["sources"]) == 90
     assert all(item["status"] == "RED" for item in payload["sources"])
-    assert payload["svg"].count('class="source-marker ') == 190
+    assert payload["svg"].count('class="source-marker ') == 90
     import xml.etree.ElementTree as ET
     assert not any("trajectory-highlight" in node.get("class", "").split()
                    for node in ET.fromstring(payload["svg"]).iter())  # no highlighted marker; CSS rules are allowed
@@ -841,7 +843,7 @@ def test_observation_window_positions_share_one_explicit_instant():
     response = client.get("/api/v1/sky/current", params=params)
     assert response.status_code == 200
     payload = response.json()
-    assert len(payload["sources"]) == 190
+    assert len(payload["sources"]) == 90
     assert 'selected-source' in payload["svg"]
     instant = client.get("/api/v1/sky/current", params={"at_time": "2026-12-15T10:30:00Z"}).json()
     by_index = {item["index"]: item for item in instant["sources"]}

@@ -45,6 +45,16 @@ minimum_window_seconds=0 只表示不按持续时间过滤。含至少一个采�
 
 ## 5. 数据维护与 TeVCat
 
+默认 1LHAASO 目录由 `scripts/build_1lhaaso_catalogue.py` 从公开论文 Table 2 的机器表生成：
+
+~~~bash
+.venv/bin/python scripts/build_1lhaaso_catalogue.py \
+  --table /secure/input/table.csv \
+  --output data/catalogues/1lhaaso.json
+~~~
+
+构建器要求审计过的输入 SHA-256，验证 90 个唯一源、180 个组件和字段模式，并记录论文 DOI、论文 PDF/机器表哈希、单位与 Astropy 版本。双组件源按有坐标组件中 TS 最高者选代表坐标；每个组件的原始字段、缺失值和上限都保存在 `notes.components`。`r39` 仅是二维高斯 39% containment radius：测得扩展的误差是 1σ 统计误差，点源上限为 95% 置信上限；不得写入 `planning_radius_deg` 或用作硬边界。Table 2 关联项只表示论文按位置搜索得到的初步已知 TeV 对应体，不是 Skyward 核验身份。机器表中 `N0=0` 且误差列有值的未探测分量按论文定义规范化为 upper limit。`1lhaaso` 是默认且唯一的 LHAASO 运行目录；`2lhaaso` 不得出现在 `BUILTIN_CATALOGUES`、页面选择器、API 示例、发布树或源码包中，临时上传也必须拒绝 2LHAASO 保留名。TeVCat 重建审计同时保留 1LHAASO 文本关联检查，并把任何 2LHAASO 文本列为发布失败。关于 2LHAASO 的文档文字只能用于解释“尚未公开、未随包提供”的发布边界。
+
 Fermi 构建使用 scripts/build_fermi_catalogues.py，保留 FITS 字段、单位和版本；位置误差不是物理 extension；显示名去掉重复目录前缀。
 
 TeVCat www 公共快照可复现流程：
@@ -74,19 +84,19 @@ node --check app/static/app.js
 git diff --check
 ~~~
 
-真实 Chromium 还应覆盖：源表草稿/确认/空选择、全天无 Gaia 请求、局部 Gaia 加载按钮和 1°/10/10 默认筛选、自定义筛选、普通源保留、取消/陈旧响应、三坐标、固定/实时、主题/语言、375 px 无溢出。数据测试覆盖 TeVCat 点源/未知 footprint、Gaia 字段和 30 天块边界。浏览器工具不加入生产依赖。
+真实 Chromium 还应覆盖：源表草稿/确认/空选择、全天无 Gaia 请求、局部 Gaia 加载按钮和 1°/10/10 默认筛选、自定义筛选、普通源保留、取消/陈旧响应、三坐标、固定/实时、主题/语言、375 px 无溢出。数据测试覆盖 1LHAASO 90/180 数量、代表坐标、单位、上限、未知 footprint、2LHAASO 不可服务，TeVCat 点源/未知 footprint、Gaia 字段和 30 天块边界。浏览器工具不加入生产依赖。
 
 ## 8. 版本与发布
 
 完整版本格式为 主版本.小版本.YYYYMMDD。主版本表示架构代际，小版本按功能里程碑递增，日期是里程碑确认日期。
 
-- 1.1.20260901：初始窗口规划器、可扩展望远镜范围和 V0 边界。
+- 1.1.20260901：初始窗口规划器、可扩展望远镜范围和仅几何边界。
 - 1.2.20260911：源表 overlay 与多坐标显示。
 - 1.3.20260916：多源表、可靠 Gaia 查询和部署体系。
 - 1.4.20260919：确认式源表交互、稀疏网格和数据说明。
 - 1.5.20260919：TeVCat/Gaia/30 天规划升级。
 - 1.6.20260919：长时间范围展示内存有界修复。
-- **2.1.20260924**：Gaia 收窄为结果局部 FoV，固定 10° 局部图，共享地图状态与无计算页面恢复，可编辑多窗口观测计划和 XLSX/SVG 导出，专用备选源目录，Zenith-Time 并发刷新修复，以及文档重构。
+- **2.1.20260924**：Gaia 收窄为结果局部 FoV，固定 10° 局部图，共享地图状态与无计算页面恢复，可编辑多窗口观测计划和 XLSX/SVG 导出，专用备选源目录，Zenith-Time 并发刷新修复；默认目录替换为公开论文 Table 2 的 1LHAASO，并从当前发布树移除未公开 2LHAASO 文件；同步完成文档重构。
 
 2.1.20260924 已按用户明确发布指令确认为正式版本，发布包为 skyward-v2.1.zip。后续仍只有在用户明确要求以新版本号发布后，才确认日期、通过全量测试与可用的浏览器验收，并从受控干净源码创建 skyward-v<主版本.小版本>.zip。例如 1.6.20260919 对应 skyward-v1.6.zip。包名省略日期，包内保存完整版本、日期、Git 状态、清单和 SHA-256；排除 .venv、缓存、凭据、个人文件和临时产物。普通开发不得自动增加版本号或生成正式包。
 

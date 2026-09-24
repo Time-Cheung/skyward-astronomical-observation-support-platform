@@ -7,13 +7,13 @@ TEMPLATES = ROOT / "app" / "templates"
 STATIC = ROOT / "app" / "static"
 
 
-def test_about_and_api_titles_reuse_home_v0_title_class():
+def test_about_and_api_titles_reuse_home_page_title_class():
     index = (TEMPLATES / "index.html").read_text(encoding="utf-8")
     about = (TEMPLATES / "about.html").read_text(encoding="utf-8")
     api = (TEMPLATES / "api.html").read_text(encoding="utf-8")
-    assert 'class="v0-title" data-i18n="homeTitle"' in index
-    assert 'class="v0-title" data-i18n="aboutTitle"' in about
-    assert 'class="v0-title" data-i18n="apiTitle"' in api
+    assert 'class="page-title" data-i18n="homeTitle"' in index
+    assert 'class="page-title" data-i18n="aboutTitle"' in about
+    assert 'class="page-title" data-i18n="apiTitle"' in api
 
 
 def test_data_notes_have_usage_and_separate_current_goal_future_scope():
@@ -54,7 +54,7 @@ def test_catalogue_guide_is_one_select_with_five_targeted_choices():
     assert select is not None
     assert " multiple" not in select.group(0)
     values = re.findall(r'<option value="([^"]+)">', select.group(1))
-    assert values == ["2lhaaso", "fermi-fl16y", "fermi-3fhl", "tevcat", "gaia-dr3"]
+    assert values == ["1lhaaso", "fermi-fl16y", "fermi-3fhl", "tevcat", "gaia-dr3"]
     assert 'data-i18n="catalogueTitle"' not in about
     assert 'data-about-i18n="catalogueGuideTitle"' in about
 

@@ -16,7 +16,7 @@ JS = (ROOT / 'app/static/app.js').read_text()
 
 def test_shared_layers_and_gaia_loader_have_explicit_empty_semantics():
     panel = (ROOT / 'app/templates/_catalogue_panel.html').read_text()
-    for identifier in ('2lhaaso', 'fermi-fl16y', 'fermi-3fhl', 'tevcat'):
+    for identifier in ('1lhaaso', 'fermi-fl16y', 'fermi-3fhl', 'tevcat'):
         assert identifier in panel
     assert 'gaia-dr3' not in panel
     for name in ('index.html', 'result.html'):
@@ -200,8 +200,8 @@ def test_browser_deep_zoom_preserves_rendered_symbol_and_text_sizes(browser_page
 
 
 def _post_result(page, **overrides):
-    form = {'source_key': '2lhaaso:J0534+2200', 'source_index': 'region',
-            'catalog_tokens': '2lhaaso', 'start_time': '2026-09-16T19:00',
+    form = {'source_key': '1lhaaso:J0534+2200u', 'source_index': 'region',
+            'catalog_tokens': '1lhaaso', 'start_time': '2026-09-16T19:00',
             'end_time': '2026-09-16T19:01', 'sun_max_altitude_deg': '-18',
             'moon_min_separation_deg': '30', 'target_min_zenith_deg': '0',
             'target_max_zenith_deg': '60', 'minimum_window_seconds': '0'}
@@ -215,7 +215,7 @@ def test_browser_validation_rerender_retains_stable_source_key(browser_page):
     page = browser_page
     response = _post_result(page, target_min_zenith_deg='80', target_max_zenith_deg='20')
     assert response.status == 422
-    assert page.locator('#source-key-input').input_value() == '2lhaaso:J0534+2200'
+    assert page.locator('#source-key-input').input_value() == '1lhaaso:J0534+2200u'
     assert 'J0534+2200' in page.locator('#source-picker-value').inner_text()
     assert not page.locator('#region-fields').is_visible()
 
@@ -263,7 +263,7 @@ def test_browser_plot_latest_response_wins_and_override_is_preserved(browser_pag
         return original(url,options);
       };
     }''')
-    for index, key in enumerate(('2lhaaso:Geminga', '2lhaaso:J0534+2221')):
+    for index, key in enumerate(('1lhaaso:J0634+1741u', '1lhaaso:J0534+3533')):
         page.evaluate('''key=>{const button=document.createElement('button');button.id='test-detail';button.dataset.openSource=key;document.body.append(button);button.click();button.remove();}''', key)
         page.wait_for_function("!document.querySelector('#dialog-add-zenith').hidden")
         page.locator('#dialog-add-zenith').click()
@@ -287,7 +287,7 @@ def test_browser_nominal_override_is_scoped_to_result_target(browser_page):
     # Stop before network submission to inspect exactly what each replacement
     # would submit, including switching back after a cancelled different target.
     page.evaluate("document.querySelector('#replace-source-form').requestSubmit=()=>{}")
-    for key, expected in [('2lhaaso:Geminga', ''), ('2lhaaso:J0534+2200', '0.42'), ('2lhaaso:J0534+2221', '')]:
+    for key, expected in [('1lhaaso:J0634+1741u', ''), ('1lhaaso:J0534+2200u', '0.42'), ('1lhaaso:J0534+3533', '')]:
         page.evaluate('''key=>{const button=document.createElement('button');button.dataset.openSource=key;document.body.append(button);button.click();button.remove();}''', key)
         page.wait_for_function("!document.querySelector('#dialog-use-source').hidden")
         url = next(url for url in reversed(detail_calls) if unquote(urlsplit(url).path).endswith(key))

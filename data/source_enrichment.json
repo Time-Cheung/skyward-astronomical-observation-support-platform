@@ -1,5 +1,5 @@
 {
   "schema_version": 1,
-  "description": "Optional manually verified metadata for 2LHAASO sources. Empty in the first draft.",
+  "description": "Reserved optional manually verified metadata. Empty in Skyward V2.1.",
   "sources": {}
 }

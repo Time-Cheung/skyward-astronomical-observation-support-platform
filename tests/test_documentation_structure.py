@@ -23,7 +23,7 @@ def test_documentation_is_one_root_entry_plus_six_formal_guides():
     assert sorted(path.name for path in DOCS.iterdir()) == sorted(path.name for path in FORMAL)
     root = (ROOT / "README.md").read_text(encoding="utf-8")
     assert len(root.splitlines()) <= 20
-    assert "v2.1" in root and "2.1.20260924" in root
+    assert "V2.1" in root and "2.1.20260924" in root
     assert 'version="2.1.20260924"' in (ROOT / "app/main.py").read_text(encoding="utf-8")
     for path in FORMAL:
         assert f"docs/{path.name}" in root

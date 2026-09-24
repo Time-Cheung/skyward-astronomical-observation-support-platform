@@ -7,6 +7,7 @@ import json
 import math
 import secrets
 import time
+import unicodedata
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
@@ -45,10 +46,10 @@ class Source:
     l: float
     b: float
     p_err_95: Optional[float]
-    catalogue_label: str = "2LHAASO"
+    catalogue_label: str = "1LHAASO"
     source_type: str = "catalogue"
     gaia_mag: Optional[float] = None
-    catalogue_id: str = "2lhaaso"
+    catalogue_id: str = "1lhaaso"
     original_id: str = ""
     original_row: Optional[int] = None
     footprint_known: bool = True
@@ -207,7 +208,7 @@ def _validate_sources(
     if require_canonical_indexes:
         expected_indexes = list(range(CATALOG_EXPECTED_ROWS))
         if [source.index for source in sources] != expected_indexes:
-            raise CatalogError("Catalogue indexes must be contiguous and ordered 0-189")
+            raise CatalogError(f"Catalogue indexes must be contiguous and ordered 0-{CATALOG_EXPECTED_ROWS - 1}")
     return sources
 
 class CatalogCollection:
@@ -228,6 +229,8 @@ class CatalogCollection:
         self.label = " + ".join(getattr(item, "label", "Catalogue") for item in self.catalogues)
         self.identifier = ",".join(getattr(item, "identifier", getattr(item, "token", "upload")) for item in self.catalogues)
         self.sha256 = _hash_bytes("|".join(getattr(item, "sha256", "") for item in self.catalogues).encode("utf-8"))
+        self.provenance = getattr(self.catalogues[0], "provenance", {}) if len(self.catalogues) == 1 else {}
+        self.display = getattr(self.catalogues[0], "display", {}) if len(self.catalogues) == 1 else {}
 
     def get(self, index: int | str) -> Source:
         try:
@@ -235,7 +238,7 @@ class CatalogCollection:
         except (KeyError, ValueError) as exc:
             raise KeyError(f"Unknown source identity: {index}") from exc
 
-    def search(self, query: str = "", limit: Optional[int] = 190, offset: int = 0) -> List[Source]:
+    def search(self, query: str = "", limit: Optional[int] = None, offset: int = 0) -> List[Source]:
         needle = query.strip().casefold()
         matches = [source for source in self.sources if not needle or needle in source.name.casefold() or needle in source.display_name.casefold() or needle in source.source_key.casefold()]
         matches.sort(key=lambda source: (source.name.casefold(), source.catalogue_label.casefold(), source.index))
@@ -243,12 +246,12 @@ class CatalogCollection:
 
 
 class Catalog:
-    """Reviewed built-in 2LHAASO catalogue with strict provenance checks."""
+    """Legacy CSV catalogue loader retained for operator-supplied compatibility."""
 
-    identifier = "2lhaaso"
-    label = "2LHAASO"
+    identifier = "legacy-csv"
+    label = "Legacy CSV"
 
-    def __init__(self, path: Path = CATALOG_PATH) -> None:
+    def __init__(self, path: Path) -> None:
         self.path = Path(path)
         self.sha256 = self._hash_file()
         self.sources = self._load()
@@ -326,6 +329,17 @@ class TemporaryCatalogStore:
         for token in [key for key, value in self._catalogues.items() if value.expires_at <= now]:
             del self._catalogues[token]
 
+    @staticmethod
+    def _label(value: object) -> str:
+        label = str(value or "Uploaded catalogue").strip()[:48] or "Uploaded catalogue"
+        normalized = "".join(
+            character for character in unicodedata.normalize("NFKC", label).casefold()
+            if character.isalnum()
+        )
+        if normalized.startswith("2lhaaso"):
+            raise CatalogError("Uploaded catalogue labels must not use the reserved unpublished 2LHAASO name")
+        return label
+
     def create_from_rows(
         self, rows: Sequence[dict], label: str, source_type: str = "catalogue",
         raw: Optional[bytes] = None,
@@ -338,7 +352,7 @@ class TemporaryCatalogStore:
         normalised = [dict(row) for row in rows]
         for index, row in enumerate(normalised):
             row.setdefault("index", index)
-        safe_label = str(label or "Uploaded catalogue").strip()[:48] or "Uploaded catalogue"
+        safe_label = self._label(label)
         sources = tuple(_validate_sources(
             normalised, label=safe_label, require_canonical_indexes=False, source_type=source_type
         ))
@@ -375,7 +389,7 @@ class TemporaryCatalogStore:
             raise CatalogError(f"Uploaded catalogue exceeds {self.MAX_ROWS} source rows")
         for index, row in enumerate(rows):
             row["index"] = index
-        label = Path(filename or "Uploaded catalogue").stem.strip()[:48] or "Uploaded catalogue"
+        label = self._label(Path(filename or "Uploaded catalogue").stem)
         sources = tuple(_validate_sources(rows, label=label, require_canonical_indexes=False))
         temporary = TemporaryCatalog(
             token=secrets.token_urlsafe(18), label=label, sha256=_hash_bytes(raw),
@@ -477,6 +491,9 @@ class JSONCatalog:
     def get(self, identity):
         return self._collection.get(identity)
 
+    def search(self, query: str = "", limit: Optional[int] = None, offset: int = 0) -> List[Source]:
+        return self._collection.search(query, limit, offset)
+
 
 BUILTIN_CATALOGUES = {
     "fermi-fl16y": ("Fermi FL16Y", 10_000, 7224),
@@ -487,11 +504,11 @@ _BUILTIN_CACHE = {}
 
 
 def installed_catalogue(identifier: str):
-    if identifier == "2lhaaso":
+    if identifier == "1lhaaso":
         return catalog
     if identifier not in BUILTIN_CATALOGUES:
         raise KeyError(identifier)
-    path = CATALOG_PATH.parent / "catalogues" / f"{identifier}.json"
+    path = CATALOG_PATH.parent / f"{identifier}.json"
     if not path.is_file():
         raise CatalogError(f"Catalogue not installed: {identifier}")
     stamp = path.stat().st_mtime_ns
@@ -508,7 +525,7 @@ def resolve_source(identity: int | str) -> Source:
     """Resolve a target independently of the current display-layer selection."""
     if isinstance(identity, str) and ":" in identity:
         identifier, _ = identity.split(":", 1)
-        table = installed_catalogue(identifier) if identifier in {"2lhaaso", *BUILTIN_CATALOGUES} else temporary_catalogues.get(identifier)
+        table = installed_catalogue(identifier) if identifier in {"1lhaaso", *BUILTIN_CATALOGUES} else temporary_catalogues.get(identifier)
         return CatalogCollection([table]).get(identity)
     index = int(identity)
     if 0 <= index < CATALOG_EXPECTED_ROWS:
@@ -525,6 +542,6 @@ def resolve_source(identity: int | str) -> Source:
     raise KeyError(f"Unknown source identity: {identity}")
 
 
-catalog = Catalog()
+catalog = JSONCatalog(CATALOG_PATH, "1lhaaso", 0, CATALOG_EXPECTED_ROWS)
 temporary_catalogues = TemporaryCatalogStore()
 enrichment_store = EnrichmentStore()

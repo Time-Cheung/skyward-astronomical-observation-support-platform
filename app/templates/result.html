@@ -157,7 +157,7 @@
 
 {% if source_detail %}
 <section class="source-data-panel">
-  <div class="panel-heading"><div><p class="section-label" data-i18n="sourceDetails">SOURCE DETAILS</p><h2 data-i18n="catalogueAndEnrichment">2LHAASO and unverified enrichment</h2></div><button class="secondary-button" type="button" data-open-source="{{ source.index }}" data-i18n="openDetails">Open details</button></div>
+  <div class="panel-heading"><div><p class="section-label" data-i18n="sourceDetails">SOURCE DETAILS</p><h2 data-i18n="catalogueAndEnrichment">Catalogue data and provenance</h2></div><button class="secondary-button" type="button" data-open-source="{{ source.index }}" data-i18n="openDetails">Open details</button></div>
   <dl class="source-data-grid">
     <div><dt data-i18n="galacticCoordinates">Galactic coordinates</dt><dd>l {{ '%.3f'|format(source.l) }}°, b {{ '%+.3f'|format(source.b) }}°</dd></div>
     <div><dt data-i18n="positionError">95% position error</dt><dd>{{ '%.3f'|format(source.p_err_95) ~ '°' if source.p_err_95 is not none else 'not provided' }}</dd></div>

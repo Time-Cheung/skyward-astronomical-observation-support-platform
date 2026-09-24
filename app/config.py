@@ -11,7 +11,7 @@ from astropy.coordinates import EarthLocation
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-CATALOG_PATH = DATA_DIR / "2LHAASO.txt"
+CATALOG_PATH = DATA_DIR / "catalogues" / "1lhaaso.json"
 ENRICHMENT_PATH = DATA_DIR / "source_enrichment.json"
 IERS_BUNDLED_PATH = DATA_DIR / "iers" / "finals2000A.all"
 IERS_CACHE_DIR = Path(os.environ.get("SKYWARD_CACHE_DIR", str(Path.home() / ".cache" / "skyward"))) / "iers"
@@ -206,7 +206,7 @@ CATALOG_CANONICAL_COLUMNS = (
     "index", "name", "ext", "ext_err", "ra", "dec", "l", "b", "p_err(95%)",
 )
 CATALOG_EXPECTED_COLUMNS = CATALOG_CANONICAL_COLUMNS
-CATALOG_EXPECTED_ROWS = 190
+CATALOG_EXPECTED_ROWS = 90
 
 CAPABILITIES = {
     "geometry": True,

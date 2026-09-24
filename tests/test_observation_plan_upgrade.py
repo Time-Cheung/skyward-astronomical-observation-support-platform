@@ -34,13 +34,13 @@ def test_window_ranking_prefers_overlap_then_gap_duration_and_stable_key():
 
 def test_alternative_endpoint_returns_real_ranked_catalogue_sources_without_pointing_constraint():
     target = CLIENT.get(
-        "/api/v1/sources", params={"catalog_tokens": "2lhaaso", "limit": 1}
+        "/api/v1/sources", params={"catalog_tokens": "1lhaaso", "limit": 1}
     ).json()["sources"][0]
     response = CLIENT.post(
         "/api/v1/windows/alternatives",
         json={
             "source_key": target["source_key"],
-            "catalog_tokens": "2lhaaso",
+            "catalog_tokens": "1lhaaso",
             "search_start": "2026-09-22T00:00:00Z",
             "search_end": "2026-09-22T03:00:00Z",
             "target_window_start": "2026-09-22T00:30:00Z",
@@ -74,7 +74,7 @@ def test_uploaded_alternative_catalogue_is_exclusive_candidate_pool(monkeypatch)
     )
     assert upload.status_code == 200, upload.text
     token = upload.json()["token"]
-    target = CLIENT.get("/api/v1/sources", params={"catalog_tokens": "2lhaaso", "limit": 1}).json()["sources"][0]
+    target = CLIENT.get("/api/v1/sources", params={"catalog_tokens": "1lhaaso", "limit": 1}).json()["sources"][0]
     captured = {}
 
     def fake_find(candidates, target_source, *args, **kwargs):
@@ -90,7 +90,7 @@ def test_uploaded_alternative_catalogue_is_exclusive_candidate_pool(monkeypatch)
         "/api/v1/windows/alternatives",
         json={
             "source_key": target["source_key"],
-            "catalog_tokens": "2lhaaso",
+            "catalog_tokens": "1lhaaso",
             "alternative_catalog_token": token,
             "search_start": "2026-09-22T00:00:00Z",
             "search_end": "2026-09-22T01:00:00Z",
@@ -107,7 +107,7 @@ def test_uploaded_alternative_catalogue_is_exclusive_candidate_pool(monkeypatch)
     data = response.json()
     assert data["candidate_scope"] == "uploaded_alternative_catalogue"
     assert data["candidate_catalogues"][0]["token"] == token
-    assert data["catalogues"][0]["identifier"] == "2lhaaso"
+    assert data["catalogues"][0]["identifier"] == "1lhaaso"
 
 
 def _result_params(nominal_radius_deg):

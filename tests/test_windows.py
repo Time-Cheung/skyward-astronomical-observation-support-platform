@@ -201,7 +201,7 @@ def test_full_footprint_window_includes_conservative_valid_plan_seconds():
         assert scalar_evaluation(geometry, src.ext, result.constraints).footprint_pass[0]
 
 
-def test_real_crab_winter_window_and_footprint_are_consistent():
+def test_public_crab_unknown_footprint_uses_warned_point_fallback():
     start = datetime(2026, 12, 15, 10, tzinfo=timezone.utc)
     end = start + timedelta(hours=24)
     constraints = ConstraintSet(
@@ -209,21 +209,21 @@ def test_real_crab_winter_window_and_footprint_are_consistent():
         target_max_zenith_deg=50,
         minimum_window_seconds=1800,
     )
-    result = calculate_windows(catalog.get(11), start, end, constraints)
+    result = calculate_windows(catalog.get(13), start, end, constraints)
     assert len(result.center_windows) == 1
     assert len(result.full_footprint_windows) == 1
     center = result.center_windows[0]
     full = result.full_footprint_windows[0]
-    assert center.start < full.start < full.end < center.end
+    assert full.to_dict() == center.to_dict()
     assert center.duration_seconds > 7 * 3600
-    assert (center.start - start).total_seconds() == pytest.approx(13056, abs=2)
-    assert not result.warnings
+    assert (center.start - start).total_seconds() == pytest.approx(13053.5, abs=2)
+    assert "point_source_fallback" in result.warnings
 
 
 def test_moon_constraint_uses_observer_frame_and_can_leave_a_crab_window():
     start = datetime(2026, 12, 15, 10, tzinfo=timezone.utc)
     result = calculate_windows(
-        catalog.get(11),
+        catalog.get(13),
         start,
         start + timedelta(hours=24),
         ConstraintSet(moon_min_separation_deg=20),
@@ -246,7 +246,7 @@ def test_catalogue_windows_match_single_source_across_chunk_boundary():
     AltAz transformation, duplicate-boundary removal and per-source window
     reconstruction against the ordinary single-target implementation.
     """
-    sources = [catalog.get(11), catalog.get(57), catalog.get(168)]
+    sources = [catalog.get(13), catalog.get(57), catalog.get(89)]
     start = datetime(2026, 12, 15, 0, 8, tzinfo=timezone.utc)
     end = start + timedelta(minutes=5)
     constraints = ConstraintSet(

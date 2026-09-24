@@ -48,6 +48,7 @@ def audit(root):
     authorities = Counter()
     unresolved = []
     mentions = []
+    forbidden_mentions = []
     citation_ids = set()
     all_referenced = set()
 
@@ -121,9 +122,15 @@ def audit(root):
         if still_absent:
             unresolved.append({"source_id": sid, "citation_ids": still_absent})
         text = json.dumps({k: detail.get(k) for k in ["names", "comment_public", "other_catalogs"]}, ensure_ascii=False)
-        if "2lhaaso" in text.lower():
+        normalized_text = text.casefold()
+        if "1lhaaso" in normalized_text:
             mentions.append({"source_id": sid, "name": source["name"], "url": base + "/sources/" + sid,
                              "status": "Textual mention only; requires association evidence review"})
+        if "2lhaaso" in normalized_text:
+            forbidden = {"source_id": sid, "name": source["name"],
+                         "error": "Unpublished 2LHAASO text present in public TeVCat staging"}
+            forbidden_mentions.append(forbidden)
+            failures.append(forbidden)
 
     complete = (bool(manifest.get("complete")) and not failures and not unresolved
                 and len(sources) == manifest.get("expected_sources") == manifest.get("expected_count_guard"))
@@ -136,10 +143,12 @@ def audit(root):
             "globally_unresolved_reference_ids": sorted(all_referenced - citation_ids),
             "earliest_page_retrieved_at": min(timestamps) if timestamps else None,
             "latest_page_retrieved_at": max(timestamps) if timestamps else None,
-            "two_lhaaso_textual_mentions": mentions, "failures": failures,
+            "one_lhaaso_textual_mentions": mentions,
+            "forbidden_two_lhaaso_textual_mentions": forbidden_mentions, "failures": failures,
             "notes": ["Coverage reports field presence, not scientific validity.",
                       "Zero values in the upstream schema can be placeholders; do not infer zero physical flux/distance or zero uncertainty.",
-                      "2LHAASO textual mentions are not verified source associations.",
+                      "1LHAASO textual mentions are not verified cross-catalogue associations.",
+                      "Any 2LHAASO text is a release-blocking failure because that catalogue is unpublished.",
                       "A successful acquisition audit does not authorize redistribution of site prose or scientific papers."]}
 
 

@@ -1,5 +1,5 @@
 {# The checked boxes are draft state. JavaScript keeps the applied selection separately. #}
-{% set selected_layers = (form_values.catalog_tokens if form_values.catalog_tokens is defined and form_values.catalog_tokens is not none else '2lhaaso').split(',') %}
+{% set selected_layers = (form_values.catalog_tokens if form_values.catalog_tokens is defined and form_values.catalog_tokens is not none else '1lhaaso').split(',') %}
 <div class="catalogue-control" data-catalogue-panel>
   <button class="secondary-button catalogue-picker-toggle" id="catalogue-picker-toggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="catalogue-picker-popup">
     <span data-i18n="cataloguePicker">Select catalogues</span>
@@ -11,7 +11,7 @@
       <button class="icon-button catalogue-picker-close" type="button" data-catalogue-cancel data-i18n-aria-label="catalogueCancel" aria-label="Cancel">×</button>
     </div>
     <div class="catalogue-checkboxes" id="catalogue-checkboxes">
-      {% for identifier, label in [('2lhaaso','2LHAASO'),('fermi-fl16y','Fermi FL16Y'),('fermi-3fhl','Fermi 3FHL'),('tevcat','TeVCat')] %}
+      {% for identifier, label in [('1lhaaso','1LHAASO'),('fermi-fl16y','Fermi FL16Y'),('fermi-3fhl','Fermi 3FHL'),('tevcat','TeVCat')] %}
       <label class="catalogue-choice"><input type="checkbox" data-catalogue-id="{{ identifier }}" value="{{ identifier }}" {% if identifier in selected_layers %}checked{% endif %}><span>{{ label }}</span></label>
       {% endfor %}
     </div>

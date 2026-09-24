@@ -4,7 +4,7 @@
 <section class="page-heading skyward-heading">
   <div>
     <p class="section-label" data-i18n="currentSky">CURRENT SKY</p>
-    <h1 class="v0-title" data-i18n="homeTitle">V0: geometry assessment only</h1>
+    <h1 class="page-title" data-i18n="homeTitle">V2.1: geometry assessment only</h1>
   </div>
   <dl class="summary-stats" aria-label="Sky summary" data-i18n-aria-label="skySummary">
     <div><dt data-i18n="catalogue">Catalogue</dt><dd id="home-catalog-count" data-home-summary="catalogue">{{ catalog_count }}</dd></div>
@@ -23,7 +23,7 @@
       <input type="hidden" id="plot-theme-input" name="plot_theme" value="light">
       <input type="hidden" id="display-timezone-input" name="display_timezone" value="local">
       <input type="hidden" id="catalog-token-input" name="catalog_token" value="{{ form_values.catalog_token or '' }}">
-      <input type="hidden" id="catalog-tokens-input" name="catalog_tokens" value="{{ form_values.catalog_tokens if form_values.catalog_tokens is defined and form_values.catalog_tokens is not none else '2lhaaso' }}">
+      <input type="hidden" id="catalog-tokens-input" name="catalog_tokens" value="{{ form_values.catalog_tokens if form_values.catalog_tokens is defined and form_values.catalog_tokens is not none else '1lhaaso' }}">
       <input type="hidden" id="planner-start-utc" value="{{ form_values.planner_start_utc or default_start_utc }}">
       <input type="hidden" id="planner-end-utc" value="{{ form_values.planner_end_utc or default_end_utc }}">
 

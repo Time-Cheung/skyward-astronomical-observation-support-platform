@@ -151,23 +151,26 @@ def build(staging: Path) -> dict:
 
 
 def association_audit(catalogue: dict, lhaaso_path: Path) -> dict:
-    targets = list(csv.DictReader(lhaaso_path.open(encoding="utf-8")))
-    target_coords = SkyCoord([float(row["ra"]) for row in targets] * u.deg, [float(row["dec"]) for row in targets] * u.deg, frame=FRAME)
+    target_payload = load(lhaaso_path)
+    if target_payload.get("catalogue_id") != "1lhaaso":
+        raise ValueError("association target must be the public 1LHAASO normalization")
+    targets = target_payload["sources"]
+    target_coords = SkyCoord([float(row["ra_deg"]) for row in targets] * u.deg, [float(row["dec_deg"]) for row in targets] * u.deg, frame=FRAME)
     candidates = []
     for source in catalogue["sources"]:
         coord = SkyCoord(source["ra_deg"] * u.deg, source["dec_deg"] * u.deg, frame=FRAME)
         for index, separation in enumerate(coord.separation(target_coords).deg):
             if separation <= 0.5:
                 target = targets[index]
-                candidates.append({"tevcat_id": source["original_id"], "lhaaso_original_id": target["index"], "lhaaso_name": target["name"], "separation_deg": float(separation), "status": "candidate_only", "evidence": [], "reason": "position_nearby_is_not_identity_evidence"})
-    return {"schema_version": 2, "catalogue_id": CATALOGUE_ID, "target_catalogue_id": "2lhaaso", "verified_associations": [], "candidates": candidates, "provenance": {"target_sha256": sha256(lhaaso_path), "candidate_radius_deg": 0.5, "method": "all pairs within fixed angular separation; no one-to-one assignment", "policy": "Position proximity alone is not source identity evidence."}}
+                candidates.append({"tevcat_id": source["original_id"], "lhaaso_original_id": target["original_id"], "lhaaso_name": target["name"], "separation_deg": float(separation), "status": "candidate_only", "evidence": [], "reason": "position_nearby_is_not_identity_evidence"})
+    return {"schema_version": 2, "catalogue_id": CATALOGUE_ID, "target_catalogue_id": "1lhaaso", "verified_associations": [], "candidates": candidates, "provenance": {"target_sha256": sha256(lhaaso_path), "candidate_radius_deg": 0.5, "method": "all pairs within fixed angular separation; no one-to-one assignment", "policy": "Position proximity alone is not source identity evidence. Public 1LHAASO Table 2 coordinates are the target catalogue; no unpublished 2LHAASO data are used."}}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staging", required=True, type=Path)
     parser.add_argument("--output-dir", type=Path, default=Path("data/catalogues"))
-    parser.add_argument("--lhaaso", type=Path, default=Path("data/2LHAASO.txt"))
+    parser.add_argument("--lhaaso", type=Path, default=Path("data/catalogues/1lhaaso.json"))
     args = parser.parse_args()
     catalogue = build(args.staging)
     args.output_dir.mkdir(parents=True, exist_ok=True)

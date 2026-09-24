@@ -45,6 +45,16 @@ Each selected plan window starts its own asynchronous alternatives request. Cand
 
 ## 5. Data maintenance and TeVCat
 
+The default 1LHAASO catalogue is built from the public paper Table 2 machine table with `scripts/build_1lhaaso_catalogue.py`:
+
+~~~bash
+.venv/bin/python scripts/build_1lhaaso_catalogue.py \
+  --table /secure/input/table.csv \
+  --output data/catalogues/1lhaaso.json
+~~~
+
+The builder requires the audited input SHA-256, validates 90 unique sources, 180 components, and the published field schema, and records the paper DOI, paper PDF/machine-table hashes, units, and Astropy version. Two-component sources use the highest-TS coordinate-bearing component as their representative position; raw fields, missing values, and limits remain under `notes.components`. `r39` is only a 39% containment radius of the fitted two-dimensional Gaussian: measured-extension errors are 1-sigma statistical uncertainties and pointlike-source upper limits are at 95% confidence. It must not populate `planning_radius_deg` or become a hard boundary. Table 2 associations are preliminary known-TeV counterparts from the paper's positional search, not Skyward-verified identities. A nondetected component encoded with `N0=0` and a value in the error column is normalized as an upper limit under the paper definition. `1lhaaso` is the default and only LHAASO runtime catalogue. `2lhaaso` must not appear in `BUILTIN_CATALOGUES`, UI selectors, API examples, the release tree, or the source archive, and temporary uploads must reject the reserved 2LHAASO label. The TeVCat rebuild audit keeps 1LHAASO association review while treating any 2LHAASO text as a release failure. Documentation references to 2LHAASO may only explain the “unpublished and not shipped” boundary.
+
 Fermi builds use scripts/build_fermi_catalogues.py, preserve FITS fields/units/version, and never interpret localization error as physical extension. Display names remove duplicated catalogue prefixes.
 
 Reproducible TeVCat www acquisition:
@@ -74,19 +84,19 @@ node --check app/static/app.js
 git diff --check
 ~~~
 
-Real Chromium covers catalogue draft/confirm/empty state, no all-sky Gaia request, the local Gaia loader button with 1°/10/10 defaults and custom filters, ordinary-source preservation, cancellation/stale response, three frames, fixed/live time, themes/languages, and 375 px layout. Data tests cover TeVCat point/unknown semantics, Gaia fields, and 30-day chunk boundaries. Keep browser tools separate from production dependencies.
+Real Chromium covers catalogue draft/confirm/empty state, no all-sky Gaia request, the local Gaia loader button with 1°/10/10 defaults and custom filters, ordinary-source preservation, cancellation/stale response, three frames, fixed/live time, themes/languages, and 375 px layout. Data tests cover 1LHAASO 90/180 counts, representative coordinates, units, limits, unknown footprints, 2LHAASO unavailability, TeVCat point/unknown semantics, Gaia fields, and 30-day chunk boundaries. Keep browser tools separate from production dependencies.
 
 ## 8. Versioning and release
 
 Full versions use major.minor.YYYYMMDD. Major identifies an architecture generation; minor increments by functional milestone; the date is the milestone confirmation date.
 
-- 1.1.20260901: initial planner, extensible telescope scope, and V0 boundary.
+- 1.1.20260901: initial planner, extensible telescope scope, and the initial geometry-only boundary.
 - 1.2.20260911: catalogue overlays and multiple display frames.
 - 1.3.20260916: multiple catalogues, reliable Gaia queries, deployment system.
 - 1.4.20260919: confirmable catalogue selection, sparse grids, data notes.
 - 1.5.20260919: TeVCat/Gaia/30-day planning upgrade.
 - 1.6.20260919: bounded-memory long-range display fix.
-- **2.1.20260924**: result-local Gaia only, fixed 10° local map, shared map state and compute-free page restoration, editable multi-window observing plans with XLSX/SVG export, dedicated alternative-source catalogues, serialized Zenith-Time refreshes, and documentation consolidation.
+- **2.1.20260924**: result-local Gaia only, fixed 10° local map, shared map state and compute-free page restoration, editable multi-window observing plans with XLSX/SVG export, dedicated alternative-source catalogues, serialized Zenith-Time refreshes; the default catalogue is replaced by the public paper Table 2 1LHAASO normalization and the unpublished 2LHAASO file is removed from the current release tree; documentation is consolidated.
 
 Version 2.1.20260924 is the formal release explicitly requested by the user, packaged as skyward-v2.1.zip. Future versions still require an explicit user release request, a confirmed date, the full suite and available browser acceptance, and a skyward-v<major.minor>.zip archive from controlled clean source. Thus 1.6.20260919 maps to skyward-v1.6.zip. The filename omits the date, while the archive records the full version, date, Git state, manifest, and SHA-256. Exclude .venv, caches, credentials, personal files, and temporary artifacts. Ordinary development neither increments versions nor creates formal archives.
 

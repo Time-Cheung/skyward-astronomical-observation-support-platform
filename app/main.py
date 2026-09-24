@@ -98,7 +98,7 @@ def _resolve_target_identity(identity, catalog_token=None, catalog_tokens=None):
             raise ValueError("source_key must not exceed 256 characters")
         return resolve_source(identity)
     index = int(identity)
-    if catalog_token and catalog_tokens is None and catalog_token != "2lhaaso":
+    if catalog_token and catalog_tokens is None and catalog_token != catalog.identifier:
         table = _resolve_catalogue(catalog_token)
         try:
             return table.get(index)
@@ -521,7 +521,7 @@ def _source_detail(
         **format_ra_dec(source),
         "coordinate_frame": COORDINATE_FRAME_LABEL,
         "status": status.to_dict(),
-        "enrichment": enrichment_store.get(source.original_row if source.original_row is not None else source.index) if source.catalogue_id == "2lhaaso" and source.source_type == "catalogue" else (source.notes or {"verification_status": "not_available_for_temporary_catalogue"}),
+        "enrichment": source.notes or {"verification_status": "not_available_for_temporary_catalogue"},
         "notes": source.notes or {},
         "geometry_only": True,
     }
@@ -627,7 +627,7 @@ def result_page(
         "source_key": source_key or (source_index if ":" in source_index else ""),
         "nominal_radius_deg": nominal_radius_deg if nominal_radius_deg is not None else "",
         "catalog_token": catalog_token or "",
-        "catalog_tokens": catalog_tokens if catalog_tokens is not None else (catalog_token if catalog_token is not None else "2lhaaso"),
+        "catalog_tokens": catalog_tokens if catalog_tokens is not None else (catalog_token if catalog_token is not None else catalog.identifier),
         "start_time": start_time,
         "end_time": end_time,
         "planner_start_utc": _canonical_form_time(start_time, display_timezone, observer_timezone),
@@ -897,8 +897,11 @@ def health() -> dict:
         "status": "ok" if iers["covers_current_time"] else "degraded",
         "catalogue": {
             "loaded": True,
+            "identifier": catalog.identifier,
+            "label": catalog.label,
             "rows": len(catalog.sources),
             "sha256": catalog.sha256,
+            "provenance": catalog.provenance,
         },
         "iers": iers,
         "enrichment": {

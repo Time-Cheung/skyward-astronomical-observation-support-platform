@@ -6,6 +6,7 @@ import httpx
 import pytest
 
 from scripts.fetch_tevcat import BASE, Fetcher, digest, encoded, save, scrub, project, main
+from scripts.validate_tevcat import audit, payload_hash
 
 
 def test_scrub_retains_coordinate_authority_but_removes_private_data():
@@ -128,3 +129,38 @@ def test_main_completion_guards(tmp_path, monkeypatch, problem):
         assert manifest["failures"]
         if problem == "metadata_failure":
             assert manifest["failures"][0]["stage"] == "/api/catalogs"
+
+
+def test_audit_blocks_unpublished_2lhaaso_text(tmp_path):
+    base = "https://example.test"
+
+    def checkpoint(relative, url, data):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({
+            "url": url, "payload_sha256": payload_hash(data),
+            "retrieved_at": "2026-09-24T00:00:00Z", "data": data,
+        }), encoding="utf-8")
+
+    source = {"_id": "s1", "name": "Test", "catalog": "C"}
+    detail = {
+        "_id": "s1", "catalog_id": "c1",
+        "position": {"ra": "1", "dec": "2", "epoch": "J2000", "authority": "RA/Dec"},
+        "names": ["2LHAASO JTEST"], "comment_public": "",
+        "other_catalogs": [], "citation_ids": [],
+    }
+    (tmp_path / "manifest.json").write_text(json.dumps({
+        "base_url": base, "complete": True,
+        "expected_sources": 1, "expected_count_guard": 1,
+    }), encoding="utf-8")
+    checkpoint("sources.json", base + "/api/sources", [source])
+    checkpoint("sources_at_finish.json", base + "/api/sources", [source])
+    checkpoint("catalogs.json", base + "/api/catalogs", [{"_id": "c1"}])
+    checkpoint("observatories.json", base + "/api/observatories", [])
+    checkpoint("details/s1.json", base + "/api/sources/s1", detail)
+    checkpoint("citations/s1.json", base + "/api/sources/s1/citations", [])
+
+    result = audit(tmp_path)
+    assert result["acquisition_validated"] is False
+    assert result["forbidden_two_lhaaso_textual_mentions"][0]["source_id"] == "s1"
+    assert any("Unpublished 2LHAASO" in row.get("error", "") for row in result["failures"])

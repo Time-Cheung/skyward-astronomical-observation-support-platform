@@ -4,14 +4,14 @@
 <section class="page-heading narrow-heading">
   <div>
     <p class="section-label" data-i18n="methodAndBoundary">METHOD & BOUNDARY</p>
-    <h1 class="v0-title" data-i18n="aboutTitle">Data, coordinates and geometry.</h1>
+    <h1 class="page-title" data-i18n="aboutTitle">Data, coordinates and geometry.</h1>
     <p data-i18n="aboutLead">Fixed parameters, catalogue provenance and the conditions intentionally excluded from this first release.</p>
   </div>
 </section>
 
 <section class="method-section skyward-overview" aria-labelledby="skyward-overview-title">
   <h2 id="skyward-overview-title" data-about-i18n="skywardOverviewTitle">What Skyward is</h2>
-  <p class="scope-statement" data-about-i18n="skywardScopeStatement">V0 provides explainable geometry candidates. It does not determine operational readiness or approve an observation.</p>
+  <p class="scope-statement" data-about-i18n="skywardScopeStatement">V2.1 provides explainable geometry candidates. It does not determine operational readiness or approve an observation.</p>
   <div class="skyward-stage-grid">
     <div class="scope-card">
       <p class="section-label" data-about-i18n="currentStageLabel">AVAILABLE NOW</p>
@@ -77,15 +77,15 @@
     <h2 data-about-i18n="catalogueGuideTitle">Catalogue guide</h2>
     <label class="catalogue-guide-label" for="about-catalogue-select" data-about-i18n="catalogueGuideLabel">Choose one catalogue to read its scope</label>
     <select id="about-catalogue-select" aria-controls="about-catalogue-description">
-      <option value="2lhaaso">2LHAASO</option>
+      <option value="1lhaaso">1LHAASO</option>
       <option value="fermi-fl16y">Fermi FL16Y</option>
       <option value="fermi-3fhl">Fermi 3FHL</option>
       <option value="tevcat">TeVCat</option>
       <option value="gaia-dr3">Gaia DR3</option>
     </select>
     <div id="about-catalogue-description" class="catalogue-guide-output" aria-live="polite">
-      <div class="catalogue-guide-heading"><strong id="about-catalogue-name">2LHAASO</strong><span id="about-catalogue-count">Catalogue row count is provided by the catalogue API</span></div>
-      <p id="about-catalogue-summary">The local table preserves catalogue coordinates and extension fields for source browsing and geometry calculations.</p>
+      <div class="catalogue-guide-heading"><strong id="about-catalogue-name">1LHAASO</strong><span id="about-catalogue-count">Catalogue row count is provided by the catalogue API</span></div>
+      <p id="about-catalogue-summary">The public Table 2 snapshot preserves component coordinates and measurements; r39 remains provenance and is not used as a hard planning footprint.</p>
       <p class="catalogue-boundary"><strong data-about-i18n="catalogueBoundaryLabel">Boundary</strong><span id="about-catalogue-boundary">Catalogue row counts and availability are reported by the catalogue API. Extension is treated only as a nominal circular radius when a verified value exists.</span></p>
     </div>
   </article>

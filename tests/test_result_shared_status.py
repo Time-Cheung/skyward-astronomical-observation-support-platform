@@ -88,10 +88,10 @@ def test_specified_point_and_range_contracts_apply_to_both_map_endpoints():
 
 def test_instant_target_status_and_symbol_match_between_maps():
     all_sky = client.get("/api/v1/sky/current", params={
-        "at_time": AT, "catalog_tokens": "2lhaaso", "selected_source_key": KEY,
+        "at_time": AT, "catalog_tokens": "1lhaaso", "selected_source_key": KEY,
     })
     local = client.get("/api/v1/sky/local-fov", params={
-        "at_time": AT, "catalog_tokens": "2lhaaso", "target_source_key": KEY,
+        "at_time": AT, "catalog_tokens": "1lhaaso", "target_source_key": KEY,
     })
     assert all_sky.status_code == local.status_code == 200
     all_class = _marker_class(all_sky.json()["svg"], KEY)

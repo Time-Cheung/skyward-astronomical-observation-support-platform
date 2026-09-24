@@ -13,10 +13,10 @@ have local source URLs and reference context; unparsed prose remains in staging.
 
 No Gaussian, containment or analysis template is a hard source boundary. Even an
 upstream is_extended=false is not proof of a zero-radius physical footprint.
-No name/position matching may create a verified 2LHAASO association.
+No name/position matching may create a verified cross-catalogue association.
 
 Usage: python scripts/build_tevcat_catalogue.py --staging PATH
-       [--output-dir data/catalogues] [--lhaaso data/2LHAASO.txt]
+       [--output-dir data/catalogues] [--lhaaso data/catalogues/1lhaaso.json]
 """
 from __future__ import annotations
 
@@ -455,17 +455,19 @@ def build(staging):
 
 def association_audit(catalogue, lhaaso_path, max_separation_deg=0.5):
     """All candidate edges, never nearest-only or verified identity claims."""
-    with Path(lhaaso_path).open(encoding='utf-8') as handle:
-        targets = list(csv.DictReader(handle))
+    target_payload = load(lhaaso_path)
+    if target_payload.get('catalogue_id') != '1lhaaso':
+        raise ValueError('association target must be the public 1LHAASO normalization')
+    targets = target_payload['sources']
     candidate_edges = []
-    target_coords = SkyCoord([float(x['ra']) for x in targets] * u.deg,
-                             [float(x['dec']) for x in targets] * u.deg, frame=FRAME)
+    target_coords = SkyCoord([float(x['ra_deg']) for x in targets] * u.deg,
+                             [float(x['dec_deg']) for x in targets] * u.deg, frame=FRAME)
     for source in catalogue['sources']:
         c = SkyCoord(source['ra_deg'] * u.deg, source['dec_deg'] * u.deg, frame=FRAME)
         for index, separation in enumerate(c.separation(target_coords).deg):
             if separation <= max_separation_deg:
                 target = targets[index]
-                candidate_edges.append({'tevcat_id': source['original_id'], 'lhaaso_original_id': target['index'],
+                candidate_edges.append({'tevcat_id': source['original_id'], 'lhaaso_original_id': target['original_id'],
                                         'lhaaso_name': target['name'], 'separation_deg': float(separation),
                                         'status': 'candidate_only', 'evidence': [],
                                         'reason': 'position_nearby_is_not_identity_evidence'})
@@ -475,21 +477,21 @@ def association_audit(catalogue, lhaaso_path, max_separation_deg=0.5):
         edge['tevcat_candidate_degree'] = by_tevcat[edge['tevcat_id']]
         edge['lhaaso_candidate_degree'] = by_lhaaso[edge['lhaaso_original_id']]
         edge['ambiguous'] = edge['tevcat_candidate_degree'] > 1 or edge['lhaaso_candidate_degree'] > 1
-    return {'schema_version': 1, 'catalogue_id': 'tevcat', 'target_catalogue_id': '2lhaaso',
+    return {'schema_version': 1, 'catalogue_id': 'tevcat', 'target_catalogue_id': '1lhaaso',
             'verified_associations': [], 'candidates': candidate_edges,
             'provenance': {'target_sha256': sha256(lhaaso_path), 'candidate_radius_deg': max_separation_deg,
                            'target_coordinate_assumption': 'FK5 J2000 for candidate audit only; not source identity evidence',
                            'method': 'all pairs within fixed angular separation; no one-to-one assignment',
-                           'official_2lhaaso_textual_mentions': 0,
+                           'unpublished_2lhaaso_data_used': False,
                            'manual_enrichment_status': 'inspected existing source_enrichment.json; empty sources mapping',
-                           'policy': 'No official explicit 2LHAASO evidence in acquired material. 1LHAASO aliases and positional coincidence do not establish identity. No parameters are copied to 2LHAASO.'}}
+                           'policy': 'Public 1LHAASO Table 2 coordinates are used only for candidate proximity. Positional coincidence does not establish identity and no unpublished 2LHAASO data are used.'}}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--staging', required=True, type=Path)
     parser.add_argument('--output-dir', type=Path, default=Path('data/catalogues'))
-    parser.add_argument('--lhaaso', type=Path, default=Path('data/2LHAASO.txt'))
+    parser.add_argument('--lhaaso', type=Path, default=Path('data/catalogues/1lhaaso.json'))
     args = parser.parse_args()
     catalogue = build(args.staging)
     associations = association_audit(catalogue, args.lhaaso)

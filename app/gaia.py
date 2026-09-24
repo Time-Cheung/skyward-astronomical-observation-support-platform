@@ -214,7 +214,7 @@ def _read_gaia_payload(
         "REQUEST": "doQuery", "LANG": "ADQL", "FORMAT": "csv",
         "QUERY": _adql(center, radius_deg, limit, max_mag, boundary_center, boundary_radius_deg, order_center),
     })
-    request = Request(f"{GAIA_TAP_URL}?{params}", headers={"Accept": "text/csv", "User-Agent": "Skyward/0.3"})
+    request = Request(f"{GAIA_TAP_URL}?{params}", headers={"Accept": "text/csv", "User-Agent": "Skyward/2.1"})
     tls = _tls_context()
     started = time.monotonic()
     with urlopen(request, timeout=timeout_seconds, context=tls) as response:
@@ -324,7 +324,7 @@ def _async_gaia_payload(
             raise GaiaQueryError("Gaia async TAP total polling/download budget exhausted")
         submit = Request(
             _async_tap_url(), data=params,
-            headers={"Accept": "text/plain", "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Skyward/0.3"},
+            headers={"Accept": "text/plain", "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Skyward/2.1"},
             method="POST",
         )
         attempts += 1
@@ -353,7 +353,7 @@ def _async_gaia_payload(
             remaining = operation_deadline - time.monotonic()
             if remaining <= 0:
                 raise GaiaQueryError("Gaia async TAP total polling/download budget exhausted")
-            phase_request = Request(phase_url, headers={"Accept": "text/plain", "User-Agent": "Skyward/0.3"}, method="GET")
+            phase_request = Request(phase_url, headers={"Accept": "text/plain", "User-Agent": "Skyward/2.1"}, method="GET")
             attempts += 1
             phase_response = urlopen(phase_request, timeout=remaining, context=_tls_context())
             try:
@@ -378,7 +378,7 @@ def _async_gaia_payload(
         remaining = operation_deadline - time.monotonic()
         if remaining <= 0:
             raise GaiaQueryError("Gaia async TAP total polling/download budget exhausted")
-        result_request = Request(result_url, headers={"Accept": "text/csv", "User-Agent": "Skyward/0.3"}, method="GET")
+        result_request = Request(result_url, headers={"Accept": "text/csv", "User-Agent": "Skyward/2.1"}, method="GET")
         attempts += 1
         result_response = urlopen(result_request, timeout=remaining, context=_tls_context())
         try:
@@ -397,7 +397,7 @@ def _async_gaia_payload(
             cleanup_attempted = True
             detail["async_cleanup_attempted"] = True
             remaining = max(0.001, deadline - time.monotonic())
-            cleanup = Request(job_url, headers={"User-Agent": "Skyward/0.3"}, method="DELETE")
+            cleanup = Request(job_url, headers={"User-Agent": "Skyward/2.1"}, method="DELETE")
             try:
                 response = urlopen(cleanup, timeout=remaining, context=_tls_context())
                 _close_response(response)

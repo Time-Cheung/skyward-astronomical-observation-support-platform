@@ -15,11 +15,11 @@ from app.astronomy import (
     source_coord,
 )
 from app.catalog import catalog
-from app.config import SITE_LATITUDE_DEG, SITE_LOCATION
+from app.config import IERS_BUNDLED_PATH, IERS_CACHE_PATH, SITE_LATITUDE_DEG, SITE_LOCATION
 
 
 def test_fk5_j2000_coordinate_and_sexagesimal_format():
-    crab = catalog.get(11)
+    crab = catalog.get(13)
     coord = source_coord(crab)
     assert coord.frame.name == "fk5"
     assert coord.equinox.jyear == pytest.approx(2000.0)
@@ -30,7 +30,7 @@ def test_fk5_j2000_coordinate_and_sexagesimal_format():
 
 def test_vectorized_catalog_geometry_matches_single_source():
     moment = datetime(2026, 8, 18, 16, 0, tzinfo=timezone.utc)
-    sources = [catalog.get(0), catalog.get(11), catalog.get(168)]
+    sources = [catalog.get(0), catalog.get(13), catalog.get(89)]
     batch = compute_catalog_geometry(sources, [moment])
     for index, source in enumerate(sources):
         single = compute_geometry(source, moment)
@@ -46,7 +46,7 @@ def test_vectorized_catalog_geometry_matches_single_source():
 
 
 def test_transit_altitude_matches_spherical_expectation():
-    source = catalog.get(11)
+    source = catalog.get(13)
     # Search one sidereal day at one-minute resolution; maximum sampled altitude
     # should agree with 90 - |latitude - declination| within sampling precision.
     times = Time("2026-12-15T00:00:00") + np.arange(0, 24 * 60 + 1) * u.min
@@ -58,7 +58,7 @@ def test_transit_altitude_matches_spherical_expectation():
 
 def test_sun_moon_outputs_are_finite_and_physical():
     geometry = compute_geometry(
-        catalog.get(189), datetime(2028, 2, 29, 12, 0, tzinfo=timezone.utc)
+        catalog.get(89), datetime(2028, 2, 29, 12, 0, tzinfo=timezone.utc)
     )
     for array in (
         geometry.target_altitude_deg,
@@ -74,7 +74,7 @@ def test_sun_moon_outputs_are_finite_and_physical():
 
 
 def test_moon_and_sun_separations_are_observer_frame_angles():
-    source = catalog.get(11)
+    source = catalog.get(13)
     moment = datetime(2026, 12, 15, 16, 0, tzinfo=timezone.utc)
     geometry = compute_geometry(source, moment)
     frame = AltAz(obstime=Time(moment), location=SITE_LOCATION, pressure=0 * u.hPa)
@@ -92,10 +92,11 @@ def test_moon_and_sun_separations_are_observer_frame_angles():
     assert geometry.moon_separation_deg[0] > 90.0
 
 
-def test_bundled_iers_table_covers_current_deployment_date():
+def test_active_iers_table_covers_current_deployment_date():
     status = iers_status()
     assert status["auto_download"] is False
-    assert "data/iers/finals2000A.all" in status["source"]
+    assert status["source_kind"] in {"bundled", "online_cache"}
+    assert status["source"] in {str(IERS_BUNDLED_PATH), str(IERS_CACHE_PATH)}
     assert status["covers_current_time"] is True
     assert status["last_mjd"] >= Time("2027-08-01").mjd
     assert status["predictive_mjd"] is not None
@@ -103,7 +104,7 @@ def test_bundled_iers_table_covers_current_deployment_date():
 
 def test_in_range_future_geometry_has_no_iers_degraded_warning():
     geometry = compute_geometry(
-        catalog.get(11),
+        catalog.get(13),
         [
             datetime(2026, 12, 15, tzinfo=timezone.utc),
             datetime(2026, 12, 16, tzinfo=timezone.utc),

@@ -1,6 +1,6 @@
 """Helpers for transient, operator-defined observing targets.
 
-The 2LHAASO catalogue remains immutable.  A user-created target is represented
+The installed catalogue remains immutable.  A user-created target is represented
 only for the lifetime of a calculation and is never written back into that
 catalogue.  Keeping the conventional compact J-name in one helper makes the
 web form, HTML result and JSON API agree on the same default identifier.
@@ -14,7 +14,7 @@ def temporary_target_name(ra_deg: float, dec_deg: float) -> str:
     """Return a predictable ``TMP JHHMM±DDMM`` name for J2000 coordinates.
 
     The format deliberately follows the minute-resolution convention used by
-    the 2LHAASO source names.  Values are truncated rather than rounded, which
+    the installed catalogue source names.  Values are truncated rather than rounded, which
     prevents a value close to the next minute from unexpectedly changing the
     coordinate-derived identifier.  ``TMP`` makes it visually impossible to
     mistake a browser-created target for a catalogue entry.

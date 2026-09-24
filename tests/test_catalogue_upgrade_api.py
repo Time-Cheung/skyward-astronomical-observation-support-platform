@@ -16,13 +16,13 @@ from app.windows import calculate_windows
 
 client = TestClient(app)
 MOMENT = datetime(2026, 9, 16, 16, tzinfo=timezone.utc)
-ALL = "2lhaaso,fermi-fl16y,fermi-3fhl,tevcat"
+ALL = "1lhaaso,fermi-fl16y,fermi-3fhl,tevcat"
 
 
 def test_installed_counts_and_original_identity_stable_under_selection():
     options = client.get("/api/v1/catalogues").json()["catalogues"]
     assert {r["identifier"]: r.get("count") for r in options if not r.get("online")} == {
-        "2lhaaso": 190, "fermi-fl16y": 7224, "fermi-3fhl": 1556, "tevcat": 363}
+        "1lhaaso": 90, "fermi-fl16y": 7224, "fermi-3fhl": 1556, "tevcat": 363}
     gaia = next(row for row in options if row["identifier"] == "gaia-dr3")
     assert gaia["selection_scope"] == "result_local_fov_only"
     fl = installed_catalogue("fermi-fl16y")
@@ -41,21 +41,21 @@ def test_complete_pagination_and_search_not_first_page_only():
     offset = 0
     while offset is not None:
         data = client.get("/api/v1/sources", params={"catalog_tokens": ALL, "limit": 2000, "offset": offset}).json()
-        assert data["total"] == 9333
+        assert data["total"] == 9233
         assert data["offset"] == offset
         keys.extend(row["source_key"] for row in data["sources"])
         offset = data["next_offset"]
-    assert len(keys) == len(set(keys)) == 9333
+    assert len(keys) == len(set(keys)) == 9233
     late = installed_catalogue("fermi-fl16y").sources[-1]
     result = client.get("/api/v1/sources", params={"catalog_tokens": ALL, "q": late.original_id, "limit": 1}).json()
     assert result["sources"][0]["source_key"] == late.source_key
 
 
 def test_explicit_empty_is_not_default_and_duplicate_tables_not_duplicate_sources():
-    assert client.get("/api/v1/sources").json()["total"] == 190
+    assert client.get("/api/v1/sources").json()["total"] == 90
     for params in ({"catalog_tokens": ""}, {"catalog_token": ""}, {"catalog_tokens": "gaia-dr3"}):
         assert client.get("/api/v1/sources", params=params).json()["total"] == 0
-    assert client.get("/api/v1/sources", params={"catalog_tokens": "2lhaaso,2lhaaso"}).json()["total"] == 190
+    assert client.get("/api/v1/sources", params={"catalog_tokens": "1lhaaso,1lhaaso"}).json()["total"] == 90
 
 
 def test_detail_notes_resolved_from_original_table_even_when_overlay_excludes_target():
@@ -200,7 +200,7 @@ def test_unknown_footprint_point_source_fallback_does_not_claim_extension_durati
 def test_windows_provenance_hash_follows_target_or_bulk_selection():
     table = installed_catalogue("fermi-3fhl")
     times = {"start_time": MOMENT.isoformat(), "end_time": (MOMENT + timedelta(seconds=1)).isoformat()}
-    single = client.post("/api/v1/windows/calculate", json={**times, "source_key": table.sources[0].source_key, "catalog_tokens": "2lhaaso"}).json()
+    single = client.post("/api/v1/windows/calculate", json={**times, "source_key": table.sources[0].source_key, "catalog_tokens": "1lhaaso"}).json()
     assert single["catalogue_sha256"] == table.sha256
     assert single["catalogue_sha256"] != catalog.sha256
     bulk = client.post("/api/v1/windows/calculate", json={**times, "all_sources": True, "catalog_tokens": ""}).json()
@@ -208,6 +208,17 @@ def test_windows_provenance_hash_follows_target_or_bulk_selection():
     assert bulk["catalogues"] == []
     custom = client.post("/api/v1/windows/calculate", json={**times, "region_ra_deg": 10, "region_dec_deg": 20, "region_radius_deg": 0.1}).json()
     assert custom["catalogue_sha256"] is None
+
+
+def test_unpublished_2lhaaso_name_is_reserved_for_temporary_uploads():
+    payload = b"name,ra,dec\nJTEST,10,20\n"
+    for filename in ("2LHAASO.csv", "2-LHAASO private.csv", "2_lhaaso-copy.csv"):
+        response = client.post(
+            "/api/v1/catalogues/upload",
+            files={"file": (filename, payload, "text/csv")},
+        )
+        assert response.status_code == 422
+        assert "reserved unpublished 2LHAASO name" in response.json()["detail"]
 
 
 def test_uploaded_slash_identity_details_and_name_length_validation():

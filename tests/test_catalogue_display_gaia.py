@@ -278,15 +278,15 @@ def test_gaia_endpoint_defaults_and_bounds(monkeypatch):
     token = upload.json()["token"]
     original = upload.json()["sources"][0]
     assert original["source_key"] == token + ":Extra"
-    for tokens in ("2lhaaso," + token, token + ",2lhaaso", token):
+    for tokens in ("1lhaaso," + token, token + ",1lhaaso", token):
         response = client.get("/api/v1/sources", params={"catalog_tokens": tokens, "limit": 500})
         assert response.status_code == 200
         data = response.json()
-        assert data["count"] == data["total"] == (191 if "2lhaaso" in tokens else 1)
+        assert data["count"] == data["total"] == (91 if "1lhaaso" in tokens else 1)
         extra = next(item for item in data["sources"] if item["name"] == "Extra")
         assert extra["index"] == original["index"]
         assert extra["source_key"] == original["source_key"]
-        if "2lhaaso" in tokens:
+        if "1lhaaso" in tokens:
             first = next(item for item in data["sources"] if item["source_key"] == catalog.get(0).source_key)
             assert first["index"] == 0
 

@@ -9,7 +9,7 @@
   const copy = {
     zh: {
       skywardOverviewTitle: "Skyward 介绍",
-      skywardScopeStatement: "V0 只给出可解释的几何可行性候选；不判断运行就绪状态，也不构成观测批准。",
+      skywardScopeStatement: "V2.1 只给出可解释的几何可行性候选；不判断运行就绪状态，也不构成观测批准。",
       currentStageLabel: "现有功能",
       currentStageTitle: "当前可用",
       currentStageBody: "浏览已支持的源表，查看全天图和局部视场几何、源详情，并按明确的几何约束计算源中心与完整源窗口。",
@@ -40,7 +40,7 @@
     },
     en: {
       skywardOverviewTitle: "About Skyward",
-      skywardScopeStatement: "V0 reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.",
+      skywardScopeStatement: "V2.1 reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.",
       currentStageLabel: "AVAILABLE NOW",
       currentStageTitle: "Current functions",
       currentStageBody: "Browse supported catalogues, inspect all-sky and local-field geometry and source details, and calculate centre and full-footprint windows under explicit geometric constraints.",
@@ -72,17 +72,17 @@
   };
 
   const catalogues = {
-    "2lhaaso": {
-      name: "2LHAASO",
+    "1lhaaso": {
+      name: "1LHAASO",
       zh: {
         count: "本地记录数由源表接口提供",
-        summary: "用于源检索和几何计算；保留源表坐标与 extension 字段。",
-        boundary: "源表记录数由接口动态提供，不代表互不重复的物理天体数；extension 仅在有已核验值时作为名义圆半径参与几何判断。",
+        summary: "公开论文 Table 2 的 90 个源用于检索和几何计算；保留 180 个 WCDA/KM2A 组件的坐标、r39、谱参数、上限和出处。",
+        boundary: "r39 是二维高斯模型的 39% containment radius；测得扩展的误差为 1σ 统计误差，点源上限为 95% 置信上限。它不是硬边界，Table 2 关联项也只是论文的初步位置对应体；1LHAASO 因此按未知 footprint 的点源回退计算并保留警告。2LHAASO 尚未公开，不在本版本中提供或加载，临时上传也不能使用该保留名。",
       },
       en: {
         count: "Installed row count is provided by the catalogue API",
-        summary: "Used for source search and geometry calculations while preserving catalogue coordinates and extension fields.",
-        boundary: "The API reports the row count dynamically; it is not a claim of distinct physical-object count. Extension is used as a nominal circular radius only when a verified value exists.",
+        summary: "The 90 public paper Table 2 sources support search and geometry; all 180 WCDA/KM2A component coordinates, r39 values, spectral fields, limits, and provenance are retained.",
+        boundary: "Table 2 r39 is a 39% containment radius of a fitted two-dimensional Gaussian; measured-extension errors are 1-sigma statistical uncertainties and pointlike-source limits are at 95% confidence. It is not a hard boundary, and Table 2 associations are preliminary positional counterparts rather than Skyward-verified identities. 1LHAASO uses the explicit unknown-footprint fallback. The unpublished 2LHAASO catalogue is not shipped or served, and its reserved label is rejected for temporary uploads.",
       },
     },
     "fermi-fl16y": {
@@ -142,7 +142,7 @@
   const language = () => localStorage.getItem("skyward.language") === "en" ? "en" : "zh";
 
   const renderCatalogue = () => {
-    const selected = catalogues[catalogueSelect.value] || catalogues["2lhaaso"];
+    const selected = catalogues[catalogueSelect.value] || catalogues["1lhaaso"];
     const text = selected[language()];
     document.getElementById("about-catalogue-name").textContent = selected.name;
     const count = catalogueCounts[catalogueSelect.value];

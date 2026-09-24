@@ -4,9 +4,9 @@
 
 ## 1. Security boundary and release contents
 
-The current V0 has no login, tenant isolation, or authorization and must never be exposed publicly. Prefer loopback-only binding. LAN access requires administrator-approved source-CIDR restrictions and a negative test from an unapproved network. Only the server installs Python dependencies; clients need a browser.
+The current V2.1 has no login, tenant isolation, or authorization and must never be exposed publicly. Prefer loopback-only binding. LAN access requires administrator-approved source-CIDR restrictions and a negative test from an unapproved network. Only the server installs Python dependencies; clients need a browser.
 
-/opt/skyward, user skyward, 192.168.50.10, 192.168.50.0/24, and port 8000 below are replaceable examples. The validated baseline is Python 3.9.x, NumPy 1.26.4, and Astropy 6.0.1; requirements.txt is authoritative. A release includes code, data, deployment templates, docs, scripts, tests, dependency pins, and provenance.
+/opt/skyward, user skyward, 192.168.50.10, 192.168.50.0/24, and port 8000 below are replaceable examples. The validated baseline is Python 3.9.x, NumPy 1.26.4, and Astropy 6.0.1; requirements.txt is authoritative. A release includes code, data, deployment templates, docs, scripts, tests, dependency pins, and provenance. V2.1 must use the public Table 2 normalization at `data/catalogues/1lhaaso.json`; the release tree, source archive, and current GitHub tree must not contain the original `data/2LHAASO.txt`, and `/api/v1/catalogues` must not expose `2lhaaso`.
 
 A formal archive is created only after the user explicitly publishes a new version. Its name is skyward-v<major.minor>.zip; full version 1.6.20260919 maps to skyward-v1.6.zip. The filename omits the date, while the archive records the full version, date, Git state, manifest, and hashes. This formal release is full version 2.1.20260924, packaged as skyward-v2.1.zip.
 

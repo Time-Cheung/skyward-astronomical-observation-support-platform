@@ -4,9 +4,9 @@
 
 ## 1. 安全边界与发布物
 
-当前 V0 没有账号、租户隔离或授权，禁止直接暴露公网。优先只监听回环地址；局域网部署必须由管理员限制可信源 CIDR，并验证未批准网络不可连接。只有服务器安装 Python 依赖，客户端只需要浏览器。
+当前 V2.1 没有账号、租户隔离或授权，禁止直接暴露公网。优先只监听回环地址；局域网部署必须由管理员限制可信源 CIDR，并验证未批准网络不可连接。只有服务器安装 Python 依赖，客户端只需要浏览器。
 
-以下 /opt/skyward、skyward 用户、192.168.50.10、192.168.50.0/24 和端口 8000 都是需替换示例。已验证基线为 Python 3.9.x、NumPy 1.26.4、Astropy 6.0.1；以 requirements.txt 为准。发布内容必须包含代码、data、deploy、docs、scripts、tests、依赖清单和 provenance。
+以下 /opt/skyward、skyward 用户、192.168.50.10、192.168.50.0/24 和端口 8000 都是需替换示例。已验证基线为 Python 3.9.x、NumPy 1.26.4、Astropy 6.0.1；以 requirements.txt 为准。发布内容必须包含代码、data、deploy、docs、scripts、tests、依赖清单和 provenance。V2.1 的默认目录必须是公开 Table 2 规范化得到的 `data/catalogues/1lhaaso.json`；发布树、源码包和当前 GitHub 树均不得包含原始 `data/2LHAASO.txt`，且 `/api/v1/catalogues` 不得暴露 `2lhaaso`。
 
 正式源码包只在用户明确发布新版本后生成，命名为 skyward-v<主版本.小版本>.zip。例如完整版本 1.6.20260919 对应 skyward-v1.6.zip。文件名不含日期，但包内记录完整版本、日期、Git 状态、清单和哈希。本次正式发布的完整版本为 2.1.20260924，源码包为 skyward-v2.1.zip。
 
