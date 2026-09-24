@@ -83,10 +83,10 @@
   </section>
   <section class="sky-panel compact-panel">
     <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="pointingCentre">POINTING CENTRE</p><h2>10° <span data-i18n="localFovTitle">local view</span> · {{ telescope.name }} FoV {{ '%.2f'|format(telescope.fov_diameter_deg) }}°</h2></div><div class="result-map-heading-actions local-map-heading-actions"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div></div>
-    <div class="local-gaia-filter-controls" id="local-gaia-filter-controls">
-      <label><span data-i18n="gaiaRadiusFilter">Search radius</span><span class="unit-input"><input id="local-gaia-radius" type="number" min="0.1" max="5" step="0.1" value="1" inputmode="decimal"><span>°</span></span></label>
-      <label><span data-i18n="gaiaFaintestMagnitude">Faintest G magnitude</span><input id="local-gaia-max-mag" type="number" min="5" max="22" step="0.1" value="10" inputmode="decimal"></label>
-      <label><span data-i18n="gaiaMaximumSources">Maximum sources</span><input id="local-gaia-limit" type="number" min="1" max="500" step="1" value="10" inputmode="numeric"></label>
+    <div class="local-gaia-filter-controls compact-gaia-filter-controls" id="local-gaia-filter-controls">
+      <div class="local-gaia-filter-field"><label for="local-gaia-radius" data-i18n="gaiaRadiusFilter">Search radius</label><span class="unit-input"><input id="local-gaia-radius" type="number" min="0.1" max="5" step="0.1" value="1" inputmode="decimal"><span>°</span></span></div>
+      <label class="local-gaia-filter-field"><span data-i18n="gaiaFaintestMagnitude">Faintest G magnitude</span><input id="local-gaia-max-mag" type="number" min="5" max="22" step="0.1" value="10" inputmode="decimal"></label>
+      <label class="local-gaia-filter-field"><span data-i18n="gaiaMaximumSources">Maximum sources</span><input id="local-gaia-limit" type="number" min="1" max="500" step="1" value="10" inputmode="numeric"></label>
       <button id="local-gaia-filter-apply" class="secondary-button" type="button" data-i18n="applyGaiaFilters">Load Gaia DR3</button>
       <p id="local-gaia-filter-error" class="form-error" role="alert" hidden></p>
     </div>
@@ -122,7 +122,7 @@
   </section>
 
   <section class="windows-panel emphasized">
-    <div class="panel-heading"><div><p class="section-label" data-i18n="fullExtension">FULL EXTENSION</p><h2 data-i18n="fullWindows">Full-footprint windows</h2></div><strong>{{ result.full_footprint_windows|length }}</strong></div>
+    <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="fullExtension">FULL EXTENSION</p><h2 data-i18n="fullWindows">Full-footprint windows</h2></div><div class="full-windows-heading-actions">{% if result.full_footprint_windows %}{% set planable_windows = result.full_footprint_windows | selectattr('plan_start') | selectattr('plan_end') | list %}{% if planable_windows %}<div class="plan-window-actions"><button class="secondary-button plan-action-button" type="button" data-plan-window data-i18n="planObservation">Add to observing plan</button><button class="secondary-button plan-action-button" type="button" data-preview-observation-plan data-i18n="previewObservationPlan">Preview current observing plan</button><button class="secondary-button plan-action-button" type="button" data-download-observation-plan data-i18n="downloadObservationPlan">Download observing plan</button></div>{% endif %}{% endif %}<strong>{{ result.full_footprint_windows|length }}</strong></div></div>
     {% if result.full_footprint_windows %}
     {% set planable_windows = result.full_footprint_windows | selectattr('plan_start') | selectattr('plan_end') | list %}
     <div class="window-list">
@@ -147,7 +147,6 @@
       <span id="alternative-catalogue-name" aria-live="polite"></span>
       <span id="alternative-catalogue-status" role="status" aria-live="polite"></span>
     </div>
-    <div class="plan-window-actions"><button class="secondary-button plan-action-button" type="button" data-plan-window data-i18n="planObservation">Add to observing plan</button><button class="secondary-button plan-action-button" type="button" data-preview-observation-plan data-i18n="previewObservationPlan">Preview current observing plan</button><button class="secondary-button plan-action-button" type="button" data-download-observation-plan data-i18n="downloadObservationPlan">Download observing plan</button></div>
     <p class="plan-selection-status" data-plan-selection-status role="status" aria-live="polite" hidden></p>
     {% endif %}
     {% else %}<div class="empty-state" data-i18n="noFullWindows">The centre may pass, but the nominal extension has no full-footprint window.</div>{% endif %}

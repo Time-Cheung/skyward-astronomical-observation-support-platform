@@ -1,5 +1,7 @@
 # Skyward 开发文档（中文）
 
+**当前版本：V2.2（2.2.20260924）。** 发布源码包：`skyward-v2.2.zip`。本版本包含 Gaia DR3 TAP 查询兼容修复、1LHAASO 显示名精简、结果页局部 Gaia 控件紧凑布局、完整源窗口计划按钮布局调整，以及用户 CSV 格式说明与样例。
+
 [English](DEVELOPMENT.en.md) · [用户手册](README.zh-CN.md) · [部署手册](DEPLOYMENT.zh-CN.md)
 
 ## 1. 架构与目录
@@ -11,7 +13,9 @@
 - app/static、app/templates：无外部 CDN 的双语前端。
 - data：源表、provenance 和 bundled IERS；scripts：采集/规范化；tests：单元、API、契约及浏览器测试。
 
-普通目录状态通过 /api/v1/sky/current 和 /api/v1/sky/local-fov 获取。Gaia 不进入 catalog_tokens 或 /api/v1/sources，也不成为窗口目标。网页只在用户点击结果局部图 Gaia 加载按钮后请求 /api/v1/gaia?map_kind=local-fov，并发送半径、G 星等和行数筛选；后端保留 map_kind=current 仅用于 API 兼容。
+## CSV 用户上传契约与示例
+
+用户 CSV 源表和专用备选源目录均为带表头的 UTF-8 CSV，必需列 `name,ra,dec`（接受别名 `source_name,ra_deg,dec_deg`），坐标为 J2000 度；可选列 `ext,ext_err,p_err(95%),l,b`，其中 `extension_deg` 可作 `ext` 别名。单文件最多 1,000 行、512 KiB；名称唯一且 1–80 字符；名称不得含控制字符，坐标有限且 RA∈[0,360)、Dec∈[-90,90]，扩展/不确定度非负。
 
 ## 2. 几何与显示契约
 
@@ -97,8 +101,9 @@ git diff --check
 - 1.5.20260919：TeVCat/Gaia/30 天规划升级。
 - 1.6.20260919：长时间范围展示内存有界修复。
 - **2.1.20260924**：Gaia 收窄为结果局部 FoV，固定 10° 局部图，共享地图状态与无计算页面恢复，可编辑多窗口观测计划和 XLSX/SVG 导出，专用备选源目录，Zenith-Time 并发刷新修复；默认目录替换为公开论文 Table 2 的 1LHAASO，并从当前发布树移除未公开 2LHAASO 文件；同步完成文档重构。
+- **2.2.20260924**：修复 Gaia DR3 TAP 的距离排序 ADQL 兼容性并改进错误诊断；精简 1LHAASO 显示名；紧凑化局部 Gaia 筛选控件；将完整源窗口计划操作移至标题右侧；在数据说明页补充用户源表与专用备选源目录的 UTF-8 CSV 格式、字段限制和示例。
 
-2.1.20260924 已按用户明确发布指令确认为正式版本，发布包为 skyward-v2.1.zip。后续仍只有在用户明确要求以新版本号发布后，才确认日期、通过全量测试与可用的浏览器验收，并从受控干净源码创建 skyward-v<主版本.小版本>.zip。例如 1.6.20260919 对应 skyward-v1.6.zip。包名省略日期，包内保存完整版本、日期、Git 状态、清单和 SHA-256；排除 .venv、缓存、凭据、个人文件和临时产物。普通开发不得自动增加版本号或生成正式包。
+源码包的通用命名模式为 `skyward-v<主版本.小版本>.zip`。
 
 ## 版权与开发者
 

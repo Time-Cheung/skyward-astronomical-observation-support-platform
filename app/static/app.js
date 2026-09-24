@@ -70,7 +70,7 @@
   // API contracts keep machine codes; the local UI maps them to readable bilingual labels.
   Object.assign(translations.zh, {
     mapSymbolLegend: '地图符号', nonGaiaSource: '非 Gaia 源', gaiaSource: 'Gaia 定标星', trueExtension: '真实 extension', selectedTarget: '已选目标', calculationInProgress: '正在计算观测窗口', calculationFailed: '计算未能完成', returnToForm: '返回修改条件', coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
-    homeTitle: 'V2.1：仅几何判断', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
+    homeTitle: 'V2.2（完整版本 2.2.20260924）：仅几何判断', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
     allSkyNote: '颜色按地平线和已启用的几何约束判定；当前未接入可信实时指向，不使用“位于当前 FoV”约束。点击源标记查看源详情。',
     telescopeSettings: '望远镜设置', telescope: '望远镜', lactTelescope: 'LACT', customTelescope: '自定义望远镜',
     telescopeFutureHelp: '当前已接入 LACT；后续可扩展其他望远镜。', customTelescopeHelp: '本次计算临时使用 WGS-84 配置，不会保存到服务器。',
@@ -82,7 +82,7 @@
   });
   Object.assign(translations.en, {
     mapSymbolLegend: 'Map symbols', nonGaiaSource: 'Non-Gaia source', gaiaSource: 'Gaia calibration star', trueExtension: 'True extension', selectedTarget: 'Selected target', calculationInProgress: 'Calculating observation windows', calculationFailed: 'Calculation could not be completed', returnToForm: 'Return to edit conditions', coordinateFrame: "Coordinate frame", coordAltAz: "AltAz / Horizon", coordJ2000: "Equatorial (J2000)", coordGalactic: "Galactic", includeGaia: "Gaia DR3 calibration stars", iersSourceKind: "Active source", iersUpdate: "Update policy", iersLastError: "Last online error",
-    homeTitle: 'V2.1: geometry assessment only', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
+    homeTitle: 'V2.2 (full version 2.2.20260924): geometry assessment only', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
     allSkyNote: 'Colours use the horizon and enabled geometric constraints. Authoritative live pointing is not connected, so no current-FoV constraint is applied. Select a star for details.',
     telescopeSettings: 'Telescope settings', telescope: 'Telescope', lactTelescope: 'LACT', customTelescope: 'Custom telescope',
     telescopeFutureHelp: 'LACT is active now; additional observatories can be connected later.', customTelescopeHelp: 'This temporary WGS-84 configuration is used only by this calculation and is not saved.',

@@ -94,18 +94,16 @@ def _adql(
     # widen the returned footprint.
     if boundary_center is not None and boundary_radius_deg is not None:
         conditions.append(_cone_condition(boundary_center, boundary_radius_deg))
+    distance_center = order_center or center
     query = (
-        f"SELECT TOP {limit} source_id, ra, dec, parallax, parallax_error, pmra, pmra_error, pmdec, pmdec_error, phot_g_mean_mag, phot_bp_mean_mag, phot_rp_mean_mag, bp_rp, ruwe, visibility_periods_used "
+        f"SELECT TOP {limit} source_id, ra, dec, parallax, parallax_error, pmra, pmra_error, pmdec, pmdec_error, phot_g_mean_mag, phot_bp_mean_mag, phot_rp_mean_mag, bp_rp, ruwe, visibility_periods_used, "
+        "DISTANCE(POINT('ICRS', ra, dec), "
+        f"POINT('ICRS', {distance_center.icrs.ra.deg:.8f}, {distance_center.icrs.dec.deg:.8f})) AS angular_distance "
         "FROM gaiadr3.gaia_source WHERE " + " AND ".join(conditions)
     )
-    # The service performs a bounded nearest-neighbour ordering before TOP is
-    # applied. The client repeats the angular sort after frame conversion so a
-    # provider or test double cannot silently return an arbitrary subset.
-    distance_center = order_center or center
-    query += (
-        " ORDER BY DISTANCE(POINT('ICRS', ra, dec), "
-        f"POINT('ICRS', {distance_center.icrs.ra.deg:.8f}, {distance_center.icrs.dec.deg:.8f}))"
-    )
+    # Gaia TAP's ADQL parser accepts ORDER BY on a selected alias; placing the
+    # DISTANCE function directly in ORDER BY is rejected with HTTP 400.
+    query += " ORDER BY angular_distance ASC"
     return query
 
 
@@ -214,10 +212,31 @@ def _read_gaia_payload(
         "REQUEST": "doQuery", "LANG": "ADQL", "FORMAT": "csv",
         "QUERY": _adql(center, radius_deg, limit, max_mag, boundary_center, boundary_radius_deg, order_center),
     })
-    request = Request(f"{GAIA_TAP_URL}?{params}", headers={"Accept": "text/csv", "User-Agent": "Skyward/2.1"})
+    request = Request(
+        GAIA_TAP_URL, data=params.encode("ascii"),
+        headers={
+            "Accept": "text/csv", "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Skyward/2.2",
+        },
+        method="POST",
+    )
     tls = _tls_context()
     started = time.monotonic()
-    with urlopen(request, timeout=timeout_seconds, context=tls) as response:
+    try:
+        response_context = urlopen(request, timeout=timeout_seconds, context=tls)
+    except HTTPError as exc:
+        # TAP servers return useful ADQL and quota diagnostics in the error
+        # document. Preserve a small excerpt instead of reporting only HTTP 400.
+        try:
+            body = exc.read(2048).decode("utf-8", "replace").strip()
+        except OSError:
+            body = ""
+        if body:
+            raise HTTPError(
+                exc.url, exc.code, f"{exc.reason}: {body[:1000]}", exc.headers, None,
+            ) from exc
+        raise
+    with response_context as response:
         chunks, received = [], 0
         while True:
             remaining = timeout_seconds - (time.monotonic() - started)
@@ -419,7 +438,11 @@ def _fallback_centres(center: SkyCoord, radius_deg: float) -> list[SkyCoord]:
 
 
 def _should_retry(exc: BaseException) -> bool:
-    if isinstance(exc, (HTTPError, URLError, TimeoutError)):
+    if isinstance(exc, HTTPError):
+        # A malformed ADQL/request is not repaired by repeating it in smaller
+        # cones. Retry only transient HTTP responses.
+        return exc.code in {408, 429} or 500 <= exc.code < 600
+    if isinstance(exc, (URLError, TimeoutError)):
         return True
     return isinstance(exc, GaiaQueryError) and "timeout" in str(exc).lower()
 

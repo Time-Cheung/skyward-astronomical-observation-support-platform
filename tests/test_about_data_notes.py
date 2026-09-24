@@ -59,7 +59,24 @@ def test_catalogue_guide_is_one_select_with_five_targeted_choices():
     assert 'data-about-i18n="catalogueGuideTitle"' in about
 
 
-def test_catalogue_counts_and_scientific_boundaries_are_explicit_in_both_languages():
+def test_data_notes_describe_both_csv_upload_contracts_and_examples():
+    about = (TEMPLATES / "about.html").read_text(encoding="utf-8")
+    about_js = (STATIC / "about.js").read_text(encoding="utf-8")
+    for key in (
+        "csvUploadTitle", "csvUploadIntro", "csvUploadName", "sourceCsvTitle", "sourceCsvDownload",
+        "sourceCsvBody", "alternativeCsvTitle", "alternativeCsvDownload", "alternativeCsvBody", "csvUploadLimits", "csvUploadAliases",
+    ):
+        assert f'data-about-i18n="{key}"' in about
+        assert key in about_js
+    assert "name,ra,dec,ext,ext_err,p_err(95%)" in about
+    assert "Crab,83.6331,22.0145,0.10,0.02,0.01" in about
+    assert '../static/examples/user-source-catalogue.csv' in about
+    assert '../static/examples/alternative-source-catalogue.csv' in about
+    assert "Alternative A,84.0,22.3,0.15" in about
+    assert "1,000 rows and 512 KiB" in about_js
+    assert "最多 1,000 行、512 KiB" in about_js
+
+
     script = (STATIC / "about.js").read_text(encoding="utf-8")
     assert "Installed row count is provided by the catalogue API" in script
     assert "363-row snapshot · cutoff 2026-09-19" in script

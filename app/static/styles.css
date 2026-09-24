@@ -148,7 +148,25 @@ h1, h2, h3, p { margin-top: 0; }h1 { margin-bottom: 11px; font-size: clamp(33px,
 .local-gaia-filter-controls input { min-height: 38px; }
 .local-gaia-filter-controls .unit-input { grid-template-columns: minmax(0,1fr) 32px; }
 .local-gaia-filter-controls .secondary-button { min-height: 38px; white-space: nowrap; }
-.local-gaia-filter-controls .form-error { grid-column: 1 / -1; margin: 0; }
+.compact-gaia-filter-controls { grid-template-columns: repeat(3, minmax(90px, 1fr)) auto; gap: 8px; align-items: center; padding: 8px 20px; }
+.compact-gaia-filter-controls .local-gaia-filter-field { display: grid; grid-template-columns: auto minmax(65px, 1fr); align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-size: 10px; white-space: nowrap; }
+.compact-gaia-filter-controls .local-gaia-filter-field input { min-width: 0; }
+.compact-gaia-filter-controls .unit-input { display: grid; grid-template-columns: minmax(0,1fr) 24px; min-width: 0; }
+.compact-gaia-filter-controls input, .compact-gaia-filter-controls .secondary-button { min-height: 34px; height: 34px; }
+.full-windows-heading-actions { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.full-windows-heading-actions > strong { flex: 0 0 auto; }
+.full-windows-heading-actions .plan-window-actions { flex-wrap: nowrap; justify-content: flex-end; gap: 6px; margin: 0; }
+.full-windows-heading-actions .plan-window-actions .plan-action-button { flex: 0 1 108px; width: 108px; min-width: 0; min-height: 32px; padding: 5px 7px; font-size: 11px; line-height: 1.15; text-align: center; white-space: normal; }
+@media (max-width: 1120px) {
+  .full-windows-heading-actions .plan-window-actions { flex-wrap: wrap; max-width: 250px; }
+  .full-windows-heading-actions .plan-window-actions .plan-action-button { width: auto; flex: 0 1 108px; white-space: normal; }
+}
+@media (max-width: 760px) {
+  .compact-gaia-filter-controls { grid-template-columns: 1fr; align-items: stretch; }
+  .compact-gaia-filter-controls label { grid-template-columns: 1fr; white-space: normal; }
+  .full-windows-heading-actions { align-items: flex-end; flex-direction: column-reverse; gap: 6px; }
+  .full-windows-heading-actions .plan-window-actions { justify-content: flex-end; flex-wrap: wrap; }
+}
 .local-gaia-legend { padding-bottom: 10px; border-top: 1px solid var(--line-soft); }
 .local-gaia-query-status { padding: 10px 20px; border-top: 1px solid var(--line-soft); }
 .local-gaia-query-status h3 { margin: 0 0 6px; font-size: 13px; }

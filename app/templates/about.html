@@ -11,7 +11,7 @@
 
 <section class="method-section skyward-overview" aria-labelledby="skyward-overview-title">
   <h2 id="skyward-overview-title" data-about-i18n="skywardOverviewTitle">What Skyward is</h2>
-  <p class="scope-statement" data-about-i18n="skywardScopeStatement">V2.1 provides explainable geometry candidates. It does not determine operational readiness or approve an observation.</p>
+  <p class="scope-statement" data-about-i18n="skywardScopeStatement">V2.2 (full version 2.2.20260924) reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.</p>
   <div class="skyward-stage-grid">
     <div class="scope-card">
       <p class="section-label" data-about-i18n="currentStageLabel">AVAILABLE NOW</p>
@@ -51,6 +51,32 @@
   <h2 id="plan-notes-title" data-about-i18n="observingPlanTitle">Observing plans</h2>
   <p data-about-i18n="observingPlanBody">The full-footprint section has one shared set of plan actions. Each valid window is listed on its own row with a checkbox selected by default. Add to the plan creates one target entry containing all checked windows; the preview edits each planned interval separately, while the XLSX records one target row per selected window and keeps alternatives attached to the corresponding window. A user-uploaded CSV can be selected as the exclusive alternative-source directory for that plan; without it, the selected ordinary catalogues remain the candidate pool.</p>
   <p data-about-i18n="observingPlanFormat">The downloaded workbook uses a solid black header, yellow target rows, and green alternative rows. It is generated locally in the browser; no plan is uploaded to the server. Saved observing-window SVGs include comparison-curve legends; saved local-FoV SVGs use a light background, assign the target ID 1, and include a source-name legend.</p>
+</section>
+
+<section class="method-section csv-upload-guide" aria-labelledby="csv-upload-guide-title">
+  <h2 id="csv-upload-guide-title" data-about-i18n="csvUploadTitle">CSV upload formats and examples</h2>
+  <p data-about-i18n="csvUploadIntro">Both uploads use UTF-8 CSV with a header row. Column names are case-insensitive; coordinates are degrees in J2000. Save example files as UTF-8 CSV.</p>
+  <p data-about-i18n="csvUploadName">The source-catalogue filename becomes its display label. Upload an alternative-source directory using the dedicated control in the full-footprint section of a result page.</p>
+  <article class="csv-upload-card">
+    <h3 data-about-i18n="sourceCsvTitle">User-uploaded source catalogue</h3>
+    <p data-about-i18n="sourceCsvBody">Required columns: name, ra, dec. Optional columns: ext, ext_err, p_err(95%), l, b. You may also use source_name, ra_deg, dec_deg, or extension_deg as aliases. Missing optional values can be left blank; ext defaults to 0. One unique name per row is required.</p>
+    <p><a href="../static/examples/user-source-catalogue.csv" download data-about-i18n="sourceCsvDownload">Download source-catalogue CSV example</a></p>
+    <pre><code>name,ra,dec,ext,ext_err,p_err(95%)
+Crab,83.6331,22.0145,0.10,0.02,0.01
+Example source,120.5,-30.2,,,
+</code></pre>
+  </article>
+  <article class="csv-upload-card">
+    <h3 data-about-i18n="alternativeCsvTitle">Dedicated alternative-source catalogue</h3>
+    <p data-about-i18n="alternativeCsvBody">Use the same CSV format. Required columns: name, ra, dec; optional columns are the same as above. Upload it in the alternative-source controls on a result page. It is used exclusively to search alternatives for that plan and does not replace the selected target or displayed catalogues.</p>
+    <p><a href="../static/examples/alternative-source-catalogue.csv" download data-about-i18n="alternativeCsvDownload">Download alternative-catalogue CSV example</a></p>
+    <pre><code>name,ra,dec,ext
+Alternative A,84.0,22.3,0.15
+Alternative B,75.25,12.8,0
+</code></pre>
+  </article>
+  <p class="csv-upload-limits" data-about-i18n="csvUploadLimits">Limits: up to 1,000 rows and 512 KiB per file. Names must be unique (case-insensitive) and 1–80 characters; coordinates must be finite, with 0 ≤ RA &lt; 360 and −90 ≤ Dec ≤ 90. Negative extension or uncertainty values are rejected. The reserved unpublished 2LHAASO name cannot be used.</p>
+  <p class="csv-upload-alias-note" data-about-i18n="csvUploadAliases">Column-name aliases: source_name for name, ra_deg for ra, dec_deg for dec, and extension_deg for ext.</p>
 </section>
 
 <section class="about-grid">

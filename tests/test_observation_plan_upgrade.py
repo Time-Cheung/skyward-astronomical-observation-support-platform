@@ -172,6 +172,12 @@ def test_frontend_persists_all_entries_previews_and_exports_xlsx_plus_both_saved
     assert result.count("data-preview-observation-plan") == 1
     assert result.count("data-download-observation-plan") == 1
     assert result.count("data-plan-window data-i18n") == 1
+    full_windows = result[result.index('class="windows-panel emphasized"'):result.index("{% if source_detail %}")]
+    assert full_windows.index('class="full-windows-heading-actions"') < full_windows.index('class="window-list"')
+    assert full_windows.count('class="plan-window-actions"') == 1
+    assert "class=\"local-gaia-filter-controls compact-gaia-filter-controls\"" in result
+    assert ".compact-gaia-filter-controls input, .compact-gaia-filter-controls .secondary-button { min-height: 34px; height: 34px; }" in css
+    assert ".full-windows-heading-actions .plan-window-actions .plan-action-button { flex: 0 1 108px; width: 108px;" in css
     assert "data-plan-window-select" in result and "checked" in result
     assert "data-plan-alternative-status" in result
     assert 'id="observation-plan-preview-dialog"' in base

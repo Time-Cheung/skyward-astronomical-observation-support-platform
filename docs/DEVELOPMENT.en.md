@@ -1,5 +1,7 @@
 # Skyward Development Guide (English)
 
+**Current version: V2.2 (2.2.20260924).** Source archive: `skyward-v2.2.zip`. This release includes the Gaia DR3 TAP compatibility fix, shorter 1LHAASO display label, compact local-Gaia controls, repositioned full-window plan actions, and CSV upload guidance/examples.
+
 [中文](DEVELOPMENT.zh-CN.md) · [User guide](README.en.md) · [Deployment](DEPLOYMENT.en.md)
 
 ## 1. Architecture and layout
@@ -11,7 +13,9 @@
 - app/static and app/templates: bilingual, CDN-free frontend.
 - data: catalogues, provenance, bundled IERS; scripts: acquisition/normalization; tests: unit, API, contract, and browser coverage.
 
-Ordinary catalogue status comes from /api/v1/sky/current and /api/v1/sky/local-fov. Gaia does not enter catalog_tokens, /api/v1/sources, or planning targets. The web UI requests /api/v1/gaia?map_kind=local-fov with the radius, magnitude, and row filters only when the user presses the result-local Gaia loader button. Backend map_kind=current remains for API compatibility only.
+## User CSV upload contract and examples
+
+User source catalogues and dedicated alternative catalogues are UTF-8 CSV with a header and required `name,ra,dec` columns (aliases `source_name,ra_deg,dec_deg` are accepted); coordinates are J2000 degrees. Optional columns are `ext,ext_err,p_err(95%),l,b`, with `extension_deg` accepted as an alias for `ext`. Each file is limited to 1,000 rows and 512 KiB; names are unique and 1–80 characters, control characters are rejected, coordinates are finite with RA∈[0,360) and Dec∈[-90,90], and extension/uncertainty values are non-negative.
 
 ## 2. Geometry and display contracts
 
@@ -97,8 +101,11 @@ Full versions use major.minor.YYYYMMDD. Major identifies an architecture generat
 - 1.5.20260919: TeVCat/Gaia/30-day planning upgrade.
 - 1.6.20260919: bounded-memory long-range display fix.
 - **2.1.20260924**: result-local Gaia only, fixed 10° local map, shared map state and compute-free page restoration, editable multi-window observing plans with XLSX/SVG export, dedicated alternative-source catalogues, serialized Zenith-Time refreshes; the default catalogue is replaced by the public paper Table 2 1LHAASO normalization and the unpublished 2LHAASO file is removed from the current release tree; documentation is consolidated.
+- **2.2.20260924**: fixes Gaia DR3 TAP distance-ordering compatibility and improves service-error diagnostics; shortens the 1LHAASO display label; compacts local-Gaia filters; moves full-window plan actions to the title row; and adds UTF-8 CSV formats, field limits, and examples for user source catalogues and dedicated alternative-source catalogues on the data-notes page.
 
-Version 2.1.20260924 is the formal release explicitly requested by the user, packaged as skyward-v2.1.zip. Future versions still require an explicit user release request, a confirmed date, the full suite and available browser acceptance, and a skyward-v<major.minor>.zip archive from controlled clean source. Thus 1.6.20260919 maps to skyward-v1.6.zip. The filename omits the date, while the archive records the full version, date, Git state, manifest, and SHA-256. Exclude .venv, caches, credentials, personal files, and temporary artifacts. Ordinary development neither increments versions nor creates formal archives.
+V2.2 is formally released as `skyward-v2.2.zip` at full version 2.2.20260924. The archive name omits the date; the archive records the full version, date, Git state, manifest, and SHA-256, and excludes .venv, caches, credentials, personal files, and temporary artefacts.
+
+The standard archive naming pattern is `skyward-v<major.minor>.zip`.
 
 ## Copyright and developer
 

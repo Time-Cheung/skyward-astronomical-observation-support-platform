@@ -4,6 +4,7 @@ import ssl
 import xml.etree.ElementTree as ET
 
 import pytest
+from astropy.coordinates import SkyCoord
 from pathlib import Path
 from fastapi.testclient import TestClient
 
@@ -62,6 +63,28 @@ def test_gaia_csv_parser_keeps_magnitude_and_rejects_bad_schema():
         _parse_csv(b"source_id,ra\n123,10\n", 10)
 
 
+def test_gaia_sync_error_preserves_bounded_service_diagnostic(monkeypatch):
+    import app.gaia as gaia
+    from urllib.error import HTTPError
+
+    error = HTTPError(
+        gaia.GAIA_TAP_URL, 400, "Bad Request", {},
+        io.BytesIO(b"ADQL syntax error: unexpected token"),
+    )
+
+    def reject(request, timeout, context):
+        assert request.get_method() == "POST"
+        raise error
+
+    monkeypatch.setattr(gaia, "urlopen", reject)
+    with pytest.raises(HTTPError, match="ADQL syntax error: unexpected token") as caught:
+        gaia._read_gaia_payload(
+            SkyCoord(ra=10, dec=20, unit="deg", frame="icrs"),
+            1.0, 10, 10.0, 1.0,
+        )
+    assert gaia._should_retry(caught.value) is False
+
+
 def test_gaia_query_success_and_network_failure_are_bounded(monkeypatch):
     import app.gaia as gaia
     gaia._CACHE.clear()
@@ -69,10 +92,14 @@ def test_gaia_query_success_and_network_failure_are_bounded(monkeypatch):
     payload = b"source_id,ra,dec,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,bp_rp,ruwe,visibility_periods_used\n456,10.0,20.0,2,0.2,1,0.1,2,0.1,14.1,14.5,13.7,0.8,1.1,12\n"
 
     def online(request, timeout, context):
+        assert request.get_method() == "POST"
+        assert request.full_url == gaia.GAIA_TAP_URL
+        assert request.headers["Content-type"] == "application/x-www-form-urlencoded"
+        assert b"QUERY=" in request.data
         assert timeout == QUERY_TIMEOUT_SECONDS == 30
         assert context.verify_mode == ssl.CERT_REQUIRED
         assert context.check_hostname
-        calls.append(request.full_url)
+        calls.append(request)
         return io.BytesIO(payload)
 
     monkeypatch.setattr(gaia, "urlopen", online)
@@ -85,9 +112,10 @@ def test_gaia_query_success_and_network_failure_are_bounded(monkeypatch):
     assert meta["truncated"] is False and meta["zero"] is False
     assert meta["selection"] == "nearest_by_angular_distance"
     assert meta["ordering"] == "angular_distance_asc" and meta["brightest_n"] is False
-    from urllib.parse import parse_qs, urlparse
-    adql = parse_qs(urlparse(calls[0]).query)["QUERY"][0]
-    assert "ORDER BY DISTANCE" in adql.upper()
+    from urllib.parse import parse_qs
+    adql = parse_qs(calls[0].data.decode("ascii"))["QUERY"][0]
+    assert calls[0].get_method() == "POST"
+    assert "ORDER BY ANGULAR_DISTANCE ASC" in adql.upper()
     assert "SELECT TOP 4 " in adql
     assert "phot_g_mean_mag <= 10.000" in adql and "0.110000" in adql
     assert gaia.query_gaia_stars(moment, LACT_TELESCOPE, radius_deg=0.11, limit=3, max_mag=10)[1]["cached"] is True

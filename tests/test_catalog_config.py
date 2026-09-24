@@ -12,7 +12,7 @@ from app.config import (
     SITE_LONGITUDE_DEG,
 )
 
-EXPECTED_SHA256 = "ae1712c892af21d33ed4b75a8d513a28070add4109c2a06b2c2f8d9df7acff25"
+EXPECTED_SHA256 = "7ebd4bbbbeaf48abbe3bb619c540f3c316093f8da27928e1e95b18c2432e48fe"
 
 
 def test_confirmed_site_and_fov_constants():
@@ -26,6 +26,7 @@ def test_confirmed_site_and_fov_constants():
 def test_public_1lhaaso_catalogue_loads_all_sources_and_components():
     assert catalog.identifier == "1lhaaso"
     assert catalog.label == "1LHAASO"
+    assert catalog.display == {"zh": "1LHAASO", "en": "1LHAASO"}
     assert len(catalog.sources) == CATALOG_EXPECTED_ROWS == 90
     assert [source.index for source in catalog.sources] == list(range(90))
     assert catalog.sha256 == EXPECTED_SHA256

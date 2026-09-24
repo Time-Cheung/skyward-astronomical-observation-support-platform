@@ -1,6 +1,6 @@
 # Skyward
 
-Skyward is a geometry-first astronomical observing-support platform for LACT/LHAASO. 当前正式发布为 **V2.1**（完整版本 **2.1.20260924**）；候选窗口不是正式观测批准。
+Skyward is a geometry-first astronomical observing-support platform for LACT/LHAASO. 当前正式发布为 **V2.2**（完整版本 **2.2.20260924**）；候选窗口不是正式观测批准。
 
 默认本地源表为公开论文 *The First LHAASO Catalog of Gamma-Ray Sources* Table 2 的 1LHAASO 规范化快照（90 个源、180 个 WCDA/KM2A 组件）。尚未公开发布的 2LHAASO 源表不随本版本提供，也不能作为内置目录或保留名称通过应用/API 加载。
 
@@ -12,7 +12,7 @@ Skyward is a geometry-first astronomical observing-support platform for LACT/LHA
 - [IT Deployment Guide (English)](docs/DEPLOYMENT.en.md)
 - [开发文档（中文）](docs/DEVELOPMENT.zh-CN.md)
 - [Development Guide (English)](docs/DEVELOPMENT.en.md)
-
+- **V2.2 release**: fixes Gaia DR3 TAP ADQL compatibility, adds data-notes CSV upload formats/examples, and updates the result-page controls and 1LHAASO display label.
 ## Copyright / 版权
 
 Copyright © 2026 Wei Zhang. All rights reserved. / 版权所有，保留所有权利。

@@ -105,6 +105,14 @@
   text-decoration: underline;
 }
 
+.csv-upload-guide { margin-top: 18px; }
+.csv-upload-guide > p { max-width: 100ch; color: var(--muted); line-height: 1.65; }
+.csv-upload-card { margin-top: 14px; padding: 15px; border: 1px solid var(--line-soft); border-radius: var(--radius-small); background: var(--surface-2); }
+.csv-upload-card h3 { margin-bottom: 8px; font-size: 15px; }
+.csv-upload-card p, .csv-upload-limits { color: var(--muted); font-size: 12px; line-height: 1.65; }
+.csv-upload-card pre { margin: 10px 0 0; padding: 11px 12px; overflow-x: auto; border: 1px solid var(--line-soft); border-radius: var(--radius-small); background: var(--surface); color: var(--text); font: 11px/1.55 var(--font-mono); }
+.csv-upload-card code { font: inherit; }
+.csv-upload-limits { margin: 14px 0 0; }
 .catalogue-guide-card {
   display: grid;
   align-content: start;

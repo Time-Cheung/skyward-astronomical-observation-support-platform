@@ -23,8 +23,8 @@ def test_documentation_is_one_root_entry_plus_six_formal_guides():
     assert sorted(path.name for path in DOCS.iterdir()) == sorted(path.name for path in FORMAL)
     root = (ROOT / "README.md").read_text(encoding="utf-8")
     assert len(root.splitlines()) <= 20
-    assert "V2.1" in root and "2.1.20260924" in root
-    assert 'version="2.1.20260924"' in (ROOT / "app/main.py").read_text(encoding="utf-8")
+    assert "V2.2" in root and "2.2.20260924" in root
+    assert 'version="2.2.20260924"' in (ROOT / "app/main.py").read_text(encoding="utf-8")
     for path in FORMAL:
         assert f"docs/{path.name}" in root
 
@@ -33,11 +33,11 @@ def test_documented_contracts_match_the_formal_release():
     combined = "\n".join((zh_user, en_user, zh_deploy, en_deploy, zh_dev, en_dev))
     for fact in ("30 天", "30 days", "363", "223", "140", "10°", "5°", "4.15", "result_local_fov_only"):
         assert fact in combined
-    assert "2.1.20260924" in zh_dev and "2.1.20260924" in en_dev
-    assert "2.1 候选" not in zh_dev and "2.1 candidate" not in en_dev
+    assert "2.2.20260924" in zh_dev and "2.2.20260924" in en_dev
+    assert "2.2 候选" not in zh_dev and "2.2 candidate" not in en_dev
     assert "skyward-v<主版本.小版本>.zip" in zh_dev
     assert "skyward-v<major.minor>.zip" in en_dev
-    assert "skyward-v2.1.zip" in combined
+    assert "skyward-v2.2.zip" in combined
     assert "361-row snapshot" not in combined
     assert "本地快照 361" not in combined
     assert "最长 1 天" not in combined and "one day" not in combined.lower()
