@@ -1,6 +1,6 @@
 # Skyward Development Guide (English)
 
-**Current version: V2.3 (2.3.20260925).** This follow-up keeps the V2.2 release tag intact and adds browser-shared catalogue icons, batch target lists, tracked-FoV curve overlays, sorted windows, and plan-preview sorting.
+**Current version: V2.2 (2.2.20260924).** The current tree includes browser-shared catalogue icons, batch target lists, tracked-FoV curve overlays, sorted windows, and plan-preview sorting.
 
 [中文](DEVELOPMENT.zh-CN.md) · [User guide](README.en.md) · [Deployment](DEPLOYMENT.en.md)
 
@@ -101,8 +101,7 @@ Full versions use major.minor.YYYYMMDD. Major identifies an architecture generat
 - 1.5.20260919: TeVCat/Gaia/30-day planning upgrade.
 - 1.6.20260919: bounded-memory long-range display fix.
 - **2.1.20260924**: result-local Gaia only, fixed 10° local map, shared map state and compute-free page restoration, editable multi-window observing plans with XLSX/SVG export, dedicated alternative-source catalogues, serialized Zenith-Time refreshes; the default catalogue is replaced by the public paper Table 2 1LHAASO normalization and the unpublished 2LHAASO file is removed from the current release tree; documentation is consolidated.
-- **2.3.20260925**: adds browser-shared per-catalogue map icons, batch target-list calculation with inherited constraints and default plan plots, tracked-FoV Zenith-Time curve bulk addition, sorted target/comparison windows, and observing-plan preview sorting. The home version label no longer duplicates the release banner.
-- **2.2.20260924**: fixes Gaia DR3 TAP distance-ordering compatibility and improves service-error diagnostics; shortens the 1LHAASO display label; compacts local-Gaia filters; moves full-window plan actions to the title row; and adds UTF-8 CSV formats, field limits, and examples for user source catalogues and dedicated alternative-source catalogues on the data-notes page.
+- **2.2.20260924**: includes the Gaia DR3 compatibility and documentation fixes, browser-shared per-catalogue map icons, batch target-list calculation with inherited constraints and default plan plots, tracked-FoV Zenith-Time curve bulk addition, sorted target/comparison windows, and observing-plan preview sorting. The home version label does not duplicate the release banner.
 
 The standard archive naming pattern is `skyward-v<major.minor>.zip`.
 

@@ -75,7 +75,7 @@ def refresh_iers(*, blocking: bool = False) -> None:
         IERS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
         request = Request(
             IERS_ONLINE_URL,
-            headers={"Accept": "text/plain", "User-Agent": "Skyward/2.3 LAN astronomy helper"},
+            headers={"Accept": "text/plain", "User-Agent": "Skyward/2.2 LAN astronomy helper"},
         )
         with urlopen(request, timeout=IERS_REQUEST_TIMEOUT_SECONDS) as response:
             payload = response.read(16 * 1024 * 1024 + 1)

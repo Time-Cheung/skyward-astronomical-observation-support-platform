@@ -1,6 +1,6 @@
 # Skyward User Guide (English)
 
-**Current version: V2.3 (full version 2.3.20260925).** V2.2 (2.2.20260924) remains the published baseline; this follow-up adds catalogue icons, batch target lists, tracked-FoV curves, sorted windows, and plan-preview sorting.
+**Current version: V2.2 (full version 2.2.20260924).** The current tree includes catalogue icons, batch target lists, tracked-FoV curves, sorted windows, and plan-preview sorting.
 
 [中文](README.zh-CN.md) · [Deployment](DEPLOYMENT.en.md) · [Development](DEVELOPMENT.en.md)
 

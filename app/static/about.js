@@ -9,7 +9,7 @@
   const copy = {
     zh: {
       skywardOverviewTitle: "Skyward 介绍",
-      skywardScopeStatement: "V2.3（完整版本 2.3.20260925）延续 V2.2（完整版本 2.2.20260924）的仅几何判断边界，并增加浏览器本地观测计划功能。只给出可解释的几何可行性候选；不判断运行就绪状态，也不构成观测批准。",
+      skywardScopeStatement: "V2.2（完整版本 2.2.20260924）采用仅几何判断边界，并提供浏览器本地观测计划功能。只给出可解释的几何可行性候选；不判断运行就绪状态，也不构成观测批准。",
       currentStageLabel: "现有功能",
       currentStageTitle: "当前可用",
       currentStageBody: "浏览已支持的源表，查看全天图和局部视场几何、源详情，并按明确的几何约束计算源中心与完整源窗口。",
@@ -52,7 +52,7 @@
     },
     en: {
       skywardOverviewTitle: "About Skyward",
-      skywardScopeStatement: "V2.3 (full version 2.3.20260925) continues the V2.2 (full version 2.2.20260924) geometry-only boundary and adds browser-local observing-plan features. It reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.",
+      skywardScopeStatement: "V2.2 (full version 2.2.20260924) uses a geometry-only boundary and provides browser-local observing-plan features. It reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.",
       currentStageLabel: "AVAILABLE NOW",
       currentStageTitle: "Current functions",
       currentStageBody: "Browse supported catalogues, inspect all-sky and local-field geometry and source details, and calculate centre and full-footprint windows under explicit geometric constraints.",
