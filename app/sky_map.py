@@ -154,6 +154,32 @@ def _star_points(x: float, y: float, outer: float = 7.0, inner: float = 3.0) -> 
     )
 
 
+def _symbol_markup(icon: str, x: float, y: float, scale: float = 1.0, classes: str = "") -> str:
+    """Render a selectable catalogue marker symbol; extensions stay separate rings."""
+    icon = icon if icon in {"star", "diamond", "triangle", "square", "circle", "plus"} else "star"
+    outer = 7.0 * scale
+    if icon == "star":
+        return f'<polygon class="source-symbol source-star source-symbol-star {classes}" points="{_star_points(x, y, outer, 3.0 * scale)}" data-symbol-only="true" />'
+    if icon == "diamond":
+        points = f"{x:.9f},{y - outer:.9f} {x + outer:.9f},{y:.9f} {x:.9f},{y + outer:.9f} {x - outer:.9f},{y:.9f}"
+        return f'<polygon class="source-symbol source-symbol-diamond {classes}" points="{points}" data-symbol-only="true" />'
+    if icon == "triangle":
+        points = f"{x:.9f},{y - outer:.9f} {x + outer:.9f},{y + outer * .72:.9f} {x - outer:.9f},{y + outer * .72:.9f}"
+        return f'<polygon class="source-symbol source-symbol-triangle {classes}" points="{points}" data-symbol-only="true" />'
+    if icon == "square":
+        return f'<rect class="source-symbol source-symbol-square {classes}" x="{x - outer:.9f}" y="{y - outer:.9f}" width="{2 * outer:.9f}" height="{2 * outer:.9f}" data-symbol-only="true" />'
+    if icon == "circle":
+        return f'<circle class="source-symbol source-symbol-circle {classes}" cx="{x:.9f}" cy="{y:.9f}" r="{outer:.9f}" data-symbol-only="true" />'
+    arm = outer * .95
+    return f'<path class="source-symbol source-symbol-plus {classes}" d="M {x - arm:.9f} {y:.9f} H {x + arm:.9f} M {x:.9f} {y - arm:.9f} V {y + arm:.9f}" data-symbol-only="true" />'
+
+
+def _catalogue_icon(source: Source, icon_map: Optional[dict]) -> str:
+    if source.source_type == "gaia":
+        return "plus"
+    return (icon_map or {}).get(source.catalogue_id, "star")
+
+
 def _viewbox(width, height, cx, cy, zoom, bounds):
     zoom = float(zoom)
     if not math.isfinite(zoom) or not 1.0 <= zoom <= 1000.0:
@@ -269,6 +295,8 @@ def _styles(zoom: float) -> str:
 .sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol{{vector-effect:non-scaling-stroke;transform:scale(var(--map-icon-scale,1));transform-box:fill-box;transform-origin:center}}
 .sky-map-svg .source-marker .source-symbol,.fov-map-svg .source-marker .source-symbol{{fill:currentColor;stroke:var(--sky,#101827);stroke-width:1.2}}
 .sky-map-svg .source-marker.source-type-gaia .gaia-cross,.fov-map-svg .source-marker.source-type-gaia .gaia-cross{{fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round}}
+.sky-map-svg .source-symbol-plus,.fov-map-svg .source-symbol-plus{{fill:none!important;stroke:currentColor!important;stroke-width:2.2!important;stroke-linecap:round}}
+.sky-map-svg .source-symbol-circle,.fov-map-svg .source-symbol-circle{{fill:currentColor;}}
 .sky-map-svg .source-marker.selected-source .source-symbol,.fov-map-svg .source-marker.selected-source .source-symbol{{stroke:var(--blue,#3333FF)!important;stroke-width:3.4;paint-order:stroke fill}}
 .sky-map-svg .source-marker.trajectory-highlight .source-symbol,.fov-map-svg .source-marker.trajectory-highlight .source-symbol{{stroke:#8b5cf6;stroke-width:2.6;paint-order:stroke fill;pointer-events:auto}}
 .sky-map-svg .extension-ring,.fov-map-svg .extension-ring{{fill:none;stroke:#00b8c6;stroke-width:1.6;stroke-opacity:.9;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;transform:none;filter:none;pointer-events:none}}
@@ -293,7 +321,7 @@ def _boundary(coordinate: SkyCoord, radius_deg: float) -> SkyCoord:
     return coordinate.directional_offset_by(np.linspace(0, 360, 361) * u.deg, radius_deg * u.deg)
 
 
-def _marker(source: Source, coordinate: Optional[SkyCoord], p: _Projection, zoom: float, extra: str = "", title: Optional[str] = None, below: bool = False, position=None) -> str:
+def _marker(source: Source, coordinate: Optional[SkyCoord], p: _Projection, zoom: float, extra: str = "", title: Optional[str] = None, below: bool = False, position=None, icon_map: Optional[dict] = None) -> str:
     x, y, _ = p.project(coordinate) if position is None else position
     x, y = float(x), float(y)
     title = title or source.display_name
@@ -311,7 +339,7 @@ def _marker(source: Source, coordinate: Optional[SkyCoord], p: _Projection, zoom
     if selected or kind != "gaia":
         outer, inner = ((9.5 / zoom, 4.2 / zoom) if selected else (7 / zoom, 3 / zoom))
         selected_symbol = (" selected-symbol" if selected else "") + (" tracked-symbol" if tracked else "")
-        pieces.append(f'<polygon class="source-symbol source-star{selected_symbol}" points="{_star_points(x, y, outer, inner)}" data-symbol-only="true" />')
+        pieces.append(_symbol_markup(_catalogue_icon(source, icon_map), x, y, 1 / zoom, selected_symbol))
     else:
         arm = 5.2 / zoom
         pieces.append(
@@ -336,6 +364,7 @@ def render_all_sky_svg(
     trajectory_enforce_current_pointing: bool = True,
     trajectory_ranges: Optional[Iterable[tuple[datetime, datetime]]] = None,
     trajectory_display_time: Optional[datetime] = None,
+    icon_map: Optional[dict] = None,
     display_frame: str = "altaz", zoom: float = 1.0,
     bounds: Optional[tuple[float, float, float, float]] = None,
     grid_step_deg: Optional[float] = None,
@@ -413,7 +442,7 @@ def render_all_sky_svg(
         extra += " selected-source" if item["index"] == selected_index else ""
         extra += " trajectory-highlight" if item["index"] in highlighted else ""
         title = f'{item["display_name"]} | {item["status"]}' + (" | below horizon (boundary indicator)" if not visible else "")
-        lines.append(_marker(item_source, None, p, zoom, extra, title, not visible, position))
+        lines.append(_marker(item_source, None, p, zoom, extra, title, not visible, position, icon_map))
     if snapshot["sources"]:
         geometry = snapshot["sources"][0]["geometry"]
         for kind in ("sun", "moon"):
@@ -446,6 +475,7 @@ def render_local_fov_svg(
     trajectory_display_time: Optional[datetime] = None,
     selected_index: Optional[int] = None,
     highlighted_indexes: Optional[Iterable[int]] = None,
+    icon_map: Optional[dict] = None,
 ) -> str:
     """Target-centred spherical map using the shared instant/trajectory contract."""
     del selected_status
@@ -493,7 +523,7 @@ def render_local_fov_svg(
         extra = " local-selected-star selected-source" if selected else " local-source-star"
         extra += " trajectory-highlight" if candidate.index in highlighted and not selected else ""
         extra += f" status-{STATUS_CLASS.get(status_by_key.get(candidate.source_key), 'red')}"
-        lines.append(_marker(candidate, None, p, zoom, extra, position=position))
+        lines.append(_marker(candidate, None, p, zoom, extra, position=position, icon_map=icon_map))
     horizon_frame = _altaz(display_time, telescope)
     for body, kind in ((get_sun(time).transform_to(horizon_frame), "sun"), (get_body("moon", time, telescope.location).transform_to(horizon_frame), "moon")):
         if float(body.alt.deg) < 0:

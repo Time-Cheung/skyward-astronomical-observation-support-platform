@@ -51,7 +51,7 @@ from .windows import calculate_catalogue_windows, calculate_windows
 
 app = FastAPI(
     title="Skyward Astronomical Observation Support Platform",
-    version="2.2.20260924",
+    version="2.3.20260925",  # baseline version="2.2.20260924"
     description="LAN-only geometry planning prototype with a current LACT adapter and extensible catalogue/display interfaces.",
     docs_url=None,
     redoc_url=None,
@@ -130,6 +130,29 @@ def _catalogue_metadata(selected) -> dict:
 
 def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _parse_icon_map(value: Optional[str]) -> dict:
+    if not value:
+        return {}
+    try:
+        raw = json.loads(value)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    allowed = {"star", "diamond", "triangle", "square", "circle", "plus"}
+    return {str(key): str(icon) for key, icon in raw.items() if str(icon) in allowed and str(key) != "gaia-dr3"}
+
+
+def _constraints_for_source(base: ConstraintSet, source: Source) -> ConstraintSet:
+    """Apply optional per-target CSV overrides over the planner defaults."""
+    overrides = source.planner_constraints or {}
+    values = base.model_dump()
+    for key in values:
+        if key in overrides and overrides[key] is not None:
+            values[key] = overrides[key]
+    return ConstraintSet(**values)
 
 
 def _parse_optional_float(value: Optional[str]) -> Optional[float]:
@@ -603,9 +626,13 @@ def result_page(
     target_min_zenith_deg: Optional[str] = Form(None),
     target_max_zenith_deg: Optional[str] = Form(None),
     minimum_window_seconds: Optional[str] = Form(None),
+    target_list_token: Optional[str] = Form(None),
 ) -> HTMLResponse:
     """Render either one selected target or all sources crossing the fixed zenith FoV."""
     source_index = source_key or source_index
+    target_list_token = target_list_token if isinstance(target_list_token, str) and target_list_token.strip() else None
+    if target_list_token:
+        source_index = "none"
     telescope: TelescopeConfig = LACT_TELESCOPE
     selected_catalogue = catalog
     observer_timezone = _observer_timezone(telescope)
@@ -619,7 +646,9 @@ def result_page(
         )
         observer_timezone = _observer_timezone(telescope)
         context = _base_context(request, telescope)
-        selected_catalogue = _catalogue_collection(_resolve_catalogues(catalog_token, catalog_tokens))
+        target_list_catalogue = temporary_catalogues.get(target_list_token) if target_list_token else None
+        if target_list_catalogue:
+            selected_catalogue = _catalogue_collection([target_list_catalogue])
     except ValueError as telescope_error:
         telescope_error_message = str(telescope_error)
     form_values = {
@@ -628,6 +657,7 @@ def result_page(
         "nominal_radius_deg": nominal_radius_deg if nominal_radius_deg is not None else "",
         "catalog_token": catalog_token or "",
         "catalog_tokens": catalog_tokens if catalog_tokens is not None else (catalog_token if catalog_token is not None else catalog.identifier),
+        "target_list_token": target_list_token or "",
         "start_time": start_time,
         "end_time": end_time,
         "planner_start_utc": _canonical_form_time(start_time, display_timezone, observer_timezone),
@@ -679,13 +709,54 @@ def result_page(
             catalog_token, catalog_tokens,
         )
         _validate_iers_range(request_model.start_utc, request_model.end_utc)
+        if target_list_token:
+            target_sources = list(selected_catalogue.sources)
+            calculated_results = [
+                calculate_windows(item, request_model.start_utc, request_model.end_utc, _constraints_for_source(constraints, item), telescope)
+                for item in target_sources
+            ]
+            summaries = [{"source": item, "center_windows": result.center_windows, "full_windows": result.full_footprint_windows} for item, result in zip(target_sources, calculated_results)]
+            batch_plan_entries = []
+            for position, (item, calculated) in enumerate(zip(target_sources, calculated_results)):
+                effective_constraints = _constraints_for_source(constraints, item)
+                plan_windows = []
+                for window_position, window in enumerate(calculated.full_footprint_windows):
+                    serialised = window.to_dict()
+                    if not serialised.get("plan_start") or not serialised.get("plan_end"):
+                        continue
+                    plan_windows.append({
+                        "windowId": f"bulk-{position}-{window_position}",
+                        "windowStart": serialised["start"], "windowEnd": serialised["end"],
+                        "planStart": serialised["plan_start"], "planEnd": serialised["plan_end"],
+                        "alternatives": [], "alternativeSummary": None,
+                        "alternativeStatus": "unavailable", "alternativeError": None,
+                    })
+                if not plan_windows:
+                    continue
+                item_status = source_status(item, request_model.start_utc, effective_constraints, telescope)
+                batch_plan_entries.append({
+                    "id": f"bulk-{position}-{item.source_key}", "addedAt": position,
+                    "source": item.display_name, "sourceKey": item.source_key,
+                    "catalogueTarget": False, "ra": str(item.ra), "dec": str(item.dec),
+                    "radius": str(item.ext), "constraints": str(effective_constraints.enabled_labels()),
+                    "constraintValues": effective_constraints.model_dump(),
+                    "catalogToken": target_list_token, "catalogTokens": target_list_token,
+                    "alternativeCatalogToken": None, "nominalRadiusDeg": item.ext,
+                    "searchStart": request_model.start_utc.isoformat().replace("+00:00", "Z"),
+                    "searchEnd": request_model.end_utc.isoformat().replace("+00:00", "Z"),
+                    "windows": plan_windows, "notes": "", "plotSvg": render_window_plot(
+                        calculated, theme="light", timezone_label=telescope.timezone_label,
+                        timezone_offset_hours=telescope.timezone_offset_hours,
+                    ), "localFovSvg": render_local_fov_svg(
+                        item, target_sources, request_model.start_utc, item_status.to_dict(), telescope, language="zh",
+                    ), "telescopeQuery": {},
+                })
+            context.update({"target_label": "Uploaded target list", "summaries": summaries, "batch_plan_entries": batch_plan_entries, "constraints": constraints, "original_constraints": constraints, "sky_svg": "", "snapshot": {}, "form_values": form_values, "start_local": request_model.start_utc.astimezone(observer_timezone), "end_local": request_model.end_utc.astimezone(observer_timezone), "result_start_utc": request_model.start_utc.isoformat().replace("+00:00", "Z"), "result_end_utc": request_model.end_utc.isoformat().replace("+00:00", "Z"), "error": None, "target_list_token": target_list_token})
+            return templates.TemplateResponse(request, "bulk_result.html", context)
         if all_sources:
             # In the current no-telemetry phase, LACT points at zenith. Restrict
             # every catalogue computation to the 4.15 degree FoV radius.
             fov_constraints = _current_fov_constraints(constraints, telescope)
-            # "All sources" means sources inside the current LACT FoV at the
-            # requested start instant, not a costly all-night scan of every catalogue row.
-            # The displayed real-time pointing is presently fixed at zenith.
             _, start_snapshot = render_all_sky_svg(
                 selected_catalogue.sources, request_model.start_utc, constraints, telescope=telescope, language="zh"
             )
@@ -697,26 +768,9 @@ def result_page(
             calculated_results = calculate_catalogue_windows(
                 candidate_sources, request_model.start_utc, request_model.end_utc, fov_constraints, telescope
             )
-            summaries = [
-                {
-                    "source": candidate,
-                    "center_windows": candidate_result.center_windows,
-                    "full_windows": candidate_result.full_footprint_windows,
-                }
-                for candidate, candidate_result in zip(candidate_sources, calculated_results)
-            ]
-            sky_svg, snapshot = render_all_sky_svg(
-                selected_catalogue.sources, request_model.start_utc, constraints, telescope=telescope, language="zh"
-            )
-            context.update({
-                "target_label": target_label, "summaries": summaries, "constraints": fov_constraints,
-                "original_constraints": constraints, "sky_svg": sky_svg, "snapshot": snapshot,
-                "form_values": form_values, "start_local": request_model.start_utc.astimezone(observer_timezone),
-                "end_local": request_model.end_utc.astimezone(observer_timezone),
-                "result_start_utc": request_model.start_utc.isoformat().replace("+00:00", "Z"),
-                "result_end_utc": request_model.end_utc.isoformat().replace("+00:00", "Z"),
-                "error": None,
-            })
+            summaries = [{"source": candidate, "center_windows": item.center_windows, "full_windows": item.full_footprint_windows} for candidate, item in zip(candidate_sources, calculated_results)]
+            sky_svg, snapshot = render_all_sky_svg(selected_catalogue.sources, request_model.start_utc, constraints, telescope=telescope, language="zh")
+            context.update({"target_label": target_label, "summaries": summaries, "constraints": fov_constraints, "original_constraints": constraints, "sky_svg": sky_svg, "snapshot": snapshot, "form_values": form_values, "start_local": request_model.start_utc.astimezone(observer_timezone), "end_local": request_model.end_utc.astimezone(observer_timezone), "result_start_utc": request_model.start_utc.isoformat().replace("+00:00", "Z"), "result_end_utc": request_model.end_utc.isoformat().replace("+00:00", "Z"), "error": None})
             return templates.TemplateResponse(request, "bulk_result.html", context)
 
         assert source is not None
@@ -826,6 +880,7 @@ def result_page_get(
     target_min_zenith_deg: Optional[str] = Query(None),
     target_max_zenith_deg: Optional[str] = Query(None),
     minimum_window_seconds: Optional[str] = Query(None),
+    target_list_token: Optional[str] = Query(None),
 ) -> HTMLResponse:
     """Rebuild a calculated result from its URL-safe form state."""
     if not start_time or not end_time:
@@ -856,6 +911,7 @@ def result_page_get(
         sun_max_altitude_deg=sun_max_altitude_deg, moon_min_separation_deg=moon_min_separation_deg,
         target_min_zenith_deg=target_min_zenith_deg, target_max_zenith_deg=target_max_zenith_deg,
         minimum_window_seconds=minimum_window_seconds,
+        target_list_token=target_list_token,
     )
 
 
@@ -950,6 +1006,18 @@ async def upload_catalogue(file: UploadFile = File(...)) -> dict:
     except CatalogError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {**_catalogue_metadata(selected), "sources": [source.to_dict() for source in selected.sources]}
+
+
+@app.post("/api/v1/target-lists/upload")
+async def upload_target_list(file: UploadFile = File(...)) -> dict:
+    """Validate a temporary batch-target CSV with mandatory extensions."""
+    try:
+        selected = temporary_catalogues.create_from_csv(
+            await file.read(), file.filename or "uploaded target list", require_extension=True
+        )
+    except CatalogError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {**_catalogue_metadata(selected), "sources": [source.to_dict() for source in selected.sources], "target_list": True}
 
 
 @app.get("/api/v1/sources")
@@ -1228,6 +1296,7 @@ def current_sky(
     specified_end: Optional[datetime] = None,
     trajectory_end: Optional[datetime] = None,
     highlight_indexes: Optional[str] = Query(None, max_length=6000),
+    icon_map: Optional[str] = Query(None, max_length=4000),
     trajectory_enforce_current_pointing: bool = Query(False),
     trajectory_ranges: Optional[str] = Query(None, max_length=24000),
     trajectory_display_time: Optional[datetime] = Query(None),
@@ -1326,6 +1395,7 @@ def current_sky(
         trajectory_display_time=trajectory_display_time,
         display_frame=display_frame,
         zoom=zoom, bounds=_map_bounds(bounds), grid_step_deg=grid_step_deg,
+        icon_map=_parse_icon_map(icon_map),
     )
     snapshot.update({
         "geometry_only": True,
@@ -1469,6 +1539,14 @@ def plot_overlay(
     _validate_iers_range(start, end)
     result = calculate_windows(target, start, end, constraints, telescope=telescope)
     companions = [compute_geometry(item, result.sample_times, telescope) for item in comparisons]
+    comparison_windows = []
+    for item in comparisons:
+        comparison_result = calculate_windows(item, start, end, constraints, telescope=telescope)
+        comparison_windows.append({
+            "source_key": item.source_key,
+            "display_name": item.display_name,
+            "windows": [window.to_dict() for window in comparison_result.full_footprint_windows],
+        })
     return {
         "svg": render_window_plot(
             result, theme=theme, timezone_label=timezone_label,
@@ -1479,6 +1557,7 @@ def plot_overlay(
             ],
         ),
         "comparison_sources": [item.to_dict() for item in comparisons],
+        "comparison_windows": comparison_windows,
         # Keep the original singular field for existing one-overlay clients.
         "comparison_source": comparisons[0].to_dict() if len(comparisons) == 1 else None,
     }
@@ -1509,6 +1588,7 @@ def local_fov(
     zoom: float = Query(1.0, ge=1, le=1000),
     bounds: Optional[str] = Query(None, max_length=200),
     grid_step_deg: Optional[float] = Query(None, gt=0, le=90),
+    icon_map: Optional[str] = Query(None, max_length=4000),
     constraints: ConstraintSet = Depends(_query_constraints),
     telescope: TelescopeConfig = Depends(_telescope_query),
 ) -> dict:
@@ -1583,6 +1663,7 @@ def local_fov(
             trajectory_display_time=trajectory_display_time,
             selected_index=target.index,
             highlighted_indexes=highlights,
+            icon_map=_parse_icon_map(icon_map),
         ),
         "source": target.to_dict(),
         "status_mode": status_mode,

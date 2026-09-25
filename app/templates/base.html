@@ -122,7 +122,7 @@
       <div><p class="dialog-kicker" data-i18n="observationPlan">Observing plan</p><h2 id="plan-preview-title" data-i18n="previewObservationPlan">Preview current observing plan</h2></div>
       <button class="icon-button" type="button" data-close-plan-preview aria-label="Close preview" data-i18n-aria-label="closeDetails">×</button>
     </div>
-    <div class="dialog-body"><div class="plan-preview-toolbar"><button class="secondary-button" type="button" data-clear-observation-plan data-i18n="clearCurrentPlan">Clear current observing plan</button></div><div id="observation-plan-preview-list" class="plan-preview-list"></div></div>
+    <div class="dialog-body"><div class="plan-preview-toolbar"><label class="plan-sort-control"><span data-i18n="planSort">Sort</span><select id="plan-sort-select"><option value="added" data-i18n="planSortAdded">Added time</option><option value="duration" data-i18n="planSortDuration">Total window duration</option><option value="start" data-i18n="planSortStart">Window start</option></select></label><button class="secondary-button" type="button" data-clear-observation-plan data-i18n="clearCurrentPlan">Clear current observing plan</button></div><div id="observation-plan-preview-list" class="plan-preview-list"></div></div>
   </dialog>
   <dialog id="clear-plan-dialog" class="source-dialog choice-dialog" aria-labelledby="clear-plan-title">
     <div class="dialog-head"><div><p class="dialog-kicker" data-i18n="observationPlan">Observing plan</p><h2 id="clear-plan-title" data-i18n="clearCurrentPlan">Clear current observing plan</h2></div></div>

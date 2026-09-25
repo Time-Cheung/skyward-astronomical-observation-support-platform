@@ -70,7 +70,7 @@
   // API contracts keep machine codes; the local UI maps them to readable bilingual labels.
   Object.assign(translations.zh, {
     mapSymbolLegend: '地图符号', nonGaiaSource: '非 Gaia 源', gaiaSource: 'Gaia 定标星', trueExtension: '真实 extension', selectedTarget: '已选目标', calculationInProgress: '正在计算观测窗口', calculationFailed: '计算未能完成', returnToForm: '返回修改条件', coordinateFrame: "坐标系", coordAltAz: "地平坐标", coordJ2000: "赤道坐标（J2000）", coordGalactic: "银道坐标", includeGaia: "Gaia DR3 定标星", iersSourceKind: "当前数据源", iersUpdate: "更新策略", iersLastError: "最近联网错误",
-    homeTitle: 'V2.2（完整版本 2.2.20260924）：仅几何判断', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
+    homeTitle: '从源表到可解释的几何窗口。', homeLead: '选择并确认加载源表后，源会显示在天图和目标源列表中。', localFovTitle: '局部视场', allSkyTitle: '站点全天图',
     allSkyNote: '颜色按地平线和已启用的几何约束判定；当前未接入可信实时指向，不使用“位于当前 FoV”约束。点击源标记查看源详情。',
     telescopeSettings: '望远镜设置', telescope: '望远镜', lactTelescope: 'LACT', customTelescope: '自定义望远镜',
     telescopeFutureHelp: '当前已接入 LACT；后续可扩展其他望远镜。', customTelescopeHelp: '本次计算临时使用 WGS-84 配置，不会保存到服务器。',
@@ -82,7 +82,7 @@
   });
   Object.assign(translations.en, {
     mapSymbolLegend: 'Map symbols', nonGaiaSource: 'Non-Gaia source', gaiaSource: 'Gaia calibration star', trueExtension: 'True extension', selectedTarget: 'Selected target', calculationInProgress: 'Calculating observation windows', calculationFailed: 'Calculation could not be completed', returnToForm: 'Return to edit conditions', coordinateFrame: "Coordinate frame", coordAltAz: "AltAz / Horizon", coordJ2000: "Equatorial (J2000)", coordGalactic: "Galactic", includeGaia: "Gaia DR3 calibration stars", iersSourceKind: "Active source", iersUpdate: "Update policy", iersLastError: "Last online error",
-    homeTitle: 'V2.2 (full version 2.2.20260924): geometry assessment only', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
+    homeTitle: 'Turn a source catalogue into observable geometry.', homeLead: 'Select and confirm catalogues to load their sources into the maps and target list.', localFovTitle: 'local FoV', allSkyTitle: 'Station all-sky view',
     allSkyNote: 'Colours use the horizon and enabled geometric constraints. Authoritative live pointing is not connected, so no current-FoV constraint is applied. Select a star for details.',
     telescopeSettings: 'Telescope settings', telescope: 'Telescope', lactTelescope: 'LACT', customTelescope: 'Custom telescope',
     telescopeFutureHelp: 'LACT is active now; additional observatories can be connected later.', customTelescopeHelp: 'This temporary WGS-84 configuration is used only by this calculation and is not saved.',
@@ -93,15 +93,17 @@
     target_above_horizon: 'target above horizon', target_inside_current_fov: 'target inside current FoV', sun_altitude: 'Sun altitude', moon_separation: 'Moon separation', target_min_zenith: 'minimum target zenith angle', target_max_zenith: 'maximum target zenith angle', extension_inside_fov: 'extension inside FoV', extension_inside_current_fov: 'extension inside current FoV', extension_above_horizon: 'extension above horizon', extension_max_zenith: 'extension within horizon limit', minimum_window: 'minimum continuous window',
   });
   Object.assign(translations.zh, {
-    catalogueLayers: '源表', layerScope: '勾选仅为草稿；确认加载后才更新天图与目标源选择器。', cataloguePicker: '选择源表', catalogueConfirm: '确认加载', catalogueCancel: '取消', catalogueDraftChanged: '选择尚未应用', catalogueCountUnit: '个源表', emptyLayers: '未选择源表', searchCatalogue: '搜索所有已选源表', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '源表清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaFallback: '初始查询超时，已使用原始视场内的有界子锥；结果可能不完整', gaiaReason: '原因', gaiaAttempts: '查询次数', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按源表选择显示图层，检索目标并计算几何窗口。'
+    catalogueLayers: '源表', catalogueIcons: '源表图标按钮依次切换：星星、菱形、三角形、方形、圆形和十字；Gaia 十字固定不参与选择。', layerScope: '勾选仅为草稿；确认加载后才更新天图与目标源选择器。', cataloguePicker: '选择源表', catalogueConfirm: '确认加载', catalogueCancel: '取消', catalogueDraftChanged: '选择尚未应用', catalogueCountUnit: '个源表', emptyLayers: '未选择源表', searchCatalogue: '搜索所有已选源表', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '源表清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaFallback: '初始查询超时，已使用原始视场内的有界子锥；结果可能不完整', gaiaReason: '原因', gaiaAttempts: '查询次数', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按源表选择显示图层，检索目标并计算几何窗口。'
   });
   Object.assign(translations.en, {
-    catalogueLayers: 'Catalogues', layerScope: 'Checks are drafts. Confirm loading to update the sky map and target picker.', cataloguePicker: 'Select catalogues', catalogueConfirm: 'Confirm & load', catalogueCancel: 'Cancel', catalogueDraftChanged: 'Selection not applied', catalogueCountUnit: 'catalogues', emptyLayers: 'No catalogues selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaFallback: 'The initial query timed out; bounded subcones inside the original field were used and the result may be incomplete.', gaiaReason: 'Reason', gaiaAttempts: 'Queries', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
+    catalogueLayers: 'Catalogues', catalogueIcons: 'Catalogue buttons cycle through star, diamond, triangle, square, circle and plus; Gaia crosses remain fixed and are not selectable.', layerScope: 'Checks are drafts. Confirm loading to update the sky map and target picker.', cataloguePicker: 'Select catalogues', catalogueConfirm: 'Confirm & load', catalogueCancel: 'Cancel', catalogueDraftChanged: 'Selection not applied', catalogueCountUnit: 'catalogues', emptyLayers: 'No catalogues selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaFallback: 'The initial query timed out; bounded subcones inside the original field were used and the result may be incomplete.', gaiaReason: 'Reason', gaiaAttempts: 'Queries', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
   });
   Object.assign(translations.zh, { gaiaUnorderedSubset: '按与目标的角距离由近到远选择最近 N 颗。', operatorNominalAssumption: '用户指定的名义半径假设', unknownFootprint: '未提供；按零半径点源评估，planning radius 仍未知', pointSourceFallback: '未知 footprint：按零半径点源评估；planning radius 仍未知', statusSpecified: '指定时间', statusModeLabel: '状态模式', statusTimeLabel: '状态时间', specifiedTimeKind: '指定时间类型', specifiedPoint: '时间点', specifiedRange: '时间段（最长 24 小时）', specifiedStart: '起始时间 / 时间点', specifiedEnd: '结束时间', applySpecifiedTime: '应用', specifiedTimeInvalid: '请输入有效的指定时间。', specifiedTimeOrder: '结束时间必须晚于开始时间。', specifiedTimeLimit: '指定时间段不能超过 24 小时。', specifiedStatusExplanation: '指定时间：时间点按该时刻分类；时间段按不超过 24 小时的区间分类，并统一在区间起点绘制位置。', localSharedStatus: '局部图与左侧全天图共用同一状态模式和时间。', loadGaiaLocal: '加载 Gaia DR3', gaiaRadiusFilter: '目标周围查询半径', gaiaFaintestMagnitude: '最暗 G 星等', gaiaMaximumSources: '最大源数量', applyGaiaFilters: '加载 Gaia DR3', gaiaFilterInvalid: 'Gaia 筛选条件无效：半径 0.1–5°，最暗 G 星等 5–22，最大源数 1–500。', gaiaQueryStrategy: '查询策略', localFovNote: '灰色实线圆表示以目标为中心、直径 10° 的局部图显示边界；蓝色虚线圆表示望远镜 FoV 硬边界；青色虚线圆表示目标源的名义 extension。名义 extension 很小时，青色圆可能被中央目标标记遮住。' });
   Object.assign(translations.en, { gaiaUnorderedSubset: 'The nearest N eligible sources by angular distance to the target are returned.', operatorNominalAssumption: 'Operator-supplied nominal assumption', unknownFootprint: 'Not provided; evaluated as a zero-radius point source; planning radius remains unknown', pointSourceFallback: 'Unknown footprint: evaluated as a zero-radius point source; planning radius remains unknown', statusSpecified: 'Specified time', statusModeLabel: 'Status mode', statusTimeLabel: 'Status time', specifiedTimeKind: 'Specified time type', specifiedPoint: 'Time point', specifiedRange: 'Time range (maximum 24 h)', specifiedStart: 'Start / time point', specifiedEnd: 'End', applySpecifiedTime: 'Apply', specifiedTimeInvalid: 'Enter a valid specified time.', specifiedTimeOrder: 'End time must be later than start time.', specifiedTimeLimit: 'The specified range cannot exceed 24 hours.', specifiedStatusExplanation: 'Specified time: a point is classified at that instant; a range of up to 24 hours is classified over the interval and positions are drawn at its start.', localSharedStatus: 'The local map uses the same status mode and time as the all-sky map.', loadGaiaLocal: 'Load Gaia DR3', gaiaRadiusFilter: 'Radius around target', gaiaFaintestMagnitude: 'Faintest G magnitude', gaiaMaximumSources: 'Maximum sources', applyGaiaFilters: 'Load Gaia DR3', gaiaFilterInvalid: 'Invalid Gaia filters: radius 0.1–5°, faintest G magnitude 5–22, and maximum sources 1–500.', gaiaQueryStrategy: 'Query strategy', localFovNote: 'The grey solid circle is the target-centred 10° local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension may be hidden beneath the central target marker.' });
   Object.assign(translations.zh, { curveAdding: '正在计算 Zenith-Time 曲线', curveAdded: '已成功添加 Zenith-Time 曲线', curveAddFailed: 'Zenith-Time 曲线添加失败', alternativeScreening: '正在筛选观测备选源', alternativeCatalogue: '专用备选源目录', alternativeCatalogueHelp: '上传后只从该 CSV 选择备选源；未上传时使用当前已加载源表。', chooseAlternativeCatalogue: '上传备选源目录', alternativeCatalogueUploaded: '专用备选源目录已加载', alternativeCatalogueDefault: '未上传专用目录，将使用当前已加载源表', gaiaStatusCounts: '可观测 / 不可观测', includePlanWindow: '将此窗口加入观测计划', planWindow: '观测窗口', noPlanWindowsSelected: '请至少勾选一个观测窗口。', planRangeHint: '已勾选的完整源窗口会分别预填计划时间；每段计划时间都必须位于对应的有效窗口内。', planRangeError: '每段计划时间都必须位于对应的完整源窗口内，且结束时间晚于开始时间。', apiPlanWindowNote: '备选源端点每次评估一个目标窗口。包含多个已选窗口的浏览器计划会逐窗口发送一次有界请求，并把结果保存在对应窗口下。' });
-  Object.assign(translations.en, { curveAdding: 'Calculating Zenith-Time curve', curveAdded: 'Zenith-Time curve added', curveAddFailed: 'Zenith-Time curve failed', alternativeScreening: 'Screening observing alternatives', alternativeCatalogue: 'Dedicated alternative-source catalogue', alternativeCatalogueHelp: 'After upload, alternatives are selected only from this CSV; without one, the selected ordinary catalogues are used.', chooseAlternativeCatalogue: 'Upload alternative catalogue', alternativeCatalogueUploaded: 'Dedicated alternative catalogue loaded', alternativeCatalogueDefault: 'No dedicated catalogue; selected ordinary catalogues will be used', gaiaStatusCounts: 'Observable / unavailable', includePlanWindow: 'Include this window in the observing plan', planWindow: 'Observation window', noPlanWindowsSelected: 'Select at least one observation window.', planRangeHint: 'Each selected full-footprint window is prefilled separately; every planned interval must stay inside its corresponding valid window.', planRangeError: 'Every planned interval must stay inside its corresponding full-footprint window, and its end must be later than its start.', apiPlanWindowNote: 'The alternatives endpoint evaluates one target window per request. A browser plan containing multiple selected windows sends one bounded request for each window and stores each result with that window.' });
+  Object.assign(translations.zh, { addTrackedCurves: '添加所有跟踪视场内源曲线', sortedObservationWindows: '观测窗口（按起始时间排序）', batchPlanReady: '上传的目标列表已完成计算；有效窗口可加入观测计划。', planSort: '排序', planSortAdded: '添加时间', planSortDuration: '观测窗口总时长', planSortStart: '观测窗口起始时间', chooseCatalogueIcon: '选择源表图标', targetListUpload: '上传目标源列表（CSV）', targetListUploadHelp: '必填：name、ra、dec、ext。可选观测约束未提供时采用左侧设置值。', targetListUploaded: '目标源列表已加载', targetListUploadFailed: '目标源列表上传失败', batchCalculating: '正在逐个计算目标源窗口', batchCalculationReady: '目标源列表已加入观测计划' });
+  Object.assign(translations.en, { addTrackedCurves: 'Add all tracked-FoV source curves', sortedObservationWindows: 'Observation windows (sorted by start time)', batchPlanReady: 'The uploaded target list has been calculated; valid windows are ready for the observing plan.', planSort: 'Sort', planSortAdded: 'Added time', planSortDuration: 'Total window duration', planSortStart: 'Observation-window start', chooseCatalogueIcon: 'Choose source-table icon', targetListUpload: 'Upload target list (CSV)', targetListUploadHelp: 'Required: name, ra, dec, ext. Optional planning constraints use the current settings when omitted.', targetListUploaded: 'Target list loaded', targetListUploadFailed: 'Target-list upload failed', batchCalculating: 'Calculating target windows one by one', batchCalculationReady: 'Target list added to observing plan' });
+  Object.assign(translations.en, { alternativeCatalogue: 'Dedicated alternative-source catalogue', alternativeCatalogueHelp: 'After upload, alternatives are selected only from this CSV; without one, the selected ordinary catalogues are used.', chooseAlternativeCatalogue: 'Upload alternative catalogue', alternativeCatalogueUploaded: 'Dedicated alternative catalogue loaded', alternativeCatalogueDefault: 'No dedicated catalogue; selected ordinary catalogues will be used', gaiaStatusCounts: 'Observable / unavailable', includePlanWindow: 'Include this window in the observing plan', planWindow: 'Observation window', noPlanWindowsSelected: 'Select at least one observation window.', planRangeHint: 'Each selected full-footprint window is prefilled separately; every planned interval must stay inside its corresponding valid window.', planRangeError: 'Every planned interval must stay inside its corresponding full-footprint window, and its end must be later than its start.', apiPlanWindowNote: 'The alternatives endpoint evaluates one target window per request. A browser plan containing multiple selected windows sends one bounded request for each window and stores each result with that window.' });
   const formatCondition = (code) => translate(code, String(code || '').replaceAll('_', ' '));
   const formatReason = (code) => {
     const value = String(code || '');
@@ -801,11 +803,25 @@
   const catalogueCheckboxes = () => [...document.querySelectorAll('[data-catalogue-id]')];
   let appliedCatalogueTokens = null;
   const draftCatalogueTokens = () => catalogueCheckboxes().filter(input => input.checked).map(input => input.value);
+  const iconChoices = ['star', 'diamond', 'triangle', 'square', 'circle', 'plus'];
+  const iconLabels = { star: '★', diamond: '◆', triangle: '▲', square: '■', circle: '●', plus: '+' };
+  const ICON_STORAGE_KEY = 'skyward.catalogue-icons.v1';
+  let catalogueIconMap = {};
+  try { catalogueIconMap = JSON.parse(localStorage.getItem(ICON_STORAGE_KEY) || '{}') || {}; } catch (_) { catalogueIconMap = {}; }
+  const iconForCatalogue = (identifier) => iconChoices.includes(catalogueIconMap[identifier]) ? catalogueIconMap[identifier] : 'star';
+  const saveCatalogueIcons = () => { try { localStorage.setItem(ICON_STORAGE_KEY, JSON.stringify(catalogueIconMap)); } catch (_) {} };
+  const syncCatalogueIconButtons = () => document.querySelectorAll('[data-catalogue-icon-button]').forEach((button) => {
+    const icon = iconForCatalogue(button.dataset.iconCatalogueId);
+    button.dataset.icon = icon; button.textContent = iconLabels[icon]; button.title = translate('chooseCatalogueIcon') + ': ' + icon;
+  });
+  const catalogueIconQuery = () => JSON.stringify(Object.fromEntries(selectedCatalogueTokens().filter((token) => token !== 'gaia-dr3').map((token) => [token, iconForCatalogue(token)])));
+  const iconMapParameters = (params) => { params.set('icon_map', catalogueIconQuery()); return params; };
   const selectedCatalogueTokens = () => [...(appliedCatalogueTokens ?? draftCatalogueTokens())];
   const appendLayerParameters = (params) => {
     // Explicit empty is meaningful. Never fall back to a default catalogue.
     params.set('catalog_tokens', selectedCatalogueTokens().join(','));
     params.set('include_gaia', 'false');
+    iconMapParameters(params);
     params.set('display_frame', getCoordinateFrame());
     return params;
   };
@@ -1040,6 +1056,16 @@
     };
     pickerToggle?.addEventListener('click', () => setCatalogueOpen(picker.hidden));
     confirm?.addEventListener('click', applySelection);
+    panel.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-catalogue-icon-button]');
+      if (!button) return;
+      event.preventDefault(); event.stopPropagation();
+      const current = iconForCatalogue(button.dataset.iconCatalogueId);
+      const next = iconChoices[(iconChoices.indexOf(current) + 1) % iconChoices.length];
+      catalogueIconMap[button.dataset.iconCatalogueId] = next;
+      saveCatalogueIcons(); syncCatalogueIconButtons();
+      document.dispatchEvent(new Event('skyward:catalogue-icons-change'));
+    });
     panel.addEventListener('change',event=>{
       if (!event.target.matches('[data-catalogue-id]')) return;
       const draft = draftCatalogueTokens();
@@ -1057,7 +1083,21 @@
       });
       syncCatalogueSummary();
     }).catch(error=>{if(status)status.textContent=translate('catalogueLoadFailed')+': '+error.message;});
-    document.getElementById('catalogue-upload-trigger')?.addEventListener('click',()=>document.getElementById('catalogue-upload')?.click());
+    document.getElementById('target-list-upload-trigger')?.addEventListener('click', () => document.getElementById('target-list-upload')?.click());
+    document.getElementById('target-list-upload')?.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0]; if (!file) return;
+      const status = document.getElementById('target-list-upload-status');
+      const name = document.getElementById('target-list-upload-name');
+      if (name) name.textContent = file.name;
+      if (status) status.textContent = translate('catalogueUploading');
+      try {
+        const body = new FormData(); body.append('file', file);
+        const response = await fetch('/api/v1/target-lists/upload', { method: 'POST', body });
+        const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'HTTP ' + response.status);
+        const token = document.getElementById('target-list-token'); if (token) token.value = data.token || '';
+        if (status) status.textContent = translate('targetListUploaded') + ': ' + (data.count || data.sources?.length || 0);
+      } catch (error) { if (status) status.textContent = translate('targetListUploadFailed') + ': ' + error.message; }
+    });
     document.getElementById('catalogue-upload')?.addEventListener('change',async event=>{
       const file=event.target.files?.[0]; if(!file)return;
       const uploadName=document.getElementById('catalogue-upload-name'); if(uploadName)uploadName.textContent=file.name;
@@ -1065,7 +1105,9 @@
       try {
         const body=new FormData();body.append('file',file);const response=await fetch('/api/v1/catalogues/upload',{method:'POST',body});const data=await response.json();if(!response.ok)throw new Error(data.detail || 'HTTP '+response.status);
         const label=document.createElement('label'); label.className='catalogue-choice'; const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=data.token;checkbox.dataset.catalogueId=data.token;checkbox.checked=true;
-        const text=document.createElement('span');text.textContent=data.label;label.append(checkbox,text);document.getElementById('catalogue-checkboxes').append(label);
+        const text=document.createElement('span');text.textContent=data.label;
+        const iconButton=document.createElement('button'); iconButton.type='button'; iconButton.className='catalogue-icon-button'; iconButton.dataset.catalogueIconButton=''; iconButton.dataset.iconCatalogueId=data.token; iconButton.dataset.icon='star'; iconButton.textContent=iconLabels.star; iconButton.title=translate('chooseCatalogueIcon');
+        label.append(checkbox,text,iconButton);document.getElementById('catalogue-checkboxes').append(label);
         uploadStatus.textContent=translate('catalogueUploaded'); setCatalogueOpen(true); checkbox.checked=true; if(status)status.textContent=translate('catalogueDraftChanged');
       } catch(error){uploadStatus.textContent=translate('catalogueUploadFailed')+': '+error.message;}
     });
@@ -1076,7 +1118,7 @@
       });
       renderSourcePicker();syncCatalogueSummary();
     });
-    syncCatalogueSummary(); syncLabel(); renderSourcePicker(); load();
+    syncCatalogueSummary(); syncLabel(); syncCatalogueIconButtons(); renderSourcePicker(); load();
   };
 
   const liveTimestamp = (date) => {
@@ -1203,6 +1245,7 @@
       activeSkyInstant = date;
       const generation=++requestGeneration; requestController?.abort(); requestController=new AbortController();
       const params=appendCameraParameters(skyQueryParameters(date),mapFrame);
+      iconMapParameters(params);
       try {
         const response = await fetch('/api/v1/sky/current?' + params.toString(), { signal:requestController.signal, headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -1227,6 +1270,7 @@
     mode.addEventListener('change', configure);
     applyButton?.addEventListener('click', () => { if (mode.value === 'fixed' && timeInput.value) refresh(selectedInputDate(timeInput)); });
     document.addEventListener('skyward:catalogues-change', () => refresh(activeDate));
+    document.addEventListener('skyward:catalogue-icons-change', () => refresh(activeDate));
     document.addEventListener('skyward:language-change', () => refresh(activeDate));
     document.addEventListener('skyward:coordinate-change', () => refresh(activeDate));
     document.addEventListener('skyward:timezone-change', () => { timeInput.value = localDatetimeValue(activeDate); updateClock(activeDate); if (mode.value === 'fixed') refresh(activeDate); });
@@ -1248,6 +1292,7 @@
     const requestedSources = [...zenithOverlayIndexes].join('\n');
     const params = activeParameters();
     params.set('catalog_token', context.dataset.catalogToken || '');
+    params.set('icon_map', catalogueIconQuery());
     [...zenithOverlayIndexes].forEach((sourceIndex) => {
       const style = overlayStyle(sourceIndex);
       params.append('comparison_source_key', String(sourceIndex));
@@ -1269,6 +1314,7 @@
     params.set('timezone_label', requestedTimezone === 'utc' ? 'UTC' : observerTimezoneLabel());
     let payload;
     try {
+      iconMapParameters(params);
       const response = await fetch('/api/v1/windows/plot-overlay?' + params.toString(), {signal: controller.signal});
       if (!response.ok) throw new Error('HTTP ' + response.status);
       payload = await response.json();
@@ -1287,13 +1333,25 @@
     if (preferences) { preferences.dataset.plotTheme = requestedTheme; preferences.dataset.plotTimezoneLabel = requestedTimezone === 'utc' ? 'UTC' : observerTimezoneLabel(); preferences.dataset.plotOffsetHours = String(requestedTimezone === 'utc' ? 0 : observerOffsetHours()); }
     payload.comparison_sources?.forEach((source) => { const style=overlayStyle(source.source_key || String(source.index)); style.label = source.display_name; style.svgId = 'zenith-overlay-' + source.index; });
     renderZenithCurveControls();
+    payload.comparison_windows && renderOverlayWindowSummary(payload);
     return { ok: true, cancelled: false };
   };
-  const refreshZenithOverlays = () => {
-    const operation = zenithRefreshTail.then(() => runZenithOverlayRefresh());
-    zenithRefreshTail = operation.catch(() => ({ ok: false, cancelled: true, error: 'request superseded' }));
-    return operation;
-  };
+    const selectedTargetWindows = (payload) => Array.isArray(payload?.comparison_windows) ? payload.comparison_windows.flatMap((item) => (item.windows || []).map((window) => ({ ...window, sourceKey: item.source_key, sourceName: item.display_name }))) : [];
+    const renderOverlayWindowSummary = (payload) => {
+      const plotPanel = document.querySelector('.plot-panel');
+      if (!plotPanel) return;
+      let summary = document.getElementById('overlay-window-summary');
+      if (!summary) { summary = document.createElement('section'); summary.id = 'overlay-window-summary'; summary.className = 'overlay-window-summary'; plotPanel.insertBefore(summary, plotPanel.querySelector('.scientific-plot')); }
+      const target = document.querySelector('[data-plan-source-name]');
+      const targetWindows = JSON.parse(document.getElementById('detail-query-context')?.dataset.fullWindowRanges || '[]').map((range) => ({ start: range[0], end: range[1], sourceName: target?.dataset.planSourceName || '' }));
+      const allWindows = [...targetWindows, ...selectedTargetWindows(payload)].sort((left, right) => String(left.start || '').localeCompare(String(right.start || '')));
+      summary.innerHTML = '<strong>' + translate('sortedObservationWindows') + '</strong>' + (allWindows.length ? '<ol>' + allWindows.map((window) => '<li><span>' + String(window.sourceName || '').replaceAll('&','&amp;').replaceAll('<','&lt;') + '</span> <time>' + formatDisplayTime(new Date(window.start)) + ' ' + translate('to') + ' ' + formatDisplayTime(new Date(window.end)) + '</time></li>').join('') + '</ol>' : '<p>' + translate('noFullWindows') + '</p>');
+    };
+    const refreshZenithOverlays = () => {
+      const operation = zenithRefreshTail.then(() => runZenithOverlayRefresh());
+      zenithRefreshTail = operation.catch(() => ({ ok: false, cancelled: true, error: 'request superseded' }));
+      return operation;
+    };
 
   const restoreZenithOverlayState = () => {
     document.querySelectorAll('#zenith-curve-list .zenith-curve-row').forEach((row) => {
@@ -1309,7 +1367,6 @@
   };
 
   const renderZenithCurveControls = () => {
-    const panel = document.getElementById('zenith-curve-controls');
     const list = document.getElementById('zenith-curve-list');
     if (!panel || !list) return;
     panel.hidden = zenithOverlayIndexes.size === 0;
@@ -1429,6 +1486,7 @@
       allSkyController?.abort(); allSkyController=new AbortController();
       const requestMode = mode?.value || 'instant';
       const params = appendCameraParameters(appendLayerParameters(activeParameters()),allSky);
+      iconMapParameters(params);
       params.set('language', getLanguage());
       params.set('display_frame', getCoordinateFrame());
       if (requestMode === 'trajectory' && context.dataset.highlightIndexes) {
@@ -1458,6 +1516,7 @@
       const local = document.querySelector('[data-local-fov-map]'); if (!local) return;
       localController?.abort(); localController=new AbortController(); invalidateGaia(local);
       const params = appendCameraParameters(appendLayerParameters(activeParameters()),local);
+      iconMapParameters(params);
       params.set('language', getLanguage()); params.set('display_frame', getCoordinateFrame());
       if (requestMode === 'trajectory' && context.dataset.highlightIndexes) params.set('highlight_indexes', context.dataset.highlightIndexes);
       mapStatusParameters(params, requestMode);
@@ -1486,6 +1545,7 @@
     ['local-gaia-radius','local-gaia-max-mag','local-gaia-limit'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>showGaiaFilterError()));
     const refreshExplanation = () => {
       const note = document.getElementById('result-status-explanation');
+      document.getElementById('add-tracked-zenith-curves')?.toggleAttribute('hidden', mode?.value !== 'trajectory');
       document.getElementById('tracked-fov-legend')?.toggleAttribute('hidden', mode?.value !== 'trajectory');
       document.getElementById('local-tracked-fov-legend')?.toggleAttribute('hidden', mode?.value !== 'trajectory');
       configureSpecifiedControls();
@@ -1494,7 +1554,16 @@
       note.dataset.i18n = key;
       note.textContent = translate(key);
     };
+    const addTrackedButton = document.getElementById('add-tracked-zenith-curves');
     mode?.addEventListener('change', () => { if (mode.value === 'instant') sharedLiveInstant = new Date(); refreshExplanation(); refresh(); refreshLocal(); });
+    addTrackedButton?.addEventListener('click', async () => {
+      if (mode?.value !== 'trajectory' || !context.dataset.highlightIndexes) return;
+      const keys = context.dataset.highlightIndexes.split(',').map((value) => value.trim()).filter(Boolean);
+      keys.forEach((key) => zenithOverlayIndexes.add(key));
+      setMapActionStatus('all-sky', translate('curveAdding'), 'loading');
+      const outcome = await refreshZenithOverlays();
+      if (outcome?.ok) setMapActionStatus('all-sky', translate('curveAdded'), 'success');
+    });
     specifiedKind?.addEventListener('change', () => { configureSpecifiedControls(); });
     specifiedApply?.addEventListener('click', () => { const error = validateSpecified(); if (specifiedError) { specifiedError.textContent = error || ''; specifiedError.hidden = !error; } if (!error) { refreshExplanation(); refresh(); refreshLocal(); } });
     specifiedStart?.addEventListener('change', validateSpecified);
@@ -1507,6 +1576,7 @@
     document.addEventListener('skyward:language-change', () => { refresh(); refreshLocal(); });
     document.addEventListener('skyward:coordinate-change', () => { refresh(); refreshLocal(); });
     document.addEventListener('skyward:catalogues-change', () => { refresh(); refreshLocal(); });
+    document.addEventListener('skyward:catalogue-icons-change', () => { refresh(); refreshLocal(); });
   };
 
   refreshTimeDisplays = () => {
@@ -1590,7 +1660,8 @@
     const dialog = document.getElementById("observation-plan-dialog"), form = document.getElementById("observation-plan-form");
     const windowEditor = document.getElementById("plan-window-editor"), notesInput = document.getElementById("plan-notes");
     const sourceElement = document.getElementById("plan-source-name"), constraintsElement = document.getElementById("plan-constraints"), errorElement = document.getElementById("plan-range-error");
-    const savePlot = document.getElementById("plan-save-plot"), pagePlanContext = document.querySelector("[data-plan-source-name]");
+    const pagePlanContext = document.querySelector("[data-plan-source-name]") || document.body;
+    const savePlot = document.getElementById("plan-save-plot");
     const selectionStatus = document.querySelector('[data-plan-selection-status]');
     const alternativeProgress = document.querySelector('[data-plan-alternative-status]');
     const detailContext = document.getElementById("detail-query-context");
@@ -1624,7 +1695,7 @@
     const clearPlanDialog = document.getElementById("clear-plan-dialog");
     const previewDialog = document.getElementById("observation-plan-preview-dialog");
     const previewList = document.getElementById("observation-plan-preview-list");
-    if (!dialog || !form || !pagePlanContext || !windowEditor || !detailContext) return;
+    if (!dialog || !form || !windowEditor) return;
     const storageKey = "skyward.observation-plan.v3";
     let activeWindows = [];
     let planEntries = [];
@@ -1662,6 +1733,17 @@
         return false;
       }
     };
+    const batchNode = document.getElementById('batch-plan-import');
+    if (batchNode) {
+      try {
+        const batchEntries = JSON.parse(batchNode.dataset.batchPlanEntries || '[]');
+        const known = new Set(planEntries.map((entry) => entry.sourceKey || entry.source));
+        const fresh = batchEntries.filter((entry) => !known.has(entry.sourceKey || entry.source)).map(normalisePlanEntry);
+        if (fresh.length) { planEntries = planEntries.concat(fresh); savePlanEntries(); }
+        batchNode.dataset.batchImported = 'true';
+      } catch (_) {}
+    }
+
     let resolveDuplicateChoice = null;
     const chooseDuplicateAction = () => new Promise((resolve) => {
       if (!duplicateDialog) { resolve('cancel'); return; }
@@ -1777,7 +1859,8 @@
     const buildEntry = (windows) => {
       const telescopeQuery = Object.fromEntries(appendTelescopeParameters(new URLSearchParams(), detailContext));
       return {
-        id: entryId(), source: pagePlanContext.dataset.planSourceName || "",
+        id: entryId(), addedAt: Date.now(),
+        source: pagePlanContext.dataset.planSourceName || "",
         sourceKey: detailContext.dataset.resultSourceKey || "",
         catalogueTarget: Number(detailContext.dataset.resultSourceIndex) >= 0,
         ra: pagePlanContext.dataset.planRa || "", dec: pagePlanContext.dataset.planDec || "",
@@ -1896,13 +1979,21 @@
       clearPlanDialog.close();
     });
     clearPlanDialog?.addEventListener("cancel", (event) => { event.preventDefault(); clearPlanDialog.close(); });
+    let planSort = 'added';
+    const planSortSelect = document.getElementById('plan-sort-select');
+    const sortedPlanEntries = () => [...planEntries].sort((left, right) => {
+      if (planSort === 'duration') return (right.windows.reduce((sum, item) => sum + Math.max(0, new Date(item.windowEnd) - new Date(item.windowStart)), 0) - left.windows.reduce((sum, item) => sum + Math.max(0, new Date(item.windowEnd) - new Date(item.windowStart)), 0)) || 0;
+      if (planSort === 'start') return String(left.windows.map(item => item.windowStart).sort()[0] || '').localeCompare(String(right.windows.map(item => item.windowStart).sort()[0] || ''));
+      return Number(left.addedAt || 0) - Number(right.addedAt || 0);
+    });
+    planSortSelect?.addEventListener('change', () => { planSort = planSortSelect.value; renderPreview(); });
     const renderPreview = () => {
       if (!previewList) return;
       previewList.replaceChildren();
       if (!planEntries.length) {
         const empty = document.createElement("p"); empty.textContent = translate("noSavedPlan"); previewList.append(empty); return;
       }
-      planEntries.forEach((entry, index) => {
+      sortedPlanEntries().forEach((entry, index) => {
         const card = document.createElement("article"); card.className = "plan-preview-entry";
         const title = document.createElement("h3"); title.textContent = (index + 1) + ". " + entry.source; card.append(title);
         const details = document.createElement("p");
@@ -2088,6 +2179,24 @@
     previewDialog?.addEventListener("cancel", (event) => { event.preventDefault(); previewDialog.close(); });
     planEntries.filter((entry) => entry.windows.some((window) => window.alternativeStatus === "pending")).forEach((entry) => { void requestAlternatives(entry); });
   };
+
+    const importBatchPlan = () => {
+      const node = document.getElementById('batch-plan-import');
+      if (!node) return;
+      let entries;
+      try { entries = JSON.parse(node.dataset.batchPlanEntries || '[]'); } catch (_) { return; }
+      if (!entries.length) return;
+      try {
+        const key = 'skyward.observation-plan.v3';
+        const stored = JSON.parse(sessionStorage.getItem(key) || '{"version":3,"entries":[]}');
+        const current = Array.isArray(stored.entries) ? stored.entries : [];
+        const known = new Set(current.map((entry) => entry.sourceKey || entry.source));
+        const fresh = entries.filter((entry) => !known.has(entry.sourceKey || entry.source));
+        if (fresh.length) sessionStorage.setItem(key, JSON.stringify({ version: 3, entries: current.concat(fresh) }));
+        node.insertAdjacentHTML('afterend', '<p class="map-note">' + translate('batchCalculationReady') + ': ' + fresh.length + '</p>');
+      } catch (_) {}
+    };
+  importBatchPlan();
 
   const RESULT_PAGE_CACHE_KEY = 'skyward.result-page-cache.v1';
 

@@ -9,7 +9,7 @@
   const copy = {
     zh: {
       skywardOverviewTitle: "Skyward 介绍",
-      skywardScopeStatement: "V2.2（完整版本 2.2.20260924）只给出可解释的几何可行性候选；不判断运行就绪状态，也不构成观测批准。",
+      skywardScopeStatement: "V2.3（完整版本 2.3.20260925）延续 V2.2（完整版本 2.2.20260924）的仅几何判断边界，并增加浏览器本地观测计划功能。只给出可解释的几何可行性候选；不判断运行就绪状态，也不构成观测批准。",
       currentStageLabel: "现有功能",
       currentStageTitle: "当前可用",
       currentStageBody: "浏览已支持的源表，查看全天图和局部视场几何、源详情，并按明确的几何约束计算源中心与完整源窗口。",
@@ -33,11 +33,12 @@
       navigationNoteBody: "从计算结果离开到数据说明或 API 时，当前浏览器标签页会保留已渲染的结果视图。通过“天区与规划”返回时直接恢复，不重新计算窗口，也不重新加载两幅图；直接刷新或浏览器存储不可用时才使用服务器正常重建。",
       observingPlanTitle: "观测计划",
       observingPlanBody: "完整源窗口区域只保留一组计划操作。每个可用窗口单独成行并默认勾选；点击加入后，所有已勾选窗口构成同一条目标计划。预览可分别修改各窗口时段，XLSX 为每个所选窗口写一条目标行，并把备选源记录在对应窗口下。用户可上传专用 CSV 备选源目录；上传后该计划只从该目录挑选备选源，否则使用当前已加载的普通源表。",
-      observingPlanFormat: "下载工作簿使用纯黑色表头、黄色目标源行和绿色备选源行。文件仅在浏览器本地生成，观测计划不会上传到服务器。保存的观测窗口 SVG 含曲线图例；局部视场 SVG 使用亮色背景、目标编号 1 和源名图例。",
+      observingPlanFormat: "下载工作簿使用纯黑色表头、黄色目标源行和绿色备选源行。文件仅在浏览器本地生成，观测计划不会上传到服务器。保存的观测窗口 SVG 含曲线图例；局部视场 SVG 使用亮色背景、目标编号 1 和源名图例。结果页观测窗口模式可将所有跟踪视场内源一次性加入 Zenith-Time 曲线，并在几何量与完整源窗口顶部按起始时间排序显示目标源和曲线源窗口。",
       csvUploadTitle: "CSV 上传格式与示例",
       csvUploadIntro: "两类上传均使用带表头的 UTF-8 CSV；列名不区分大小写，坐标单位为 J2000 度。请将示例文件保存为 UTF-8 编码的 CSV。",
       csvUploadName: "源表 CSV 的文件名将用作显示标签。备选源目录需在结果页“完整源窗口”区域使用专用上传控件导入。",
-      sourceCsvTitle: "用户上传源表",
+      targetListCsvBody: "首页规划器还支持批量目标列表 CSV。必填列为 name、ra、dec、ext；5 个可选观测规划列为 sun_max_altitude_deg、moon_min_separation_deg、target_min_zenith_deg、target_max_zenith_deg、minimum_window_seconds。可选项缺失时继承当前规划器设置。每个目标会分别计算，有效窗口自动加入浏览器观测计划，并默认保存局部视场图和观测窗口图；之后可在预览当前观测计划中修改。",
+      sourceCsvTitle
       sourceCsvDownload: "下载用户源表 CSV 示例",
       sourceCsvBody: "必需列：name、ra、dec。可选列：ext、ext_err、p_err(95%)、l、b。也接受 source_name、ra_deg、dec_deg、extension_deg 作为相应列名别名。可选值缺失时留空即可；ext 默认为 0。每行源名必须唯一。",
       alternativeCsvTitle: "专用备选源目录",
@@ -51,7 +52,7 @@
     },
     en: {
       skywardOverviewTitle: "About Skyward",
-      skywardScopeStatement: "V2.2 (full version 2.2.20260924) reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.",
+      skywardScopeStatement: "V2.3 (full version 2.3.20260925) continues the V2.2 (full version 2.2.20260924) geometry-only boundary and adds browser-local observing-plan features. It reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.",
       currentStageLabel: "AVAILABLE NOW",
       currentStageTitle: "Current functions",
       currentStageBody: "Browse supported catalogues, inspect all-sky and local-field geometry and source details, and calculate centre and full-footprint windows under explicit geometric constraints.",
@@ -75,11 +76,12 @@
       navigationNoteBody: "When leaving a calculated result for Data notes or API, this browser tab keeps the rendered result view. Returning through Sky map & planner restores it without recalculating windows or reloading either map; a direct refresh or unavailable browser storage uses the normal server rebuild.",
       observingPlanTitle: "Observing plans",
       observingPlanBody: "The full-footprint section has one shared set of plan actions. Every valid window is a separate row and selected by default; adding creates one target plan containing all checked windows. Preview can edit each interval separately, and the XLSX writes one target row per selected window with alternatives under the corresponding window. A user-uploaded CSV can be selected as the exclusive alternative pool for that plan; otherwise the selected ordinary catalogues are used.",
-      observingPlanFormat: "The downloaded workbook uses a solid black header, yellow target rows, and green alternative rows. It is generated only in the browser; no observing plan is uploaded to the server. Saved observing-window SVGs include comparison-curve legends; saved local-FoV SVGs use a light background, target ID 1, and a source-name legend.",
+      observingPlanFormat: "The downloaded workbook uses a solid black header, yellow target rows, and green alternative rows. It is generated only in the browser; no observing plan is uploaded to the server. Saved observing-window SVGs include comparison-curve legends; saved local-FoV SVGs use a light background, target ID 1, and a source-name legend. Observation-window mode can add every tracked-FoV source to Zenith-Time curves at once; the geometry/full-footprint panel then shows target and curve-source windows sorted by start time.",
       csvUploadTitle: "CSV upload formats and examples",
       csvUploadIntro: "Both uploads use UTF-8 CSV with a header row. Column names are case-insensitive; coordinates are J2000 degrees. Save the example content as UTF-8 encoded CSV.",
       csvUploadName: "The source-catalogue filename becomes its display label. Upload an alternative-source directory using the dedicated control in the full-footprint section of a result page.",
-      sourceCsvTitle: "User-uploaded source catalogue",
+      targetListCsvBody: "The home planner also accepts a batch target-list CSV. Required columns are name, ra, dec, ext; the five optional planning columns are sun_max_altitude_deg, moon_min_separation_deg, target_min_zenith_deg, target_max_zenith_deg, and minimum_window_seconds. Missing optional values inherit the current planner settings. Each target is calculated separately; valid windows are added to the browser observing plan and local-FoV and observing-window SVGs are saved by default for later editing in Preview current observing plan.",
+      sourceCsvTitle
       sourceCsvDownload: "Download source-catalogue CSV example",
       sourceCsvBody: "Required columns: name, ra, dec. Optional columns: ext, ext_err, p_err(95%), l, b. Aliases source_name, ra_deg, dec_deg, and extension_deg are also accepted. Leave missing optional values blank; ext defaults to 0. Source names must be unique.",
       alternativeCsvTitle: "Dedicated alternative-source catalogue",

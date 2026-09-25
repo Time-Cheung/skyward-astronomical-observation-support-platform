@@ -12,10 +12,10 @@
     </div>
     <div class="catalogue-checkboxes" id="catalogue-checkboxes">
       {% for identifier, label in [('1lhaaso','1LHAASO'),('fermi-fl16y','Fermi FL16Y'),('fermi-3fhl','Fermi 3FHL'),('tevcat','TeVCat')] %}
-      <label class="catalogue-choice"><input type="checkbox" data-catalogue-id="{{ identifier }}" value="{{ identifier }}" {% if identifier in selected_layers %}checked{% endif %}><span>{{ label }}</span></label>
+      <label class="catalogue-choice"><input type="checkbox" data-catalogue-id="{{ identifier }}" value="{{ identifier }}" {% if identifier in selected_layers %}checked{% endif %}><span>{{ label }}</span><button class="catalogue-icon-button" type="button" data-catalogue-icon-button data-icon-catalogue-id="{{ identifier }}" data-icon="star" aria-label="Choose source-table icon" title="Choose source-table icon">★</button></label>
       {% endfor %}
     </div>
-    <p class="map-note catalogue-draft-help" data-i18n="layerScope">Checks are drafts. Confirm loading to update the sky map and target picker.</p>
+    <p class="map-note catalogue-draft-help" data-i18n="layerScope">Checks are drafts. Confirm loading to update the sky map and target picker.</p><p class="map-note"     data-i18n="catalogueIcons">Catalogue buttons cycle through selectable marker icons; Gaia crosses remain fixed.</p>
     <p id="catalogue-status" role="status" aria-live="polite"></p>
     <div class="catalogue-picker-actions">
       <button class="secondary-button" type="button" data-catalogue-cancel data-i18n="catalogueCancel">Cancel</button>

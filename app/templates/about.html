@@ -11,7 +11,7 @@
 
 <section class="method-section skyward-overview" aria-labelledby="skyward-overview-title">
   <h2 id="skyward-overview-title" data-about-i18n="skywardOverviewTitle">What Skyward is</h2>
-  <p class="scope-statement" data-about-i18n="skywardScopeStatement">V2.2 (full version 2.2.20260924) reports explainable geometric-feasibility candidates only. It does not determine operational readiness or approve an observation.</p>
+  <p data-about-i18n="skywardScopeStatement">V2.3 (full version 2.3.20260925) continues the V2.2 (full version 2.2.20260924) geometry-only release and adds browser-local planning enhancements. It reports explainable geometric-feasibility candidates only; it does not determine operational readiness or approve an observation.</p>
   <div class="skyward-stage-grid">
     <div class="scope-card">
       <p class="section-label" data-about-i18n="currentStageLabel">AVAILABLE NOW</p>
@@ -60,6 +60,7 @@
   <article class="csv-upload-card">
     <h3 data-about-i18n="sourceCsvTitle">User-uploaded source catalogue</h3>
     <p data-about-i18n="sourceCsvBody">Required columns: name, ra, dec. Optional columns: ext, ext_err, p_err(95%), l, b. You may also use source_name, ra_deg, dec_deg, or extension_deg as aliases. Missing optional values can be left blank; ext defaults to 0. One unique name per row is required.</p>
+    <p data-about-i18n="targetListCsvBody">The home planner also accepts a batch target-list CSV. Required columns are name, ra, dec, ext; the five optional planning columns are sun_max_altitude_deg, moon_min_separation_deg, target_min_zenith_deg, target_max_zenith_deg, and minimum_window_seconds. Missing optional values inherit the current planner settings. Each valid target is calculated separately and its valid windows are added to the browser observing plan with local-FoV and observing-window SVGs saved by default; edit them later in Preview current observing plan.</p>
     <p><a href="../static/examples/user-source-catalogue.csv" download data-about-i18n="sourceCsvDownload">Download source-catalogue CSV example</a></p>
     <pre><code>name,ra,dec,ext,ext_err,p_err(95%)
 Crab,83.6331,22.0145,0.10,0.02,0.01

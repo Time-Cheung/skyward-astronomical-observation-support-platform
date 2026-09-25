@@ -55,6 +55,7 @@ class Source:
     footprint_known: bool = True
     footprint_kind: str = "catalogue_radius"
     notes: Optional[dict] = None
+    planner_constraints: Optional[dict] = None
 
     @property
     def planning_radius_deg(self) -> Optional[float]:
@@ -160,6 +161,12 @@ def _validate_sources(
             b = _optional_float(row, "b")
             if l is None or b is None:
                 l, b = _galactic_from_fk5(ra, dec)
+            planner_constraints = {
+                key: value for key in (
+                    "sun_max_altitude_deg", "moon_min_separation_deg", "target_min_zenith_deg",
+                    "target_max_zenith_deg", "minimum_window_seconds",
+                ) if (value := _optional_float(row, key)) is not None
+            }
             source = Source(
                 index=int(row["index"]), name=str(row["name"]).strip(),
                 ext=float(row.get("ext", 0.0) or 0.0),
@@ -170,6 +177,7 @@ def _validate_sources(
                 source_type=source_type,
                 original_id=str(row.get("original_id", row["name"])).strip(),
                 original_row=int(row["index"]),
+                planner_constraints=planner_constraints or None,
             )
         except (TypeError, ValueError, KeyError) as exc:
             raise CatalogError(f"Invalid row at line {line_number}: {exc}") from exc
@@ -367,7 +375,7 @@ class TemporaryCatalogStore:
         self._catalogues[temporary.token] = temporary
         return temporary
 
-    def create_from_csv(self, raw: bytes, filename: str = "uploaded catalogue") -> TemporaryCatalog:
+    def create_from_csv(self, raw: bytes, filename: str = "uploaded catalogue", *, require_extension: bool = False) -> TemporaryCatalog:
         """Parse an in-memory UTF-8 CSV with name, ra, dec and optional fields."""
         self._purge()
         if not raw:
@@ -385,6 +393,8 @@ class TemporaryCatalogStore:
             rows.append({aliases.get(str(key).strip().casefold(), str(key).strip().casefold()): value for key, value in row.items()})
         if not rows or not {"name", "ra", "dec"}.issubset(rows[0]):
             raise CatalogError("CSV must contain name, ra and dec columns (degrees, J2000)")
+        if require_extension and any(str(row.get("ext", "")).strip() == "" for row in rows):
+            raise CatalogError("Target-list CSV must provide ext/extension_deg for every row")
         if len(rows) > self.MAX_ROWS:
             raise CatalogError(f"Uploaded catalogue exceeds {self.MAX_ROWS} source rows")
         for index, row in enumerate(rows):

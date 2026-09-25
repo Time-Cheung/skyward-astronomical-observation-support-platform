@@ -498,7 +498,8 @@ def test_telescope_controls_and_current_fov_contract_are_rendered_and_local():
     assert 'id="sky-zoom-out"' in home.text
     assert 'data-i18n="allFieldsRequired"' not in home.text
     assert 'data-i18n="blankDisables"' not in home.text
-    assert 'V2.2: geometry assessment only' in home.text
+    assert 'V2.2: geometry assessment only' not in home.text
+    assert 'data-i18n="homeTitle"' in home.text
 
     custom = {
         "telescope_mode": "custom",

@@ -4,7 +4,7 @@
 <section class="page-heading skyward-heading">
   <div>
     <p class="section-label" data-i18n="currentSky">CURRENT SKY</p>
-    <h1 class="page-title" data-i18n="homeTitle">V2.2: geometry assessment only</h1>
+    <h1 class="page-title" data-i18n="homeTitle">Turn a source catalogue into observable geometry.</h1>
   </div>
   <dl class="summary-stats" aria-label="Sky summary" data-i18n-aria-label="skySummary">
     <div><dt data-i18n="catalogue">Catalogue</dt><dd id="home-catalog-count" data-home-summary="catalogue">{{ catalog_count }}</dd></div>
@@ -24,6 +24,7 @@
       <input type="hidden" id="display-timezone-input" name="display_timezone" value="local">
       <input type="hidden" id="catalog-token-input" name="catalog_token" value="{{ form_values.catalog_token or '' }}">
       <input type="hidden" id="catalog-tokens-input" name="catalog_tokens" value="{{ form_values.catalog_tokens if form_values.catalog_tokens is defined and form_values.catalog_tokens is not none else '1lhaaso' }}">
+      <input type="hidden" id="target-list-token" name="target_list_token" value="{{ form_values.target_list_token if form_values.target_list_token is defined else '' }}">
       <input type="hidden" id="planner-start-utc" value="{{ form_values.planner_start_utc or default_start_utc }}">
       <input type="hidden" id="planner-end-utc" value="{{ form_values.planner_end_utc or default_end_utc }}">
 
@@ -39,8 +40,7 @@
         </div>
       </fieldset>
 
-      <div class="form-field field-wide">
-        <label id="target-source-label" data-i18n="targetSource">Target source</label>
+      <div class="form-field field-wide"><label id="target-source-label" data-i18n="targetSource">Target source</label>
         <div class="source-combobox">
           <button type="button" id="source-picker-toggle" class="secondary-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="source-picker-popup" aria-labelledby="target-source-label source-picker-value"><span id="source-picker-value" data-i18n="targetSource">Target source</span></button>
           <div id="source-picker-popup" class="source-picker-popup" role="dialog" aria-labelledby="target-source-label" hidden>
@@ -51,6 +51,7 @@
             <button id="source-load-more" type="button" class="secondary-button" data-i18n="loadMore" hidden>Load more</button>
           </div>
         </div>
+        <div class="target-list-upload-control"><label data-i18n="targetListUpload">Upload target list (CSV)</label><input id="target-list-upload" class="sr-only" type="file" accept=".csv,text/csv" tabindex="-1"><button id="target-list-upload-trigger" class="secondary-button" type="button" data-i18n="chooseFile">Choose file</button><span id="target-list-upload-name" aria-live="polite"></span><small data-i18n="targetListUploadHelp">Required: name, ra, dec, ext. Optional planning constraints use the current planner values when omitted.</small><span id="target-list-upload-status" role="status" aria-live="polite"></span></div>
         <select id="source_index" name="source_index" required data-source-select hidden aria-hidden="true" tabindex="-1">
           <option value="region" {% if not form_values.source_key and form_values.source_index == 'region' %}selected{% endif %} data-i18n="addTargetOption">Add new target</option>
           {% for source in sources|sort(attribute="name") %}<option value="{{ source.index }}" data-source-key="{{ source.source_key }}" {% if (form_values.source_key and form_values.source_key == source.source_key) or (not form_values.source_key and (form_values.source_index|string == source.index|string or form_values.source_index == source.source_key)) %}selected{% endif %}>{{ source.display_name }} | RA {{ '%.3f'|format(source.ra) }}° | Dec {{ '%+.3f'|format(source.dec) }}°</option>{% endfor %}

@@ -237,7 +237,7 @@ h1, h2, h3, p { margin-top: 0; }h1 { margin-bottom: 11px; font-size: clamp(33px,
 .plan-preview-window { padding: 10px 12px; border-left: 3px solid var(--blue); background: var(--surface); }
 .plan-preview-window h4 { margin: 0 0 6px; font-size: 13px; }
 .plan-preview-alternatives { margin: 8px 0 0; padding-left: 20px; }
-.plan-preview-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px; }
+.plan-preview-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }.plan-sort-control { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }.plan-sort-control select { min-height: 34px; }.overlay-window-summary { margin: 0 0 12px; padding: 12px; border: 1px solid var(--line-soft); border-radius: var(--radius-small); background: var(--surface-2); }.overlay-window-summary strong { display: block; margin-bottom: 8px; }.overlay-window-summary ol { margin: 0; padding-left: 22px; }.overlay-window-summary li { display: flex; justify-content: space-between; gap: 12px; margin: 4px 0; }.overlay-window-summary time { color: var(--muted); }
 .plan-preview-entry-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .duplicate-plan-actions { align-items: center; }
 
@@ -256,6 +256,11 @@ h1, h2, h3, p { margin-top: 0; }h1 { margin-bottom: 11px; font-size: clamp(33px,
 .catalogue-choice { display: flex; align-items: center; gap: 9px; min-width: 0; font-size: 12px; cursor: pointer; }
 .catalogue-choice input { width: 18px; height: 18px; min-height: 0; margin: 0; padding: 0; flex: 0 0 18px; accent-color: var(--blue); }
 .catalogue-choice span { min-width: 0; overflow-wrap: anywhere; }
+.catalogue-icon-button { flex: 0 0 30px; width: 30px; height: 30px; min-height: 30px; margin-left: auto; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-muted); color: var(--blue); cursor: pointer; }
+.catalogue-icon-button:hover, .catalogue-icon-button:focus-visible { border-color: var(--blue); }
+.catalogue-icon-button[data-icon="diamond"] { transform: rotate(45deg); }
+.target-list-upload-control { display: grid; gap: 6px; margin-top: 9px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: var(--radius-small); color: var(--muted); font-size: 11px; }
+.target-list-upload-control label { color: var(--text); font-weight: 700; }
 .catalogue-draft-help { padding: 12px 0 0; }
 .catalogue-picker-popup [role="status"], .gaia-query-status p { margin: 7px 0 0; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 .catalogue-picker-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
