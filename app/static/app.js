@@ -14,7 +14,7 @@
   const translations = {
     zh: {
       brandHome: "Skyward 首页", brandDescriptor: "天文观测辅助平台", primaryNavigation: "主导航", displaySettings: "显示设置",
-      navPlanner: "天区与规划", navData: "数据说明", language: "语言", switchTheme: "切换主题", themeAuto: "自动", themeLight: "亮色", themeDark: "暗色", timezoneLocal: "北京: UTC+8", timezoneUtc: "UTC",
+      navPlanner: "天区与规划", navData: "数据说明", language: "语言", switchTheme: "切换主题", themeAuto: "自动", themeLight: "亮色", themeDark: "暗色", timezoneLocal: "北京时间（UTC+8）", timezoneUtc: "UTC",
       site: "站点", altitude: "海拔", geometryOnly: "仅几何判断", calculationContext: "计算上下文", footerDisclaimer: "局域网原型。未评估天气、设备状态、机械安全或 LHAASO 联合观测条件。",
       currentSky: "当前天区", homeTitle: "从源表到可解释的几何窗口。", homeLead: "选择多个源表图层，设置日月与天顶角约束，并比较中心与完整源窗口。",
       skySummary: "天区摘要", catalogue: "源表", aboveHorizon: "地平线上", belowHorizon: "地平线下", inputValidation: "输入校验", calculationConditions: "计算条件", windowPlanner: "观测窗口规划", blankDisables: "不可留空",
@@ -32,15 +32,15 @@
       sourceDetails: "源详情", catalogueAndEnrichment: "源表数据与待核验补充信息", openDetails: "打开详情", galacticCoordinates: "银河坐标", positionError: "95% 位置误差", astropyWarnings: "Astropy 警告",
       methodAndBoundary: "方法与边界", aboutTitle: "数据、坐标和几何模型。", aboutLead: "记录第一稿采用的固定参数、数据版本和刻意未纳入的观测条件。", lactSite: "LACT 站点", longitude: "经度", latitude: "纬度", timezone: "时区", source: "来源",
       diameter: "直径", radius: "半径", model: "模型", hardCircle: "理想圆形硬边界", notModelled: "未模拟", fovNotModelled: "离轴响应、PSF、遮挡和灵敏度衰减", catalogueTitle: "当前源表", records: "记录数", coordinates: "坐标", extensionMeaning: "度，作为名义圆形半径",
-      iersOffline: "IERS 离线数据", currentCoverage: "当前覆盖", autoDownload: "自动下载", disabled: "关闭", file: "文件", statusDefinition: "源状态", gaiaSource: "Gaia 定标星", greenDefinition: "源中心及名义 extension 均满足当前几何约束。", yellowDefinition: "源中心满足，但完整源 footprint 未满足当前几何约束。", redDefinition: "源中心未满足当前几何约束。", greenStatusLabel: "绿色", yellowStatusLabel: "黄色", redStatusLabel: "红色", selectedDefinition: "蓝色空心星星轮廓表示计算时选定的目标源。", trackedDefinition: "紫色空心星星轮廓表示观测窗口计算期间跟踪视场内的源。", gaiaDefinition: "加粗十字符号表示按需查询的 Gaia 候选星；按两张图共享的状态，红/绿色分别表示不可观测/可观测，未评估其定标适用性。", extensionDefinition: "青色虚线圆表示存在已核验半径时的名义源 footprint。", notEvaluated: "未评估条件", implemented: "已实现", notImplemented: "未实现", aboutDisclaimer: "计算结果不是正式观测批准。天气、设备状态、机械限位、跟踪误差和联合观测条件均未纳入。",
+      iersOffline: "IERS 联网优先数据", currentCoverage: "当前覆盖", autoDownload: "自动下载", disabled: "关闭", file: "文件", statusDefinition: "源状态", gaiaSource: "Gaia 定标星", greenDefinition: "源中心及名义 extension 均满足当前几何约束。", yellowDefinition: "源中心满足，但完整源 footprint 未满足当前几何约束。", redDefinition: "源中心未满足当前几何约束。", greenStatusLabel: "绿色", yellowStatusLabel: "黄色", redStatusLabel: "红色", selectedDefinition: "蓝色空心星星轮廓表示计算时选定的目标源。", trackedDefinition: "紫色空心星星轮廓表示观测窗口计算期间跟踪视场内的源。", gaiaDefinition: "加粗十字符号表示按需查询的 Gaia 候选星；按两张图共享的状态，红/绿色分别表示不可观测/可观测，未评估其定标适用性。", extensionDefinition: "青色虚线圆表示存在已核验半径时的名义源 footprint。", notEvaluated: "未评估条件", implemented: "已实现", notImplemented: "未实现", aboutDisclaimer: "计算结果不是正式观测批准。天气、设备状态、机械限位、跟踪误差和联合观测条件均未纳入。",
       jsonApi: "JSON 接口", apiTitle: "局域网 API 参考。", apiLead: "所有接口均无账号认证，只能在受控局域网中开放。交互式 Swagger 已禁用，避免浏览器加载公网 CDN；机器可读 schema 保留在 <code>/openapi.json</code>。", endpoints: "端点", windowRequestExample: "窗口请求示例", apiDisclaimer: "响应中的", apiDisclaimerEnd: "表示未评估天气、遥测、机械安全或联合观测条件。",
       apiDescription1: "源表、IERS 与补充数据健康状态", apiDescription2: "站点、FoV 与能力边界", apiDescription3: "已安装、临时和结果页 Gaia 源表元数据", apiDescription4: "按已选源表检索普通目录源", apiDescription5: "源详情与指定时刻几何状态", apiDescription6: "全天图 SVG 与已选普通源表状态", apiDescription7: "目标中心局部图 SVG 与共享模式状态", apiDescription8: "按筛选条件查询并着色局部 Gaia 图层", apiDescription9: "中心和完整 footprint 观测窗口", apiDescription10: "单个目标窗口的观测计划备选源：粗筛后精确验证，最多返回 3 个；多窗口计划逐窗口调用", apiDescription11: "含 Zenith-Time 对比曲线的窗口 SVG", apiDescription12: "机器可读 OpenAPI schema",
       loading: "载入中", closeDetails: "关闭详情", loadingDetail: "正在计算当前地平坐标和状态。", failedDetail: "无法载入源详情", noData: "暂无数据，待核验", centrePass: "源中心通过", centreFail: "源中心未通过", footprintPass: "完整 extension 通过", footprintFail: "完整 extension 未通过",
-      sexagesimal: "时分秒 / 度分秒", extension: "Extension", positionErrorLabel: "95% 位置误差", altAzZenith: "高度 / 方位 / 天顶角", moonSeparation: "月亮角距", sunAltitude: "太阳高度", statusReasons: "状态原因", enrichment: "待核验扩展信息", verification: "核验状态", associatedSources: "关联源", sourceSearchEmpty: "没有匹配的源", allFieldsRequired: "所有项目必须填写", planningConstraints: "观测规划约束", sunConstraintLimited: "必须为 -15° 或更低", addTargetOption: "添加新目标", targetName: "目标名称", temporaryNamePlaceholder: "留空自动生成 TMP JHHMM±DDMM", temporaryNameHelp: "留空将根据 RA 和 Dec 自动生成 TMP JHHMM±DDMM 名称。", regionRa: "天区 RA（J2000）", regionDec: "天区 Dec（J2000）", regionRadius: "天区半径", skyMode: "全天图模式", liveSky: "实时，每分钟刷新", fixedSky: "指定时间", skyTime: "全天图时间", applySkyTime: "应用", localDateTime: "本地日期和时间", sunHorizonCoordinates: "太阳 高度 / 方位", moonHorizonCoordinates: "月亮 高度 / 方位", useForPlanner: "填入观测规划", replaceAndCalculate: "替换并重新计算", currentFovWindowResult: "当前 LACT 视野", currentFovTitle: "当前 LACT 视野内源的观测窗口。", currentFovLead: "在接入 LACT 实时指向前，指向占位为天顶。仅计算所选开始时刻处于 8.3°视野内的源。", fovSources: "视野内源", pointingMode: "指向", fixedZenith: "固定天顶", currentFovWindows: "当前视野窗口", noFovSources: "所选时刻的固定天顶视野内没有源", planObservation: "加入观测计划", previewObservationPlan: "预览当前观测计划", observationPlan: "观测计划", plannedStart: "计划开始时间", plannedEnd: "计划结束时间", notes: "备注", planRangeHint: "默认填写当前完整源窗口中经逐秒复核有效的计划时间。计划时间必须留在该窗口内。", planRangeError: "计划时间必须位于当前完整源窗口内，且结束时间晚于开始时间。", planSecondUnavailable: "该窗口内没有可表示为完整秒的有效观测计划区间。", downloadPlan: "下载 XLSX 计划表", planAdded: "已加入计划表", constraints: "约束条件",
+      sexagesimal: "时分秒 / 度分秒", extension: "Extension", positionErrorLabel: "95% 位置误差", altAzZenith: "高度 / 方位 / 天顶角", moonSeparation: "月亮角距", sunAltitude: "太阳高度", statusReasons: "状态原因", enrichment: "待核验扩展信息", verification: "核验状态", associatedSources: "关联源", sourceSearchEmpty: "没有匹配的源", allFieldsRequired: "所有项目必须填写", planningConstraints: "观测规划约束", sunConstraintLimited: "必须为 -15° 或更低", addTargetOption: "添加新目标", targetName: "目标名称", temporaryNamePlaceholder: "留空自动生成 TMP JHHMM±DDMM", temporaryNameHelp: "留空将根据 RA 和 Dec 自动生成 TMP JHHMM±DDMM 名称。", regionRa: "天区 RA（J2000）", regionDec: "天区 Dec（J2000）", regionRadius: "天区半径", skyMode: "全天图模式", liveSky: "实时，每分钟刷新", fixedSky: "指定时间", skyTime: "全天图时间", applySkyTime: "应用", localDateTime: "当前日期和时间", sunHorizonCoordinates: "太阳 高度 / 方位", moonHorizonCoordinates: "月亮 高度 / 方位", useForPlanner: "填入观测规划", replaceAndCalculate: "替换并重新计算", currentFovWindowResult: "当前 LACT 视野", currentFovTitle: "当前 LACT 视野内源的观测窗口。", currentFovLead: "在接入 LACT 实时指向前，指向占位为天顶。仅计算所选开始时刻处于 8.3°视野内的源。", fovSources: "视野内源", pointingMode: "指向", fixedZenith: "固定天顶", currentFovWindows: "当前视野窗口", noFovSources: "所选时刻的固定天顶视野内没有源", planObservation: "加入观测计划", previewObservationPlan: "预览当前观测计划", observationPlan: "观测计划", plannedStart: "计划开始时间", plannedEnd: "计划结束时间", notes: "备注", planRangeHint: "默认填写当前完整源窗口中经逐秒复核有效的计划时间。计划时间必须留在该窗口内。", planRangeError: "计划时间必须位于当前完整源窗口内，且结束时间晚于开始时间。", planSecondUnavailable: "该窗口内没有可表示为完整秒的有效观测计划区间。", downloadPlan: "下载 XLSX 计划表", planAdded: "已加入计划表", constraints: "约束条件",
     },
     en: {
       brandHome: "Skyward home", brandDescriptor: "ASTRONOMICAL OBSERVATION SUPPORT PLATFORM", primaryNavigation: "Primary navigation", displaySettings: "Display settings",
-      navPlanner: "Sky map & planner", navData: "Data notes", language: "Language", switchTheme: "Switch theme", themeAuto: "Auto", themeLight: "Light", themeDark: "Dark", timezoneLocal: "Beijing: UTC+8", timezoneUtc: "UTC",
+      navPlanner: "Sky map & planner", navData: "Data notes", language: "Language", switchTheme: "Switch theme", themeAuto: "Auto", themeLight: "Light", themeDark: "Dark", timezoneLocal: "Beijing time (UTC+8)", timezoneUtc: "UTC",
       site: "Site", altitude: "Altitude", geometryOnly: "GEOMETRY ONLY", calculationContext: "Calculation context", footerDisclaimer: "LAN prototype. Weather, device state, mechanical safety and LHAASO joint observation are not evaluated.",
       currentSky: "CURRENT SKY", homeTitle: "Turn a source catalogue into observable geometry.", homeLead: "Select catalogue layers, apply solar, lunar and zenith constraints, then compare centre and full-footprint windows.",
       skySummary: "Sky summary", catalogue: "Catalogue", aboveHorizon: "Above horizon", belowHorizon: "Below horizon", inputValidation: "Input validation", calculationConditions: "CALCULATION CONDITIONS", windowPlanner: "Window planner", blankDisables: "Cannot be blank",
@@ -58,11 +58,11 @@
       sourceDetails: "SOURCE DETAILS", catalogueAndEnrichment: "Catalogue data and unverified enrichment", openDetails: "Open details", galacticCoordinates: "Galactic coordinates", positionError: "95% position error", astropyWarnings: "Astropy warnings",
       methodAndBoundary: "METHOD & BOUNDARY", aboutTitle: "Data, coordinates and geometry.", aboutLead: "Fixed parameters, catalogue provenance and the conditions intentionally excluded from this first release.", lactSite: "LACT site", longitude: "Longitude", latitude: "Latitude", timezone: "Time zone", source: "Source",
       diameter: "Diameter", radius: "Radius", model: "Model", hardCircle: "Ideal circular hard boundary", notModelled: "Not modelled", fovNotModelled: "Off-axis response, PSF, obstruction or sensitivity falloff", catalogueTitle: "Selected catalogues", records: "Records", coordinates: "Coordinates", extensionMeaning: "Degrees, used as a nominal circular radius",
-      iersOffline: "Offline IERS data", currentCoverage: "Current coverage", autoDownload: "Automatic download", disabled: "Disabled", file: "File", statusDefinition: "Source status", gaiaSource: "Gaia calibration star", greenDefinition: "The source centre and nominal extension both pass the active geometric constraints.", yellowDefinition: "The centre passes, but the full source footprint does not.", redDefinition: "The source centre fails the active geometric constraints.", greenStatusLabel: "GREEN", yellowStatusLabel: "YELLOW", redStatusLabel: "RED", selectedDefinition: "A blue hollow star outline marks the source selected for calculation.", trackedDefinition: "A purple hollow star outline marks a source inside the tracked FoV during an observation-window calculation.", gaiaDefinition: "A thicker cross marks an on-demand Gaia candidate; under the shared map mode, red/green indicate unavailable/observable geometry, and calibration suitability is not assessed.", extensionDefinition: "A cyan dashed circle marks the nominal source footprint when a verified radius is available.", notEvaluated: "Not evaluated", implemented: "Implemented", notImplemented: "Not implemented", aboutDisclaimer: "This is not a formal observing approval. Weather, device state, mechanical limits, tracking error and joint-observation conditions are excluded.",
+      iersOffline: "Online-first IERS data", currentCoverage: "Current coverage", autoDownload: "Automatic download", disabled: "Disabled", file: "File", statusDefinition: "Source status", gaiaSource: "Gaia calibration star", greenDefinition: "The source centre and nominal extension both pass the active geometric constraints.", yellowDefinition: "The centre passes, but the full source footprint does not.", redDefinition: "The source centre fails the active geometric constraints.", greenStatusLabel: "GREEN", yellowStatusLabel: "YELLOW", redStatusLabel: "RED", selectedDefinition: "A blue hollow star outline marks the source selected for calculation.", trackedDefinition: "A purple hollow star outline marks a source inside the tracked FoV during an observation-window calculation.", gaiaDefinition: "A thicker cross marks an on-demand Gaia candidate; under the shared map mode, red/green indicate unavailable/observable geometry, and calibration suitability is not assessed.", extensionDefinition: "A cyan dashed circle marks the nominal source footprint when a verified radius is available.", notEvaluated: "Not evaluated", implemented: "Implemented", notImplemented: "Not implemented", aboutDisclaimer: "This is not a formal observing approval. Weather, device state, mechanical limits, tracking error and joint-observation conditions are excluded.",
       jsonApi: "JSON API", apiTitle: "LAN API reference.", apiLead: "All endpoints are unauthenticated and must remain inside the controlled LAN. Interactive Swagger is disabled so a browser never tries to load a public CDN. The machine-readable schema remains at <code>/openapi.json</code>.", endpoints: "Endpoints", windowRequestExample: "Window request example", apiDisclaimer: "A response with", apiDisclaimerEnd: "does not evaluate weather, telemetry, mechanical safety or joint-observation conditions.",
       apiDescription1: "Catalogue, IERS and enrichment health", apiDescription2: "Site, FoV and capability boundaries", apiDescription3: "Installed, temporary, and result-local Gaia catalogue metadata", apiDescription4: "Search ordinary sources across selected catalogues", apiDescription5: "Source detail and geometry at a chosen time", apiDescription6: "All-sky SVG and selected ordinary-catalogue states", apiDescription7: "Target-centred local SVG and shared-mode states", apiDescription8: "Query and colour the filtered local Gaia layer", apiDescription9: "Centre and full-footprint observing windows", apiDescription10: "Alternatives for one target window from coarse screening and exact validation (maximum 3); multi-window plans call once per window", apiDescription11: "Window SVG with Zenith-Time comparison curves", apiDescription12: "Machine-readable OpenAPI schema",
       loading: "Loading", closeDetails: "Close details", loadingDetail: "Computing current horizon coordinates and status.", failedDetail: "Unable to load source details", noData: "No data, pending verification", centrePass: "Centre passes", centreFail: "Centre fails", footprintPass: "Full extension passes", footprintFail: "Full extension fails",
-      sexagesimal: "Sexagesimal", extension: "Extension", positionErrorLabel: "95% position error", altAzZenith: "Alt / Az / Zenith", moonSeparation: "Moon separation", sunAltitude: "Sun altitude", statusReasons: "Status reasons", enrichment: "Unverified enrichment", verification: "Verification", associatedSources: "Associated sources", sourceSearchEmpty: "No matching sources", allFieldsRequired: "All fields are required", planningConstraints: "Planning constraints", sunConstraintLimited: "Must be -15° or below", addTargetOption: "Add new target", targetName: "Target name", temporaryNamePlaceholder: "Leave blank for TMP JHHMM±DDMM", temporaryNameHelp: "Leave blank to derive a TMP JHHMM±DDMM name from RA and Dec.", regionRa: "Region RA (J2000)", regionDec: "Region Dec (J2000)", regionRadius: "Region radius", skyMode: "Sky mode", liveSky: "Live, refresh each minute", fixedSky: "Specific time", skyTime: "Sky time", applySkyTime: "Apply", localDateTime: "Local date and time", sunHorizonCoordinates: "Sun Alt / Az", moonHorizonCoordinates: "Moon Alt / Az", useForPlanner: "Use for planning", replaceAndCalculate: "Replace and recalculate", currentFovWindowResult: "CURRENT LACT FoV", currentFovTitle: "Windows for sources in the current LACT FoV.", currentFovLead: "The pointing placeholder is zenith until real LACT pointing telemetry is connected. Only sources inside the 8.3° FoV at the selected start time are evaluated.", fovSources: "FoV sources", pointingMode: "Pointing", fixedZenith: "Fixed zenith", currentFovWindows: "Current FoV windows", noFovSources: "No catalogue source lies inside the current fixed zenith FoV at the selected time.", planObservation: "Add to observing plan", previewObservationPlan: "Preview current observing plan", observationPlan: "Observing plan", plannedStart: "Planned start", plannedEnd: "Planned end", notes: "Notes", planRangeHint: "The prefilled plan is checked at whole-second precision inside this full-footprint window. Planned times must stay within the valid interval.", planRangeError: "Planned times must lie inside this full-footprint window, with an end later than its start.", planSecondUnavailable: "No valid whole-second observing-plan interval exists within this window.", downloadPlan: "Download TXT plan", planAdded: "Added to plan", constraints: "Constraints",
+      sexagesimal: "Sexagesimal", extension: "Extension", positionErrorLabel: "95% position error", altAzZenith: "Alt / Az / Zenith", moonSeparation: "Moon separation", sunAltitude: "Sun altitude", statusReasons: "Status reasons", enrichment: "Unverified enrichment", verification: "Verification", associatedSources: "Associated sources", sourceSearchEmpty: "No matching sources", allFieldsRequired: "All fields are required", planningConstraints: "Planning constraints", sunConstraintLimited: "Must be -15° or below", addTargetOption: "Add new target", targetName: "Target name", temporaryNamePlaceholder: "Leave blank for TMP JHHMM±DDMM", temporaryNameHelp: "Leave blank to derive a TMP JHHMM±DDMM name from RA and Dec.", regionRa: "Region RA (J2000)", regionDec: "Region Dec (J2000)", regionRadius: "Region radius", skyMode: "Sky mode", liveSky: "Live, refresh each minute", fixedSky: "Specific time", skyTime: "Sky time", applySkyTime: "Apply", localDateTime: "Current date and time", sunHorizonCoordinates: "Sun Alt / Az", moonHorizonCoordinates: "Moon Alt / Az", useForPlanner: "Use for planning", replaceAndCalculate: "Replace and recalculate", currentFovWindowResult: "CURRENT LACT FoV", currentFovTitle: "Windows for sources in the current LACT FoV.", currentFovLead: "The pointing placeholder is zenith until real LACT pointing telemetry is connected. Only sources inside the 8.3° FoV at the selected start time are evaluated.", fovSources: "FoV sources", pointingMode: "Pointing", fixedZenith: "Fixed zenith", currentFovWindows: "Current FoV windows", noFovSources: "No catalogue source lies inside the current fixed zenith FoV at the selected time.", planObservation: "Add to observing plan", previewObservationPlan: "Preview current observing plan", observationPlan: "Observing plan", plannedStart: "Planned start", plannedEnd: "Planned end", notes: "Notes", planRangeHint: "The prefilled plan is checked at whole-second precision inside this full-footprint window. Planned times must stay within the valid interval.", planRangeError: "Planned times must lie inside this full-footprint window, with an end later than its start.", planSecondUnavailable: "No valid whole-second observing-plan interval exists within this window.", downloadPlan: "Download TXT plan", planAdded: "Added to plan", constraints: "Constraints",
     }
   };
 
@@ -77,7 +77,7 @@
     customLongitude: '经度（WGS-84）', customLatitude: '纬度（WGS-84）', customAltitude: '海拔', customTimezone: '本地 UTC 偏移', customFov: '望远镜视场直径',
     skyZoom: '全天图缩放', zoomIn: '放大', zoomOut: '缩小', zoomReset: '重置缩放',
     reasonAllPass: '所有已启用的几何条件均满足', reasonRangeStart: '请求时间范围起点', reasonRangeEnd: '请求时间范围终点', reasonBoundary: '约束边界', reasonBecameValid: '在以下条件恢复有效后', reasonBecameInvalid: '在以下条件失效后', reasonCentre: '源中心', reasonExtension: '源边缘',
-    altAz: '高度 / 方位', addZenithOverlay: '添加 Zenith - Time 曲线', removeZenithOverlay: '撤回 Zenith - Time 曲线', savePlot: '保存局部视场和观测窗口图（SVG）', chooseZoomCentre: '指定缩放中心', resultStatusMode: '全天图状态', statusInstant: '实时', statusTrajectory: '观测窗口', instantStatusExplanation: '实时：绿色表示完整源在当前时刻可观测，黄色表示仅源中心可观测，红色表示源中心不可观测。', trajectoryStatusExplanation: '观测窗口：目标源完整源窗口内的可观测性；所有源、太阳和月亮统一显示在目标源第一个完整源窗口的起始时刻（无完整源窗口时使用计算开始时刻）的位置。', trackedFovSource: '跟踪视场内源', refreshRealtime: '更新实时全天图/视场图', localFovMode: '局部视场模式', zenithCurveManagement: 'Zenith-Time 曲线管理', curveColour: '曲线颜色', curveLineStyle: '曲线线形', removeCurve: '删除曲线', confirmAddPlan: '确认添加', savePlanChanges: '保存计划修改', editPlanEntry: '编辑计划', deletePlanEntry: '删除此计划', clearCurrentPlan: '清空当前观测计划', confirmClearPlan: '确认清空当前观测计划？', downloadObservationPlan: '下载观测计划', duplicatePlanPrompt: '该源已存在计划记录。请选择覆盖之前的记录、作为新条目添加，或放弃本次添加。', duplicatePlanKicker: '重复计划', duplicatePlanTitle: '该源已有保存的观测计划', overwritePrevious: '覆盖', addAsNewEntry: '作为新条目添加', cancelAddition: '放弃添加', noSavedPlan: '尚未保存观测计划。', legendGreenMeaning: '完整源可观测', legendYellowMeaning: '仅源中心可观测', legendRedMeaning: '源中心不可观测', uploadCatalogue: '上传源表（CSV）', chooseFile: '选择文件', catalogueUploadHelp: 'UTF-8 CSV：必须包含 name、ra、dec；可选 ext。上传仅临时保存在内存中。', catalogueUploading: '正在上传源表', catalogueUploaded: '源表已加载', catalogueUploadFailed: '源表上传失败',
+    altAz: '高度 / 方位', addZenithOverlay: '添加 Zenith - Time 曲线', removeZenithOverlay: '撤回 Zenith - Time 曲线', savePlot: '保存局部视场和观测窗口图（SVG）', chooseZoomCentre: '指定缩放中心', resultStatusMode: '全天图状态', statusInstant: '实时', statusTrajectory: '观测窗口', instantStatusExplanation: '实时：绿色表示完整源在当前时刻可观测，黄色表示仅源中心可观测，红色表示源中心不可观测。', trajectoryStatusExplanation: '观测窗口：目标源完整源窗口内的可观测性；所有源、太阳和月亮统一显示在目标源第一个完整源窗口的起始时刻（无完整源窗口时使用计算开始时刻）的位置。', trackedFovSource: '跟踪视场内源', refreshRealtime: '更新实时全天图/视场图', localFovMode: '局部视场模式', zenithCurveManagement: 'Zenith-Time 曲线管理', curveColour: '曲线颜色', curveLineStyle: '曲线线形', removeCurve: '删除曲线', confirmAddPlan: '确认添加', savePlanChanges: '保存计划修改', editPlanEntry: '编辑计划', deletePlanEntry: '删除此计划', clearCurrentPlan: '清空当前观测计划', confirmClearPlan: '确认清空当前观测计划？', downloadObservationPlan: '下载观测计划', duplicatePlanPrompt: '该源已存在计划记录。请选择覆盖之前的记录、作为新条目添加，或放弃本次添加。', duplicatePlanKicker: '重复计划', duplicatePlanTitle: '该源已有保存的观测计划', overwritePrevious: '覆盖', addAsNewEntry: '作为新条目添加', cancelAddition: '放弃添加', noSavedPlan: '尚未保存观测计划。', legendGreenMeaning: '完整源可观测', legendYellowMeaning: '仅源中心可观测', legendRedMeaning: '源中心不可观测', uploadCatalogue: '上传源表（XLSX）', chooseFile: '选择文件', catalogueUploadHelp: 'XLSX 首工作表必须包含 name、ra、dec；可选 ext。上传仅临时保存在内存中。', catalogueUploading: '正在上传源表', catalogueUploaded: '源表已加载', catalogueUploadFailed: '源表上传失败',
     target_above_horizon: '目标高于地平线', target_inside_current_fov: '目标在当前视场内', sun_altitude: '太阳高度角', moon_separation: '月亮角距', target_min_zenith: '目标最小天顶角', target_max_zenith: '目标最大天顶角', extension_inside_fov: '源扩展落入视场', extension_inside_current_fov: '源扩展落入当前视场', extension_above_horizon: '源扩展高于地平线', extension_max_zenith: '源扩展不超出地平线限制', minimum_window: '最短连续窗口',
   });
   Object.assign(translations.en, {
@@ -89,21 +89,21 @@
     customLongitude: 'Longitude (WGS-84)', customLatitude: 'Latitude (WGS-84)', customAltitude: 'Altitude', customTimezone: 'Local UTC offset', customFov: 'Telescope FoV diameter',
     skyZoom: 'Sky map zoom', zoomIn: 'Zoom in', zoomOut: 'Zoom out', zoomReset: 'Reset zoom',
     reasonAllPass: 'All enabled geometry conditions pass', reasonRangeStart: 'Requested-range start', reasonRangeEnd: 'Requested-range end', reasonBoundary: 'Constraint boundary', reasonBecameValid: 'Became valid after', reasonBecameInvalid: 'Became invalid after', reasonCentre: 'Target centre', reasonExtension: 'Source edge',
-    altAz: 'Alt / Az', addZenithOverlay: 'Add Zenith - Time curve', removeZenithOverlay: 'Remove Zenith - Time curve', savePlot: 'Save local FoV and observing-window plots (SVG)', chooseZoomCentre: 'Choose centre', resultStatusMode: 'Map status', statusInstant: 'Real-time', statusTrajectory: 'Observation window', instantStatusExplanation: 'Real-time: green means the full source is observable now, yellow means only its centre is observable, and red means its centre is unavailable.', trajectoryStatusExplanation: 'Observation window: observability inside the target full-footprint windows; all sources, Sun and Moon are shown at the target first full-footprint-window start, or the calculation start when none exists.', trackedFovSource: 'Tracked-FoV source', refreshRealtime: 'Refresh live all-sky / FoV maps', localFovMode: 'Local FoV mode', zenithCurveManagement: 'Zenith-Time curve management', curveColour: 'Curve colour', curveLineStyle: 'Curve line style', removeCurve: 'Remove curve', confirmAddPlan: 'Confirm addition', savePlanChanges: 'Save plan changes', editPlanEntry: 'Edit plan', deletePlanEntry: 'Delete this plan', clearCurrentPlan: 'Clear current observing plan', confirmClearPlan: 'Clear the current observing plan?', downloadObservationPlan: 'Download observing plan', duplicatePlanPrompt: 'A plan for this source already exists. Choose overwrite, add as a new entry, or cancel this addition.', duplicatePlanKicker: 'Duplicate plan', duplicatePlanTitle: 'This source already has a saved plan', overwritePrevious: 'Overwrite', addAsNewEntry: 'Add as new entry', cancelAddition: 'Cancel addition', noSavedPlan: 'No observing plan has been saved.', legendGreenMeaning: 'Full source observable', legendYellowMeaning: 'Centre only', legendRedMeaning: 'Centre unavailable', uploadCatalogue: 'Upload source catalogue (CSV)', chooseFile: 'Choose file', catalogueUploadHelp: 'UTF-8 CSV: name, ra, dec are required; ext is optional. Uploads are temporary and stored only in memory.', catalogueUploading: 'Uploading catalogue', catalogueUploaded: 'Catalogue loaded', catalogueUploadFailed: 'Catalogue upload failed',
+    altAz: 'Alt / Az', addZenithOverlay: 'Add Zenith - Time curve', removeZenithOverlay: 'Remove Zenith - Time curve', savePlot: 'Save local FoV and observing-window plots (SVG)', chooseZoomCentre: 'Choose centre', resultStatusMode: 'Map status', statusInstant: 'Real-time', statusTrajectory: 'Observation window', instantStatusExplanation: 'Real-time: green means the full source is observable now, yellow means only its centre is observable, and red means its centre is unavailable.', trajectoryStatusExplanation: 'Observation window: observability inside the target full-footprint windows; all sources, Sun and Moon are shown at the target first full-footprint-window start, or the calculation start when none exists.', trackedFovSource: 'Tracked-FoV source', refreshRealtime: 'Refresh live all-sky / FoV maps', localFovMode: 'Local FoV mode', zenithCurveManagement: 'Zenith-Time curve management', curveColour: 'Curve colour', curveLineStyle: 'Curve line style', removeCurve: 'Remove curve', confirmAddPlan: 'Confirm addition', savePlanChanges: 'Save plan changes', editPlanEntry: 'Edit plan', deletePlanEntry: 'Delete this plan', clearCurrentPlan: 'Clear current observing plan', confirmClearPlan: 'Clear the current observing plan?', downloadObservationPlan: 'Download observing plan', duplicatePlanPrompt: 'A plan for this source already exists. Choose overwrite, add as a new entry, or cancel this addition.', duplicatePlanKicker: 'Duplicate plan', duplicatePlanTitle: 'This source already has a saved plan', overwritePrevious: 'Overwrite', addAsNewEntry: 'Add as new entry', cancelAddition: 'Cancel addition', noSavedPlan: 'No observing plan has been saved.', legendGreenMeaning: 'Full source observable', legendYellowMeaning: 'Centre only', legendRedMeaning: 'Centre unavailable', uploadCatalogue: 'Upload source catalogue (XLSX)', chooseFile: 'Choose file', catalogueUploadHelp: 'The first XLSX worksheet must contain name, ra and dec; ext is optional. Uploads are temporary and stored only in memory.', catalogueUploading: 'Uploading catalogue', catalogueUploaded: 'Catalogue loaded', catalogueUploadFailed: 'Catalogue upload failed',
     target_above_horizon: 'target above horizon', target_inside_current_fov: 'target inside current FoV', sun_altitude: 'Sun altitude', moon_separation: 'Moon separation', target_min_zenith: 'minimum target zenith angle', target_max_zenith: 'maximum target zenith angle', extension_inside_fov: 'extension inside FoV', extension_inside_current_fov: 'extension inside current FoV', extension_above_horizon: 'extension above horizon', extension_max_zenith: 'extension within horizon limit', minimum_window: 'minimum continuous window',
   });
   Object.assign(translations.zh, {
-    catalogueLayers: '源表', catalogueIcons: '源表图标按钮依次切换：星星、菱形、三角形、方形、圆形和十字；Gaia 十字固定不参与选择。', layerScope: '勾选仅为草稿；确认加载后才更新天图与目标源选择器。', cataloguePicker: '选择源表', catalogueConfirm: '确认加载', catalogueCancel: '取消', catalogueDraftChanged: '选择尚未应用', catalogueCountUnit: '个源表', emptyLayers: '未选择源表', searchCatalogue: '搜索所有已选源表', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '源表清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaFallback: '初始查询超时，已使用原始视场内的有界子锥；结果可能不完整', gaiaReason: '原因', gaiaAttempts: '查询次数', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按源表选择显示图层，检索目标并计算几何窗口。'
+    catalogueLayers: '源表', catalogueIcons: '源表图标按钮依次切换：星星、菱形、三角形、方形和圆形；十字符号仅属于 Gaia DR3，固定且不参与选择。', layerScope: '勾选仅为草稿；确认加载后才更新天图与目标源选择器。', cataloguePicker: '选择源表', catalogueConfirm: '确认加载', catalogueCancel: '取消', catalogueDraftChanged: '选择尚未应用', catalogueCountUnit: '个源表', emptyLayers: '未选择源表', searchCatalogue: '搜索所有已选源表', loadMore: '加载更多', searchFailed: '搜索失败', unavailable: '不可用', catalogueLoadFailed: '源表清单载入失败', gaiaCandidateWarning: '仅为候选星；未评估定标适用性。', gaiaUnselected: '未选择', gaiaLoading: '查询中', gaiaSuccess: '查询成功', gaiaCached: '缓存结果', gaiaZero: '查询成功，无匹配', gaiaError: '查询失败', gaiaFallback: '初始查询超时，已使用原始视场内的有界子锥；结果可能不完整', gaiaReason: '原因', gaiaAttempts: '查询次数', gaiaCount: '返回 / 已绘制', gaiaLimits: '半径 / G 星等上限 / 行数上限', gaiaTruncated: '达到行数上限，结果可能不完整', rawFields: '原始字段、单位与来源', calculationHelp: '请等待计算完成，暂无可信的进度估计。', cancelCalculation: '关闭', calculationFailed: '计算失败，请重试', enrichment: '备注', catalogueAndEnrichment: '目录数据与备注', noData: '未提供', homeLead: '按源表选择显示图层，检索目标并计算几何窗口。'
   });
   Object.assign(translations.en, {
-    catalogueLayers: 'Catalogues', catalogueIcons: 'Catalogue buttons cycle through star, diamond, triangle, square, circle and plus; Gaia crosses remain fixed and are not selectable.', layerScope: 'Checks are drafts. Confirm loading to update the sky map and target picker.', cataloguePicker: 'Select catalogues', catalogueConfirm: 'Confirm & load', catalogueCancel: 'Cancel', catalogueDraftChanged: 'Selection not applied', catalogueCountUnit: 'catalogues', emptyLayers: 'No catalogues selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaFallback: 'The initial query timed out; bounded subcones inside the original field were used and the result may be incomplete.', gaiaReason: 'Reason', gaiaAttempts: 'Queries', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
+    catalogueLayers: 'Catalogues', catalogueIcons: 'Catalogue buttons cycle through star, diamond, triangle, square and circle; the cross belongs only to Gaia DR3 and is fixed, not selectable.', layerScope: 'Checks are drafts. Confirm loading to update the sky map and target picker.', cataloguePicker: 'Select catalogues', catalogueConfirm: 'Confirm & load', catalogueCancel: 'Cancel', catalogueDraftChanged: 'Selection not applied', catalogueCountUnit: 'catalogues', emptyLayers: 'No catalogues selected', searchCatalogue: 'Search all selected catalogues', loadMore: 'Load more', searchFailed: 'Search failed', unavailable: 'Unavailable', catalogueLoadFailed: 'Catalogue list failed', gaiaCandidateWarning: 'Candidates only; calibration suitability has not been assessed.', gaiaUnselected: 'Not selected', gaiaLoading: 'Querying', gaiaSuccess: 'Success', gaiaCached: 'Cached result', gaiaZero: 'Success, no matches', gaiaError: 'Query failed', gaiaFallback: 'The initial query timed out; bounded subcones inside the original field were used and the result may be incomplete.', gaiaReason: 'Reason', gaiaAttempts: 'Queries', gaiaCount: 'Returned / drawn', gaiaLimits: 'Radius / G magnitude cutoff / row limit', gaiaTruncated: 'Row limit reached; results may be incomplete', rawFields: 'Raw fields, units and provenance', calculationHelp: 'Please wait. No reliable progress estimate is available.', cancelCalculation: 'Close', calculationFailed: 'Calculation failed; please retry', enrichment: 'Notes', catalogueAndEnrichment: 'Catalogue data and notes', noData: 'Not provided', homeLead: 'Select catalogue layers, search targets and calculate geometric windows.'
   });
   Object.assign(translations.zh, { gaiaUnorderedSubset: '按与目标的角距离由近到远选择最近 N 颗。', operatorNominalAssumption: '用户指定的名义半径假设', unknownFootprint: '未提供；按零半径点源评估，planning radius 仍未知', pointSourceFallback: '未知 footprint：按零半径点源评估；planning radius 仍未知', statusSpecified: '指定时间', statusModeLabel: '状态模式', statusTimeLabel: '状态时间', specifiedTimeKind: '指定时间类型', specifiedPoint: '时间点', specifiedRange: '时间段（最长 24 小时）', specifiedStart: '起始时间 / 时间点', specifiedEnd: '结束时间', applySpecifiedTime: '应用', specifiedTimeInvalid: '请输入有效的指定时间。', specifiedTimeOrder: '结束时间必须晚于开始时间。', specifiedTimeLimit: '指定时间段不能超过 24 小时。', specifiedStatusExplanation: '指定时间：时间点按该时刻分类；时间段按不超过 24 小时的区间分类，并统一在区间起点绘制位置。', localSharedStatus: '局部图与左侧全天图共用同一状态模式和时间。', loadGaiaLocal: '加载 Gaia DR3', gaiaRadiusFilter: '目标周围查询半径', gaiaFaintestMagnitude: '最暗 G 星等', gaiaMaximumSources: '最大源数量', applyGaiaFilters: '加载 Gaia DR3', gaiaFilterInvalid: 'Gaia 筛选条件无效：半径 0.1–5°，最暗 G 星等 5–22，最大源数 1–500。', gaiaQueryStrategy: '查询策略', localFovNote: '灰色实线圆表示以目标为中心、直径 10° 的局部图显示边界；蓝色虚线圆表示望远镜 FoV 硬边界；青色虚线圆表示目标源的名义 extension。名义 extension 很小时，青色圆可能被中央目标标记遮住。' });
   Object.assign(translations.en, { gaiaUnorderedSubset: 'The nearest N eligible sources by angular distance to the target are returned.', operatorNominalAssumption: 'Operator-supplied nominal assumption', unknownFootprint: 'Not provided; evaluated as a zero-radius point source; planning radius remains unknown', pointSourceFallback: 'Unknown footprint: evaluated as a zero-radius point source; planning radius remains unknown', statusSpecified: 'Specified time', statusModeLabel: 'Status mode', statusTimeLabel: 'Status time', specifiedTimeKind: 'Specified time type', specifiedPoint: 'Time point', specifiedRange: 'Time range (maximum 24 h)', specifiedStart: 'Start / time point', specifiedEnd: 'End', applySpecifiedTime: 'Apply', specifiedTimeInvalid: 'Enter a valid specified time.', specifiedTimeOrder: 'End time must be later than start time.', specifiedTimeLimit: 'The specified range cannot exceed 24 hours.', specifiedStatusExplanation: 'Specified time: a point is classified at that instant; a range of up to 24 hours is classified over the interval and positions are drawn at its start.', localSharedStatus: 'The local map uses the same status mode and time as the all-sky map.', loadGaiaLocal: 'Load Gaia DR3', gaiaRadiusFilter: 'Radius around target', gaiaFaintestMagnitude: 'Faintest G magnitude', gaiaMaximumSources: 'Maximum sources', applyGaiaFilters: 'Load Gaia DR3', gaiaFilterInvalid: 'Invalid Gaia filters: radius 0.1–5°, faintest G magnitude 5–22, and maximum sources 1–500.', gaiaQueryStrategy: 'Query strategy', localFovNote: 'The grey solid circle is the target-centred 10° local-map display boundary, the blue dashed circle is the telescope hard-FoV boundary, and the cyan dashed circle is the target nominal extension. A very small nominal extension may be hidden beneath the central target marker.' });
-  Object.assign(translations.zh, { curveAdding: '正在计算 Zenith-Time 曲线', curveAdded: '已成功添加 Zenith-Time 曲线', curveAddFailed: 'Zenith-Time 曲线添加失败', alternativeScreening: '正在筛选观测备选源', alternativeCatalogue: '专用备选源目录', alternativeCatalogueHelp: '上传后只从该 CSV 选择备选源；未上传时使用当前已加载源表。', chooseAlternativeCatalogue: '上传备选源目录', alternativeCatalogueUploaded: '专用备选源目录已加载', alternativeCatalogueDefault: '未上传专用目录，将使用当前已加载源表', gaiaStatusCounts: '可观测 / 不可观测', includePlanWindow: '将此窗口加入观测计划', planWindow: '观测窗口', noPlanWindowsSelected: '请至少勾选一个观测窗口。', planRangeHint: '已勾选的完整源窗口会分别预填计划时间；每段计划时间都必须位于对应的有效窗口内。', planRangeError: '每段计划时间都必须位于对应的完整源窗口内，且结束时间晚于开始时间。', apiPlanWindowNote: '备选源端点每次评估一个目标窗口。包含多个已选窗口的浏览器计划会逐窗口发送一次有界请求，并把结果保存在对应窗口下。' });
-  Object.assign(translations.zh, { addTrackedCurves: '添加所有跟踪视场内源曲线', sortedObservationWindows: '观测窗口（按起始时间排序）', batchPlanReady: '上传的目标列表已完成计算；有效窗口可加入观测计划。', planSort: '排序', planSortAdded: '添加时间', planSortDuration: '观测窗口总时长', planSortStart: '观测窗口起始时间', chooseCatalogueIcon: '选择源表图标', targetListUpload: '上传目标源列表（CSV）', targetListUploadHelp: '必填：name、ra、dec、ext。可选观测约束未提供时采用左侧设置值。', targetListUploaded: '目标源列表已加载', targetListUploadFailed: '目标源列表上传失败', batchCalculating: '正在逐个计算目标源窗口', batchCalculationReady: '目标源列表已加入观测计划' });
-  Object.assign(translations.en, { addTrackedCurves: 'Add all tracked-FoV source curves', sortedObservationWindows: 'Observation windows (sorted by start time)', batchPlanReady: 'The uploaded target list has been calculated; valid windows are ready for the observing plan.', planSort: 'Sort', planSortAdded: 'Added time', planSortDuration: 'Total window duration', planSortStart: 'Observation-window start', chooseCatalogueIcon: 'Choose source-table icon', targetListUpload: 'Upload target list (CSV)', targetListUploadHelp: 'Required: name, ra, dec, ext. Optional planning constraints use the current settings when omitted.', targetListUploaded: 'Target list loaded', targetListUploadFailed: 'Target-list upload failed', batchCalculating: 'Calculating target windows one by one', batchCalculationReady: 'Target list added to observing plan' });
-  Object.assign(translations.en, { alternativeCatalogue: 'Dedicated alternative-source catalogue', alternativeCatalogueHelp: 'After upload, alternatives are selected only from this CSV; without one, the selected ordinary catalogues are used.', chooseAlternativeCatalogue: 'Upload alternative catalogue', alternativeCatalogueUploaded: 'Dedicated alternative catalogue loaded', alternativeCatalogueDefault: 'No dedicated catalogue; selected ordinary catalogues will be used', gaiaStatusCounts: 'Observable / unavailable', includePlanWindow: 'Include this window in the observing plan', planWindow: 'Observation window', noPlanWindowsSelected: 'Select at least one observation window.', planRangeHint: 'Each selected full-footprint window is prefilled separately; every planned interval must stay inside its corresponding valid window.', planRangeError: 'Every planned interval must stay inside its corresponding full-footprint window, and its end must be later than its start.', apiPlanWindowNote: 'The alternatives endpoint evaluates one target window per request. A browser plan containing multiple selected windows sends one bounded request for each window and stores each result with that window.' });
+  Object.assign(translations.zh, { curveAdding: '正在计算 Zenith-Time 曲线', curveAdded: '已成功添加 Zenith-Time 曲线', curveAddFailed: 'Zenith-Time 曲线添加失败', alternativeScreening: '正在筛选观测备选源', alternativeCatalogue: '专用备选源目录', alternativeCatalogueHelp: '上传后只从该 XLSX 选择备选源；未上传时使用当前已加载源表。', chooseAlternativeCatalogue: '上传备选源目录', alternativeCatalogueUploaded: '专用备选源目录已加载', alternativeCatalogueDefault: '未上传专用目录，将使用当前已加载源表', gaiaStatusCounts: '可观测 / 不可观测', includePlanWindow: '将此窗口加入观测计划', planWindow: '观测窗口', noPlanWindowsSelected: '请至少勾选一个观测窗口。', planRangeHint: '已勾选的完整源窗口会分别预填计划时间；每段计划时间都必须位于对应的有效窗口内。', planRangeError: '每段计划时间都必须位于对应的完整源窗口内，且结束时间晚于开始时间。', apiPlanWindowNote: '备选源端点每次评估一个目标窗口。包含多个已选窗口的浏览器计划会逐窗口发送一次有界请求，并把结果保存在对应窗口下。', apiTimeZoneNote: '所有以 Z 结尾的 ISO 8601 时间戳均为 UTC。网页中的 datetime-local 输入按页眉当前选择的时区解释。' });
+  Object.assign(translations.zh, { addTrackedCurves: '添加所有跟踪视场内源曲线', sortedObservationWindows: '观测窗口（按起始时间排序）', batchPlanReady: '上传的目标列表已完成计算；有效窗口可加入观测计划。', planSort: '排序', planSortAdded: '添加时间', planSortDuration: '观测窗口总时长', planSortStart: '观测窗口起始时间', chooseCatalogueIcon: '选择源表图标', targetListUpload: '上传目标源列表（XLSX）', targetListUploadHelp: '必填：name、ra、dec、ext。可选观测约束未提供时采用左侧设置值。', targetListUploaded: '目标源列表已加载', targetListUploadFailed: '目标源列表上传失败', batchCalculating: '正在逐个计算目标源窗口', batchCalculationReady: '目标源列表已加入观测计划' });
+  Object.assign(translations.en, { addTrackedCurves: 'Add all tracked-FoV source curves', sortedObservationWindows: 'Observation windows (sorted by start time)', batchPlanReady: 'The uploaded target list has been calculated; valid windows are ready for the observing plan.', planSort: 'Sort', planSortAdded: 'Added time', planSortDuration: 'Total window duration', planSortStart: 'Observation-window start', chooseCatalogueIcon: 'Choose source-table icon', targetListUpload: 'Upload target list (XLSX)', targetListUploadHelp: 'Required: name, ra, dec, ext. Optional planning constraints use the current settings when omitted.', targetListUploaded: 'Target list loaded', targetListUploadFailed: 'Target-list upload failed', batchCalculating: 'Calculating target windows one by one', batchCalculationReady: 'Target list added to observing plan' });
+  Object.assign(translations.en, { alternativeCatalogue: 'Dedicated alternative-source catalogue', alternativeCatalogueHelp: 'After upload, alternatives are selected only from this XLSX; without one, the selected ordinary catalogues are used.', chooseAlternativeCatalogue: 'Upload alternative catalogue', alternativeCatalogueUploaded: 'Dedicated alternative catalogue loaded', alternativeCatalogueDefault: 'No dedicated catalogue; selected ordinary catalogues will be used', gaiaStatusCounts: 'Observable / unavailable', includePlanWindow: 'Include this window in the observing plan', planWindow: 'Observation window', noPlanWindowsSelected: 'Select at least one observation window.', planRangeHint: 'Each selected full-footprint window is prefilled separately; every planned interval must stay inside its corresponding valid window.', planRangeError: 'Every planned interval must stay inside its corresponding full-footprint window, and its end must be later than its start.', apiPlanWindowNote: 'The alternatives endpoint evaluates one target window per request. A browser plan containing multiple selected windows sends one bounded request for each window and stores each result with that window.', apiTimeZoneNote: 'All ISO 8601 timestamps ending in Z are UTC. Browser datetime-local inputs are interpreted in the time zone currently selected in the page header.' });
   const formatCondition = (code) => translate(code, String(code || '').replaceAll('_', ' '));
   const formatReason = (code) => {
     const value = String(code || '');
@@ -160,11 +160,11 @@
 
   const timezoneLabel = () => {
     if (getTimezonePreference() === "utc") return translate("timezoneUtc", "UTC");
-    return isCustomTelescope() ? observerTimezoneLabel() : translate("timezoneLocal", "Beijing: UTC+8");
+    return isCustomTelescope() ? observerTimezoneLabel() : translate("timezoneLocal", "Beijing time (UTC+8)");
   };
   const updateLocalTimezoneOption = () => {
     const option = document.querySelector('#timezone-select option[value="local"]');
-    if (option) option.textContent = isCustomTelescope() ? observerTimezoneLabel() : translate("timezoneLocal", "Beijing: UTC+8");
+    if (option) option.textContent = isCustomTelescope() ? observerTimezoneLabel() : translate("timezoneLocal", "Beijing time (UTC+8)");
   };
 
   const dateFormatter = (options = {}) => new Intl.DateTimeFormat(
@@ -180,11 +180,21 @@
 
   const formatDisplayTime = (value, options = { dateStyle: "medium", timeStyle: "medium" }) => {
     const date = value instanceof Date ? value : new Date(value);
+    let formatted;
     if (getTimezonePreference() !== "utc" && isCustomTelescope()) {
       const shifted = new Date(date.getTime() + observerOffsetHours() * 3600_000);
-      return new Intl.DateTimeFormat(getLanguage() === "zh" ? "zh-CN" : "en-CA", { timeZone: "UTC", ...options }).format(shifted);
+      formatted = new Intl.DateTimeFormat(getLanguage() === "zh" ? "zh-CN" : "en-CA", { timeZone: "UTC", ...options }).format(shifted);
+    } else {
+      formatted = dateFormatter(options).format(date);
     }
-    return dateFormatter(options).format(date);
+    return `${formatted} ${timezoneLabel()}`;
+  };
+
+  const updateTimezoneText = () => {
+    document.querySelectorAll("[data-timezone-label]").forEach((element) => { element.textContent = timezoneLabel(); });
+    document.querySelectorAll("[data-zoned-label]").forEach((element) => {
+      element.textContent = `${translate(element.dataset.zonedLabel, element.dataset.zonedLabel)} (${timezoneLabel()})`;
+    });
   };
 
   const applyLanguage = (language) => {
@@ -212,7 +222,7 @@
     const selector = document.getElementById("language-select");
     if (selector) selector.value = selected;
     updateLocalTimezoneOption();
-    document.querySelectorAll("[data-timezone-label]").forEach((element) => { element.textContent = timezoneLabel(); });
+    updateTimezoneText();
     refreshTimeDisplays();
     refreshReasonText();
     document.dispatchEvent(new Event("skyward:language-change"));
@@ -258,7 +268,7 @@
     const selector = document.getElementById("timezone-select");
     if (selector) selector.value = selected;
     updateLocalTimezoneOption();
-    document.querySelectorAll("[data-timezone-label]").forEach((element) => { element.textContent = timezoneLabel(); });
+    updateTimezoneText();
     updatePlotTimezoneLabels();
     if (notify && previous !== selected) document.dispatchEvent(new CustomEvent("skyward:timezone-change", { detail: { previous, timezone: selected } }));
   };
@@ -395,19 +405,31 @@
   };
 
   const tevcatDetailMarkup = (data) => {
-    const notes=data.notes || {}, physical=notes.physical_fields || {}, discovery=notes.discovery || {}, state=value => value?.value ?? value ?? translate('noData');
+    const notes=data.notes || {}, physical=notes.physical_fields || {}, discovery=notes.discovery || {}, state=value => value?.value ?? value ?? null;
     const aliases=Array.isArray(notes.aliases) && notes.aliases.length ? notes.aliases.join(', ') : translate('noData');
     const source=safeExternalUrl(notes.source_url);
     const reportedExtent=state(physical.reported_extent);
     const reportedExtentLabel=reportedExtent === 0 ? 'No' : reportedExtent === 1 ? 'Yes' : displayValue(reportedExtent);
+    const unitValue = (value, unit) => value === null || value === undefined || value === '' ? translate('noData') : `${value} ${unit}`;
+    const distanceValue = state(physical.distance_or_redshift);
+    const distanceMode = state(physical.distance_mode);
+    const distanceLabel = distanceValue === null || distanceValue === undefined
+      ? translate('noData')
+      : distanceMode === 'z' ? `z = ${distanceValue} (dimensionless)`
+      : distanceMode === 'kpc' ? `${distanceValue} kpc`
+      : `${distanceValue} (${translate('noData')} unit)`;
     return `<section class="detail-section"><h3>TeVCat</h3><dl class="detail-grid">
       <div><dt>Catalogue ID</dt><dd>${escapeHtml(displayValue(notes.catalogue_source_id))}</dd></div>
       <div><dt>Category</dt><dd>${escapeHtml(displayValue(notes.catalogue_group))}</dd></div>
       <div><dt>Aliases</dt><dd>${escapeHtml(aliases)}</dd></div>
       <div><dt>Discovery</dt><dd>${escapeHtml(displayValue(state(discovery.date)))} / ${escapeHtml(displayValue(state(discovery.observatory)))}</dd></div>
       <div><dt>Extended</dt><dd>${escapeHtml(reportedExtentLabel)}</dd></div>
-      <div><dt>Flux / spectral index</dt><dd>${escapeHtml(displayValue(state(physical.reported_flux)))} / ${escapeHtml(displayValue(state(physical.spectral_index)))}</dd></div>
-      <div><dt>Distance / variability</dt><dd>${escapeHtml(displayValue(state(physical.distance_or_redshift)))} / ${escapeHtml(displayValue(state(physical.variability)))}</dd></div>
+      <div><dt>Reported size X / Y</dt><dd>${escapeHtml(unitValue(state(physical.reported_size_x), 'deg'))} / ${escapeHtml(unitValue(state(physical.reported_size_y), 'deg'))}</dd></div>
+      <div><dt>Flux</dt><dd>${escapeHtml(unitValue(state(physical.reported_flux), 'Crab'))}</dd></div>
+      <div><dt>Energy threshold</dt><dd>${escapeHtml(unitValue(state(physical.energy_threshold), 'GeV'))}</dd></div>
+      <div><dt>Spectral index</dt><dd>${escapeHtml(unitValue(state(physical.spectral_index), '(dimensionless)'))}</dd></div>
+      <div><dt>Distance / redshift</dt><dd>${escapeHtml(distanceLabel)}</dd></div>
+      <div><dt>Variability</dt><dd>${escapeHtml(displayValue(state(physical.variability)))}</dd></div>
       <div><dt>Source</dt><dd>${source ? `<a href="${escapeHtml(source)}" rel="noreferrer">www.tevcat.org</a>` : escapeHtml(translate('noData'))}</dd></div>
     </dl><p>${escapeHtml(notes.public_notes?.summary || (notes.public_notes?.available ? 'Public notes are available at the source site; raw HTML is not redistributed.' : 'No public note was provided for this record.'))}</p></section>`;
   };
@@ -418,11 +440,19 @@
     const limitOrValue = (row, field, errorField, limitField, unit = '') => row[limitField] !== null && row[limitField] !== undefined
       ? '< ' + number(row[limitField], unit) + (field === 'r39_deg' ? ' (95% CL)' : '')
       : number(row[field], unit) + (row[errorField] !== null && row[errorField] !== undefined ? ' ± ' + number(row[errorField], unit) + (field === 'r39_deg' ? ' (1σ stat.)' : '') : '');
-    const rows = components.map((row) => `<tr><td>${escapeHtml(displayValue(row.component))}</td><td>${escapeHtml(number(row.ra_deg, '°'))} / ${escapeHtml(number(row.dec_deg, '°'))}</td><td>${escapeHtml(limitOrValue(row, 'r39_deg', 'r39_error_deg', 'r39_upper_limit_deg', '°'))}</td><td>${escapeHtml(number(row.ts))}</td><td>${escapeHtml(limitOrValue(row, 'n0_value', 'n0_error', 'n0_upper_limit'))}<br><small>${escapeHtml(displayValue(row.n0_units))}; E0=${escapeHtml(number(row.reference_energy_tev, ' TeV'))}</small></td><td>${escapeHtml(number(row.photon_index))}${row.photon_index_error !== null && row.photon_index_error !== undefined ? ' ± ' + escapeHtml(number(row.photon_index_error)) : ''}</td><td>${escapeHtml(number(row.ts100))}</td><td>${escapeHtml(displayValue(row.association))}</td></tr>`).join('');
+    const rows = components.map((row) => `<tr><td>${escapeHtml(displayValue(row.component))}</td><td>${escapeHtml(number(row.ra_deg, '°'))} / ${escapeHtml(number(row.dec_deg, '°'))}</td><td>${escapeHtml(limitOrValue(row, 'r39_deg', 'r39_error_deg', 'r39_upper_limit_deg', '°'))}</td><td>${escapeHtml(displayValue(row.extension_classification || row.r39_kind))}</td><td>${escapeHtml(number(row.ts))}</td><td>${escapeHtml(limitOrValue(row, 'n0_value', 'n0_error', 'n0_upper_limit'))}<br><small>${escapeHtml(displayValue(row.n0_units))}; E0=${escapeHtml(number(row.reference_energy_tev, ' TeV'))}</small></td><td>${escapeHtml(number(row.photon_index))}${row.photon_index_error !== null && row.photon_index_error !== undefined ? ' ± ' + escapeHtml(number(row.photon_index_error)) : ''}</td><td>${escapeHtml(number(row.ts100))}</td><td>${escapeHtml(displayValue(row.association))}</td></tr>`).join('');
+    const associationSummary = Array.isArray(notes.tevcat_associations) && notes.tevcat_associations.length
+      ? notes.tevcat_associations.map((item) => `${item.tevcat_name || item.tevcat_id || translate('noData')} [${item.source_snapshot || '2026-09-25 public TeVCat snapshot'}]`).join('; ')
+      : translate('noData');
     return `<section class="detail-section"><h3>1LHAASO Table 2</h3><dl class="detail-grid">
       <div><dt>Published name</dt><dd>${escapeHtml(displayValue(notes.published_name))}</dd></div>
-      <div><dt>Representative component</dt><dd>${escapeHtml(displayValue(notes.representative_component))}</dd></div>
-    </dl><div class="detail-table-wrap"><table class="detail-component-table"><thead><tr><th>Component</th><th>RA / Dec</th><th>r39</th><th>TS</th><th>N0</th><th>Index</th><th>TS100</th><th>Table 2 preliminary positional counterpart</th></tr></thead><tbody>${rows}</tbody></table></div><p>${escapeHtml(notes.scientific_boundary || '')}</p></section>`;
+      <div><dt>Representative coordinate component</dt><dd>${escapeHtml(displayValue(notes.representative_component))}</dd></div>
+      <div><dt>Displayed extension</dt><dd>${escapeHtml(number(notes.display_extension_deg, '°'))}${notes.display_extension_error_deg !== null && notes.display_extension_error_deg !== undefined ? ' ± ' + escapeHtml(number(notes.display_extension_error_deg, '°')) : ''} (${escapeHtml(displayValue(notes.display_extension_component))})</dd></div>
+      <div><dt>Displayed-extension rule</dt><dd>${escapeHtml(displayValue(notes.display_extension_rule))}</dd></div>
+      <div><dt>Displayed-extension source</dt><dd>${escapeHtml(displayValue(notes.display_extension_source))}</dd></div>
+      <div><dt>Extension classification</dt><dd>${escapeHtml(displayValue(notes.extension_summary))}</dd></div>
+      <div><dt>TeVCat public association</dt><dd>${escapeHtml(associationSummary)}</dd></div>
+    </dl><div class="detail-table-wrap"><table class="detail-component-table"><thead><tr><th>Component</th><th>RA / Dec (deg)</th><th>r39 (deg)</th><th>Type</th><th>TS (dimensionless)</th><th>N0</th><th>Index (dimensionless)</th><th>TS100 (dimensionless)</th><th>Table 2 preliminary positional counterpart</th></tr></thead><tbody>${rows}</tbody></table></div><p>${escapeHtml(notes.scientific_boundary || '')}</p><p>${escapeHtml(notes.tevcat_association_policy || '')}</p></section>`;
   };
   const gaiaDetailMarkup = (data) => {
     const fields=data.notes?.query_fields || {}, distance=data.notes?.distance || {}, val=(value, unit='') => value === null || value === undefined ? escapeHtml(translate('noData')) : escapeHtml(String(value)) + unit;
@@ -445,9 +475,11 @@
     const footprintLabel = status.footprint_pass ? translate("footprintPass") : translate("footprintFail");
     const measured = (value, digits = 3) => (value === null || value === undefined || value === "")
       ? escapeHtml(translate("noData")) : Number(value).toFixed(digits) + "°";
-    const extension = measured(data.ext);
-    const extensionError = data.ext_err === null || data.ext_err === undefined
-      ? escapeHtml(translate("noData")) : Number(data.ext_err).toFixed(3) + "°";
+    const extensionValue = data.display_extension_deg ?? data.ext;
+    const extensionUncertainty = data.notes?.display_extension_error_deg ?? data.ext_err;
+    const extension = measured(extensionValue);
+    const extensionError = extensionUncertainty === null || extensionUncertainty === undefined
+      ? escapeHtml(translate("noData")) : Number(extensionUncertainty).toFixed(3) + "°";
     return `
       <div class="detail-status"><span class="status-chip ${statusClass(status.status)}">${escapeHtml(status.status)}</span><span>${escapeHtml(centreLabel)} / ${escapeHtml(footprintLabel)}</span></div>
       <dl class="detail-grid">
@@ -472,7 +504,16 @@
   };
 
   const noteValueMarkup = value => { const text=displayValue(value); return text.length>240 || Array.isArray(value) || (value && typeof value==='object') ? `<details><summary>${escapeHtml(translate('rawFields'))}</summary><pre>${escapeHtml(text)}</pre></details>` : escapeHtml(text); };
-  const rawDetailMarkup = (data) => `<details class="raw-fields"><summary>${escapeHtml(translate('rawFields'))}</summary><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>`;
+  const rawDetailMarkup = (data) => {
+    const payload = { ...data };
+    const units = data.catalogue_units || {};
+    if (data.notes?.raw && Object.keys(units).length) {
+      payload.notes = { ...data.notes, raw: Object.fromEntries(Object.entries(data.notes.raw).map(([field, value]) => [
+        field, units[field] ? { value, unit: units[field] } : value,
+      ])) };
+    }
+    return `<details class="raw-fields"><summary>${escapeHtml(translate('rawFields'))}</summary><pre>${escapeHtml(JSON.stringify(payload, null, 2))}</pre></details>`;
+  };
   const safeExternalUrl = value => { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } };
 
   const zenithOverlayIndexes = new Set();
@@ -527,9 +568,12 @@
       const resultTarget = document.getElementById("detail-query-context")?.dataset.resultSourceKey;
       const sourceKey=data.source_key || String(data.index);
       const isResultTarget = isResultTargetIdentity(sourceKey) || isResultTargetIdentity(data.index);
-      dialogUseSource.hidden = isResultTarget || !(
+      const replacementForm = document.getElementById("replace-source-form");
+      const pendingReplacementKey = replacementForm?.elements.source_key?.value || replacementForm?.elements.source_index?.value || "";
+      const pendingReplacementDiffers = Boolean(replacementForm && pendingReplacementKey && String(pendingReplacementKey) !== String(sourceKey));
+      dialogUseSource.hidden = (isResultTarget && !pendingReplacementDiffers) || !(
         document.getElementById("source_index")
-        || document.getElementById("replace-source-form")
+        || replacementForm
       );
       if (dialogAddZenith) {
         const refreshZenithButton = () => {
@@ -547,7 +591,9 @@
             document.getElementById(overlayStyle(sourceKey).svgId || ('zenith-overlay-' + sourceKey))?.remove();
             zenithOverlayIndexes.delete(sourceKey);
             zenithOverlayStyles.delete(String(sourceKey));
+            overlayWindowSummary.delete(String(sourceKey));
             renderZenithCurveControls();
+            renderOverlayWindowSummary();
             refreshZenithButton();
             void refreshZenithOverlays();
             return;
@@ -556,14 +602,14 @@
           overlayStyle(sourceKey).label = data.display_name;
           refreshZenithButton();
           setMapActionStatus(mapKind, `${translate('curveAdding')}: ${data.display_name}…`, 'loading');
-          const outcome = await refreshZenithOverlays();
-          let settled = outcome;
-          if (settled?.cancelled && zenithOverlayIndexes.has(sourceKey)) settled = await refreshZenithOverlays();
+          const settled = await refreshZenithOverlays();
           if (settled?.ok) {
             setMapActionStatus(mapKind, `${translate('curveAdded')}: ${data.display_name}`, 'success');
           } else if (!settled?.cancelled) {
             zenithOverlayIndexes.delete(sourceKey);
             zenithOverlayStyles.delete(String(sourceKey));
+            overlayWindowSummary.delete(String(sourceKey));
+            renderOverlayWindowSummary();
             refreshZenithButton();
             setMapActionStatus(mapKind, `${translate('curveAddFailed')}: ${settled?.error || translate('noData')}`, 'error');
           }
@@ -686,7 +732,7 @@
   const initialiseSourceDialog = () => {
     const markerMapKind = marker => marker?.closest('[data-local-fov-map]') ? 'local-fov' : marker?.closest('[data-result-sky-map]') ? 'all-sky' : null;
     document.addEventListener("click", (event) => {
-      const marker = event.target.closest('[data-gaia-source-id], [data-source-index]');
+      const marker = event.target.closest('.source-marker[data-gaia-source-id], .source-marker[data-source-index]');
       const explicit = event.target.closest("[data-open-source]");
       const useSource = event.target.closest("[data-use-source]") || (event.target.closest("#dialog-use-source")?.dataset.useSource ? event.target.closest("#dialog-use-source") : null);
       const replaceSource = event.target.closest("[data-replace-source]");
@@ -698,7 +744,7 @@
       if (event.target.closest("[data-close-dialog]")) dialog?.close();
     });
     document.addEventListener("keydown", (event) => {
-      if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-source-index], [data-gaia-source-id]')) { event.preventDefault(); if(event.target.matches('.source-type-gaia, [data-gaia-source-id]'))openGaiaSource(event.target);else openSource(event.target.dataset.sourceKey || event.target.dataset.sourceIndex, markerMapKind(event.target)); }
+      if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('.source-marker[data-source-index], .source-marker[data-gaia-source-id]')) { event.preventDefault(); if(event.target.matches('.source-type-gaia, [data-gaia-source-id]'))openGaiaSource(event.target);else openSource(event.target.dataset.sourceKey || event.target.dataset.sourceIndex, markerMapKind(event.target)); }
     });
     dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
   };
@@ -781,7 +827,7 @@
   const updateClock = (moment = new Date()) => {
     const clock = document.getElementById("sky-clock");
     if (!clock) return;
-    clock.textContent = `${formatDisplayTime(moment)} ${timezoneLabel()}`;
+    clock.textContent = formatDisplayTime(moment);
   };
 
   const initialiseTelescopeControls = () => {
@@ -793,18 +839,22 @@
       fields.hidden = !custom;
       fields.querySelectorAll('input').forEach((input) => { input.required = custom; });
       updateLocalTimezoneOption();
+      updateTimezoneText();
+      updatePlotTimezoneLabels();
+      refreshTimeDisplays();
+      updateClock(new Date());
       document.dispatchEvent(new Event('skyward:telescope-change'));
     };
     select.addEventListener('change', sync);
-    fields.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => { if (select.value === 'custom') document.dispatchEvent(new Event('skyward:telescope-change')); }));
+    fields.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => { if (select.value === 'custom') sync(); }));
     sync();
   };
 
   const catalogueCheckboxes = () => [...document.querySelectorAll('[data-catalogue-id]')];
   let appliedCatalogueTokens = null;
   const draftCatalogueTokens = () => catalogueCheckboxes().filter(input => input.checked).map(input => input.value);
-  const iconChoices = ['star', 'diamond', 'triangle', 'square', 'circle', 'plus'];
-  const iconLabels = { star: '★', diamond: '◆', triangle: '▲', square: '■', circle: '●', plus: '+' };
+  const iconChoices = ['star', 'diamond', 'triangle', 'square', 'circle'];
+  const iconLabels = { star: '★', diamond: '◆', triangle: '▲', square: '■', circle: '●' };
   const ICON_STORAGE_KEY = 'skyward.catalogue-icons.v1';
   let catalogueIconMap = {};
   try { catalogueIconMap = JSON.parse(localStorage.getItem(ICON_STORAGE_KEY) || '{}') || {}; } catch (_) { catalogueIconMap = {}; }
@@ -812,7 +862,7 @@
   const saveCatalogueIcons = () => { try { localStorage.setItem(ICON_STORAGE_KEY, JSON.stringify(catalogueIconMap)); } catch (_) {} };
   const syncCatalogueIconButtons = () => document.querySelectorAll('[data-catalogue-icon-button]').forEach((button) => {
     const icon = iconForCatalogue(button.dataset.iconCatalogueId);
-    button.dataset.icon = icon; button.textContent = iconLabels[icon]; button.title = translate('chooseCatalogueIcon') + ': ' + icon;
+    button.dataset.icon = icon; button.textContent = iconLabels[icon]; button.title = translate('chooseCatalogueIcon') + ': ' + icon; button.setAttribute('aria-label', translate('chooseCatalogueIcon') + ': ' + icon);
   });
   const catalogueIconQuery = () => JSON.stringify(Object.fromEntries(selectedCatalogueTokens().filter((token) => token !== 'gaia-dr3').map((token) => [token, iconForCatalogue(token)])));
   const iconMapParameters = (params) => { params.set('icon_map', catalogueIconQuery()); return params; };
@@ -1280,16 +1330,18 @@
     configure();
   };
 
-  let zenithOverlayGeneration = 0, zenithOverlayController, zenithRefreshTail = Promise.resolve();
+  let zenithOverlayGeneration = 0, zenithOverlayController;
   const runZenithOverlayRefresh = async () => {
     const context = document.getElementById('detail-query-context');
     const target = document.querySelector('[data-plan-source-name]');
     const plot = document.querySelector('.scientific-plot');
     if (!context || !target || !plot) return { ok: false, cancelled: false, error: 'plot context unavailable' };
     const generation = ++zenithOverlayGeneration;
+    zenithOverlayController?.abort();
     const controller = new AbortController();
     zenithOverlayController = controller;
-    const requestedSources = [...zenithOverlayIndexes].join('\n');
+    const requestedKeys = [...zenithOverlayIndexes].map(String);
+    const requestedSources = requestedKeys.join('\n');
     const params = activeParameters();
     params.set('catalog_token', context.dataset.catalogToken || '');
     params.set('icon_map', catalogueIconQuery());
@@ -1331,27 +1383,44 @@
     plot.innerHTML = payload.svg;
     const preferences = document.getElementById('result-display-preferences');
     if (preferences) { preferences.dataset.plotTheme = requestedTheme; preferences.dataset.plotTimezoneLabel = requestedTimezone === 'utc' ? 'UTC' : observerTimezoneLabel(); preferences.dataset.plotOffsetHours = String(requestedTimezone === 'utc' ? 0 : observerOffsetHours()); }
-    payload.comparison_sources?.forEach((source) => { const style=overlayStyle(source.source_key || String(source.index)); style.label = source.display_name; style.svgId = 'zenith-overlay-' + source.index; });
+    payload.comparison_sources?.forEach((source, index) => {
+      const requestKey = requestedKeys[index] || source.source_key || String(source.index);
+      const style = overlayStyle(requestKey);
+      style.label = source.display_name;
+      style.svgId = 'zenith-overlay-' + source.index;
+    });
     renderZenithCurveControls();
-    payload.comparison_windows && renderOverlayWindowSummary(payload);
+    updateOverlayWindowSummary(payload);
     return { ok: true, cancelled: false };
   };
-    const selectedTargetWindows = (payload) => Array.isArray(payload?.comparison_windows) ? payload.comparison_windows.flatMap((item) => (item.windows || []).map((window) => ({ ...window, sourceKey: item.source_key, sourceName: item.display_name }))) : [];
-    const renderOverlayWindowSummary = (payload) => {
+  const overlayWindowSummary = new Map();
+    const renderOverlayWindowSummary = () => {
       const plotPanel = document.querySelector('.plot-panel');
       if (!plotPanel) return;
       let summary = document.getElementById('overlay-window-summary');
       if (!summary) { summary = document.createElement('section'); summary.id = 'overlay-window-summary'; summary.className = 'overlay-window-summary'; plotPanel.insertBefore(summary, plotPanel.querySelector('.scientific-plot')); }
       const target = document.querySelector('[data-plan-source-name]');
-      const targetWindows = JSON.parse(document.getElementById('detail-query-context')?.dataset.fullWindowRanges || '[]').map((range) => ({ start: range[0], end: range[1], sourceName: target?.dataset.planSourceName || '' }));
-      const allWindows = [...targetWindows, ...selectedTargetWindows(payload)].sort((left, right) => String(left.start || '').localeCompare(String(right.start || '')));
+      const targetContext = document.getElementById('detail-query-context');
+      const fullTargetWindows = JSON.parse(targetContext?.dataset.fullWindowRanges || '[]');
+      const targetRanges = fullTargetWindows.length ? fullTargetWindows : JSON.parse(targetContext?.dataset.centerWindowRanges || '[]');
+      const targetWindows = targetRanges.map((range) => ({ start: range[0], end: range[1], sourceName: target?.dataset.planSourceName || '', sourceKey: 'target' }));
+      const curveWindows = [...overlayWindowSummary.values()].flatMap((item) => {
+        const windows = item.windows?.length ? item.windows : (item.centerWindows || []);
+        return windows.map((window) => ({ ...window, sourceKey: item.sourceKey, sourceName: item.displayName }));
+      });
+      const allWindows = [...targetWindows, ...curveWindows].sort((left, right) => String(left.start || '').localeCompare(String(right.start || '')) || String(left.sourceKey || '').localeCompare(String(right.sourceKey || '')));
       summary.innerHTML = '<strong>' + translate('sortedObservationWindows') + '</strong>' + (allWindows.length ? '<ol>' + allWindows.map((window) => '<li><span>' + String(window.sourceName || '').replaceAll('&','&amp;').replaceAll('<','&lt;') + '</span> <time>' + formatDisplayTime(new Date(window.start)) + ' ' + translate('to') + ' ' + formatDisplayTime(new Date(window.end)) + '</time></li>').join('') + '</ol>' : '<p>' + translate('noFullWindows') + '</p>');
     };
-    const refreshZenithOverlays = () => {
-      const operation = zenithRefreshTail.then(() => runZenithOverlayRefresh());
-      zenithRefreshTail = operation.catch(() => ({ ok: false, cancelled: true, error: 'request superseded' }));
-      return operation;
+    const updateOverlayWindowSummary = (payload) => {
+      overlayWindowSummary.clear();
+      const requestedKeys = [...zenithOverlayIndexes].map(String);
+      (payload?.comparison_windows || []).forEach((item, index) => {
+        const requestKey = requestedKeys[index] || String(item.source_key);
+        overlayWindowSummary.set(requestKey, { requestKey, sourceKey: String(item.source_key || requestKey), displayName: item.display_name, windows: item.windows || [], centerWindows: item.center_windows || [] });
+      });
+      renderOverlayWindowSummary();
     };
+    const refreshZenithOverlays = () => runZenithOverlayRefresh();
 
   const restoreZenithOverlayState = () => {
     document.querySelectorAll('#zenith-curve-list .zenith-curve-row').forEach((row) => {
@@ -1367,6 +1436,7 @@
   };
 
   const renderZenithCurveControls = () => {
+    const panel = document.getElementById('zenith-curve-controls');
     const list = document.getElementById('zenith-curve-list');
     if (!panel || !list) return;
     panel.hidden = zenithOverlayIndexes.size === 0;
@@ -1387,7 +1457,7 @@
       };
       const update = () => { style.colour = colour.value; style.lineStyle = line.value; applyVisualStyle(); };
       colour.addEventListener('input', update); colour.addEventListener('change', update); line.addEventListener('change', update);
-      remove.addEventListener('click', () => { zenithOverlayGeneration++; zenithOverlayController?.abort(); curveGroup()?.remove(); zenithOverlayIndexes.delete(sourceIndex); zenithOverlayStyles.delete(String(sourceIndex)); renderZenithCurveControls(); void refreshZenithOverlays(); if (dialogAddZenith?.dataset.useSource === String(sourceIndex) || dialogUseSource?.dataset.useSource === String(sourceIndex)) { dialogAddZenith.textContent = translate('addZenithOverlay'); dialogAddZenith.dataset.i18n = 'addZenithOverlay'; dialogAddZenith.dataset.overlayAdded = 'false'; } });
+      remove.addEventListener('click', () => { zenithOverlayGeneration++; zenithOverlayController?.abort(); curveGroup()?.remove(); zenithOverlayIndexes.delete(sourceIndex); zenithOverlayStyles.delete(String(sourceIndex)); overlayWindowSummary.delete(String(sourceIndex)); renderZenithCurveControls(); renderOverlayWindowSummary(); void refreshZenithOverlays(); if (dialogAddZenith?.dataset.useSource === String(sourceIndex) || dialogUseSource?.dataset.useSource === String(sourceIndex)) { dialogAddZenith.textContent = translate('addZenithOverlay'); dialogAddZenith.dataset.i18n = 'addZenithOverlay'; dialogAddZenith.dataset.overlayAdded = 'false'; } });
       name.addEventListener('click', () => { row.classList.toggle('editing'); colour.focus(); });
       row.append(name, colour, line, remove); return row;
     }));
@@ -1560,6 +1630,7 @@
       if (mode?.value !== 'trajectory' || !context.dataset.highlightIndexes) return;
       const keys = context.dataset.highlightIndexes.split(',').map((value) => value.trim()).filter(Boolean);
       keys.forEach((key) => zenithOverlayIndexes.add(key));
+      renderOverlayWindowSummary();
       setMapActionStatus('all-sky', translate('curveAdding'), 'loading');
       const outcome = await refreshZenithOverlays();
       if (outcome?.ok) setMapActionStatus('all-sky', translate('curveAdded'), 'success');
@@ -1569,7 +1640,7 @@
     specifiedStart?.addEventListener('change', validateSpecified);
     specifiedEnd?.addEventListener('change', validateSpecified);
     document.addEventListener('skyward:refresh-realtime', () => { if (mode?.value === 'instant') { sharedLiveInstant = new Date(); refresh(); refreshLocal(); } });
-    document.addEventListener('skyward:language-change', refreshExplanation);
+      document.addEventListener('skyward:language-change', () => { refreshExplanation(); renderOverlayWindowSummary(); });
     refreshExplanation();
     if (restoredFromPageCache) restoreZenithOverlayState();
     if (!restoredFromPageCache) window.queueMicrotask(() => { refresh(); refreshLocal(); });
@@ -1831,14 +1902,15 @@
         const legend = document.createElement("legend"); legend.textContent = translate("planWindow") + " " + (index + 1); row.append(legend);
         const grid = document.createElement("div"); grid.className = "plan-window-edit-grid";
         const startField = document.createElement("div"); startField.className = "form-field";
-        const startLabel = document.createElement("label"); startLabel.htmlFor = "plan-start-" + index; startLabel.textContent = translate("plannedStart");
+        const startLabel = document.createElement("label"); startLabel.htmlFor = "plan-start-" + index; startLabel.dataset.zonedLabel = "plannedStart";
         const start = document.createElement("input"); start.id = "plan-start-" + index; start.type = "datetime-local"; start.step = "1"; start.required = true; start.dataset.planWindowStartInput = window.windowId; start.value = localPlanTime(window.planStart);
         startField.append(startLabel, start);
         const endField = document.createElement("div"); endField.className = "form-field";
-        const endLabel = document.createElement("label"); endLabel.htmlFor = "plan-end-" + index; endLabel.textContent = translate("plannedEnd");
+        const endLabel = document.createElement("label"); endLabel.htmlFor = "plan-end-" + index; endLabel.dataset.zonedLabel = "plannedEnd";
         const endInput = document.createElement("input"); endInput.id = "plan-end-" + index; endInput.type = "datetime-local"; endInput.step = "1"; endInput.required = true; endInput.dataset.planWindowEndInput = window.windowId; endInput.value = localPlanTime(window.planEnd);
         endField.append(endLabel, endInput); grid.append(startField, endField); row.append(grid); windowEditor.append(row);
       });
+      updateTimezoneText();
     };
     const readEditedWindows = () => activeWindows.map((window) => ({
       ...window,
@@ -1856,6 +1928,40 @@
       alternatives: [], alternativeSummary: null,
       alternativeStatus: Number(detailContext.dataset.resultSourceIndex) >= 0 ? "pending" : "unavailable", alternativeError: null,
     }));
+    const exportPlotSvg = () => {
+      const live = document.querySelector(".scientific-plot svg");
+      if (!live) return null;
+      const svg = live.cloneNode(true);
+      const summary = document.getElementById("overlay-window-summary");
+      const rows = summary ? [...summary.querySelectorAll("li")].map((item) => item.textContent.trim()).filter(Boolean) : [];
+      if (!summary || !rows.length) return svg.outerHTML;
+      const namespace = "http://www.w3.org/2000/svg";
+      const rawViewBox = (svg.getAttribute("viewBox") || "0 0 720 576").trim().split(/[ ,]+/).map(Number);
+      const [vx, vy, vw, vh] = rawViewBox.length === 4 && rawViewBox.every(Number.isFinite) ? rawViewBox : [0, 0, 720, 576];
+      const lineHeight = 18, headerHeight = 30 + rows.length * lineHeight;
+      const backgroundColour = document.documentElement.dataset.theme === "dark" ? "#0c1117" : "#ffffff";
+      const textColour = document.documentElement.dataset.theme === "dark" ? "#f3f4f6" : "#111827";
+      const viewBoxHeight = vh + headerHeight;
+      svg.setAttribute("viewBox", [vx, vy, vw, viewBoxHeight].join(" "));
+      const height = (svg.getAttribute("height") || "576").match(/^([0-9.]+)(.*)$/);
+      if (height) svg.setAttribute("height", (Number(height[1]) * viewBoxHeight / vh) + height[2]);
+      const content = document.createElementNS(namespace, "g");
+      content.setAttribute("transform", `translate(0 ${headerHeight})`);
+      while (svg.firstChild) content.appendChild(svg.firstChild);
+      const header = document.createElementNS(namespace, "g");
+      const background = document.createElementNS(namespace, "rect");
+      background.setAttribute("x", String(vx)); background.setAttribute("y", String(vy)); background.setAttribute("width", String(vw)); background.setAttribute("height", String(headerHeight)); background.setAttribute("fill", backgroundColour);
+      header.appendChild(background);
+      const addText = (text, x, y, size, weight = "normal") => {
+        const element = document.createElementNS(namespace, "text");
+        element.setAttribute("x", String(x)); element.setAttribute("y", String(y)); element.setAttribute("fill", textColour); element.setAttribute("font-family", "Arial, sans-serif"); element.setAttribute("font-size", String(size)); element.setAttribute("font-weight", weight); element.textContent = text;
+        header.appendChild(element);
+      };
+      addText(summary.querySelector("strong")?.textContent || "Observation windows", vx + 12, vy + 19, 13, "bold");
+      rows.forEach((text, index) => addText(text, vx + 16, vy + 38 + index * lineHeight, 11));
+      svg.append(header, content);
+      return svg.outerHTML;
+    };
     const buildEntry = (windows) => {
       const telescopeQuery = Object.fromEntries(appendTelescopeParameters(new URLSearchParams(), detailContext));
       return {
@@ -1878,7 +1984,7 @@
         searchStart: detailContext.dataset.resultStart, searchEnd: detailContext.dataset.resultEnd,
         windows,
         notes: notesInput?.value.trim() || "",
-        plotSvg: savePlot?.checked ? document.querySelector(".scientific-plot svg")?.outerHTML || null : null,
+        plotSvg: savePlot?.checked ? exportPlotSvg() : null,
         localFovSvg: savePlot?.checked ? exportLocalFovSvg() : null,
         telescopeQuery,
       };
@@ -2012,7 +2118,7 @@
             window.alternatives.forEach((alternative) => {
               const item = document.createElement("li");
               const metrics = alternative.metrics || {}, windowData = alternative.window || {}, source = alternative.source || {};
-              item.textContent = (source.name || source.source_key || "-") + " · " + (windowData.start || "-") + " — " + (windowData.end || "-") + " · " + planCopy("重叠 ", "overlap ") + (metrics.overlap_seconds ?? 0) + " s · " + planCopy("间隔 ", "gap ") + (metrics.gap_seconds ?? 0) + " s";
+              item.textContent = (source.name || source.source_key || "-") + " · " + (windowData.start ? formatDisplayTime(windowData.start) : "-") + " — " + (windowData.end ? formatDisplayTime(windowData.end) : "-") + " · " + planCopy("重叠 ", "overlap ") + (metrics.overlap_seconds ?? 0) + " s · " + planCopy("间隔 ", "gap ") + (metrics.gap_seconds ?? 0) + " s";
               list.append(item);
             });
             windowCard.append(list);
@@ -2149,8 +2255,8 @@
             existing.plotSvg = null;
             existing.localFovSvg = null;
           } else {
-            if (!existing.plotSvg) existing.plotSvg = document.querySelector(".scientific-plot svg")?.outerHTML || null;
-            if (!existing.localFovSvg) existing.localFovSvg = exportLocalFovSvg();
+            existing.plotSvg = exportPlotSvg();
+            existing.localFovSvg = exportLocalFovSvg();
           }
           savePlanEntries();
           delete form.dataset.editEntryId;

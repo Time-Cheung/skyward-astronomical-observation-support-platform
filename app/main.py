@@ -122,6 +122,7 @@ def _catalogue_metadata(selected) -> dict:
         "provenance": getattr(selected, "provenance", {}),
         "label": selected.label,
         "display": getattr(selected, "display", {}),
+        "units": getattr(selected, "units", {}),
         "sha256": selected.sha256,
         "count": len(selected.sources),
         "temporary": isinstance(selected, TemporaryCatalog),
@@ -141,7 +142,7 @@ def _parse_icon_map(value: Optional[str]) -> dict:
         return {}
     if not isinstance(raw, dict):
         return {}
-    allowed = {"star", "diamond", "triangle", "square", "circle", "plus"}
+    allowed = {"star", "diamond", "triangle", "square", "circle"}
     return {str(key): str(icon) for key, icon in raw.items() if str(icon) in allowed and str(key) != "gaia-dr3"}
 
 
@@ -510,6 +511,7 @@ def _base_context(
         "catalogue": _catalogue_metadata(catalog),
         "geometry_only": GEOMETRY_ONLY,
         "timezone_name": SITE_TIMEZONE_NAME if telescope is LACT_TELESCOPE else telescope.timezone_label,
+        "timezone_display_name": "Beijing time (UTC+8)" if telescope is LACT_TELESCOPE else telescope.timezone_label,
     }
 
 
@@ -539,6 +541,20 @@ def _source_detail(
     )
     # Source records remain raw, but this response adds user-facing coordinate
     # formats, current geometry and only locally curated enrichment fields.
+    catalogue_units = {}
+    for table in getattr(selected_catalogue, "catalogues", (selected_catalogue,)):
+        identifier = getattr(table, "identifier", getattr(table, "token", ""))
+        if identifier == source.catalogue_id:
+            catalogue_units = getattr(table, "units", {})
+            break
+    if not catalogue_units:
+        try:
+            owning_catalogue = catalog if source.catalogue_id == catalog.identifier else installed_catalogue(source.catalogue_id)
+            catalogue_units = getattr(owning_catalogue, "units", {})
+        except (KeyError, ValueError, OSError):
+            pass
+    if not catalogue_units and source.catalogue_id not in BUILTIN_CATALOGUES:
+        catalogue_units = {"ra": "deg", "dec": "deg", "l": "deg", "b": "deg", "ext": "deg", "ext_err": "deg", "p_err(95%)": "deg"}
     return {
         **source.to_dict(),
         **format_ra_dec(source),
@@ -546,6 +562,7 @@ def _source_detail(
         "status": status.to_dict(),
         "enrichment": source.notes or {"verification_status": "not_available_for_temporary_catalogue"},
         "notes": source.notes or {},
+        "catalogue_units": catalogue_units,
         "geometry_only": True,
     }
 
@@ -822,6 +839,9 @@ def result_page(
             "full_window_ranges_json": json.dumps([
                 [window.to_dict()["start"], window.to_dict()["end"]] for window in result.full_footprint_windows
             ], separators=(",", ":")),
+            "center_window_ranges_json": json.dumps([
+                [window.to_dict()["start"], window.to_dict()["end"]] for window in result.center_windows
+            ], separators=(",", ":")),
             "target_label": target_label, "start_local": request_model.start_utc.astimezone(observer_timezone),
             "end_local": request_model.end_utc.astimezone(observer_timezone), "error": None,
         })
@@ -998,9 +1018,9 @@ def catalogue_options() -> dict:
 
 @app.post("/api/v1/catalogues/upload")
 async def upload_catalogue(file: UploadFile = File(...)) -> dict:
-    """Validate one temporary CSV source table without writing it to disk."""
+    """Validate one temporary XLSX source table without writing it to disk."""
     try:
-        selected = temporary_catalogues.create_from_csv(
+        selected = temporary_catalogues.create_from_xlsx(
             await file.read(), file.filename or "uploaded catalogue"
         )
     except CatalogError as exc:
@@ -1010,9 +1030,9 @@ async def upload_catalogue(file: UploadFile = File(...)) -> dict:
 
 @app.post("/api/v1/target-lists/upload")
 async def upload_target_list(file: UploadFile = File(...)) -> dict:
-    """Validate a temporary batch-target CSV with mandatory extensions."""
+    """Validate a temporary batch-target XLSX with mandatory extensions."""
     try:
-        selected = temporary_catalogues.create_from_csv(
+        selected = temporary_catalogues.create_from_xlsx(
             await file.read(), file.filename or "uploaded target list", require_extension=True
         )
     except CatalogError as exc:
@@ -1546,6 +1566,7 @@ def plot_overlay(
             "source_key": item.source_key,
             "display_name": item.display_name,
             "windows": [window.to_dict() for window in comparison_result.full_footprint_windows],
+            "center_windows": [window.to_dict() for window in comparison_result.center_windows],
         })
     return {
         "svg": render_window_plot(

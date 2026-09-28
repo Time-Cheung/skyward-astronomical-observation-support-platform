@@ -2,6 +2,8 @@
 from pathlib import Path
 import re
 
+from openpyxl import load_workbook
+
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "app" / "templates"
 STATIC = ROOT / "app" / "static"
@@ -40,7 +42,8 @@ def test_data_notes_have_usage_and_separate_current_goal_future_scope():
     assert 'data-about-i18n="observingPlanFormat"' in about
     assert "完整源窗口区域只保留一组计划操作" in script
     assert "one shared set of plan actions" in script
-    assert "纯黑色表头" in script and "solid black header" in script
+    assert "观测计划仅在浏览器本地生成" in script
+    assert "The observing plan is generated only in the browser" in script
     api = (TEMPLATES / "api.html").read_text(encoding="utf-8")
     app_script = (STATIC / "app.js").read_text(encoding="utf-8")
     assert 'data-i18n="apiPlanWindowNote"' in api
@@ -59,27 +62,43 @@ def test_catalogue_guide_is_one_select_with_five_targeted_choices():
     assert 'data-about-i18n="catalogueGuideTitle"' in about
 
 
-def test_data_notes_describe_both_csv_upload_contracts_and_examples():
+def test_data_notes_describe_xlsx_upload_contracts_and_examples():
     about = (TEMPLATES / "about.html").read_text(encoding="utf-8")
     about_js = (STATIC / "about.js").read_text(encoding="utf-8")
     for key in (
-        "csvUploadTitle", "csvUploadIntro", "csvUploadName", "sourceCsvTitle", "sourceCsvDownload",
+        "csvUploadTitle", "csvUploadIntro", "csvUploadName", "sourceCsvTitle", "targetListCsvTitle", "targetListCsvDownload", "targetListCsvBody", "targetListCsvExample", "sourceCsvDownload",
         "sourceCsvBody", "alternativeCsvTitle", "alternativeCsvDownload", "alternativeCsvBody", "csvUploadLimits", "csvUploadAliases",
     ):
         assert f'data-about-i18n="{key}"' in about
         assert key in about_js
-    assert "name,ra,dec,ext,ext_err,p_err(95%)" in about
-    assert "Crab,83.6331,22.0145,0.10,0.02,0.01" in about
-    assert '../static/examples/user-source-catalogue.csv' in about
-    assert '../static/examples/alternative-source-catalogue.csv' in about
-    assert "Alternative A,84.0,22.3,0.15" in about
+    assert 'download="user-source-catalogue.xlsx"' in about
+    assert 'download="target-source-list.xlsx"' in about
+    assert 'download="alternative-source-catalogue.xlsx"' in about
+    expected = {
+        "user-source-catalogue.xlsx": ("name", "Crab"),
+        "target-source-list.xlsx": ("name", "Crab target"),
+        "alternative-source-catalogue.xlsx": ("name", "Alternative A"),
+    }
+    for filename, (header, first_value) in expected.items():
+        workbook = load_workbook(STATIC / "examples" / filename, read_only=True, data_only=True)
+        try:
+            rows = list(workbook.active.iter_rows(values_only=True))
+        finally:
+            workbook.close()
+        assert rows[0][0] == header
+        assert rows[1][0] == first_value
+        assert len(rows) >= 3
     assert "1,000 rows and 512 KiB" in about_js
+    assert "8 MiB" in about_js
+    assert "Observing plans" in about
+    assert "solid black" not in about
+    assert "纯黑色" not in about
     assert "最多 1,000 行、512 KiB" in about_js
 
 
     script = (STATIC / "about.js").read_text(encoding="utf-8")
     assert "Installed row count is provided by the catalogue API" in script
-    assert "363-row snapshot · cutoff 2026-09-19" in script
+    assert "363-row snapshot · cutoff 2026-09-25" in script
     assert "500 hard maximum per request" in script
     assert "Installed row count is provided by the catalogue API" in script
     assert "Localization uncertainty is not physical extension" in script
@@ -88,7 +107,10 @@ def test_data_notes_describe_both_csv_upload_contracts_and_examples():
     assert "nearest N sources by angular distance" in script
     assert "does not appear in an all-sky catalogue picker or layer" in script
     assert "本地记录数由源表接口提供" in script
-    assert "本地快照 363 条 · 截止 2026-09-19" in script
+    assert "本地快照 363 条 · 截止 2026-09-25" in script
+    assert "2026-09-25（北京时间，UTC+8）" in script
+    assert "2026-09-25 Beijing time (UTC+8)" in script
+    assert "20260924 按北京时间（UTC+8）日历日期定义" in script
     assert "硬上限 500 条/次" in script
     assert "仅在计算结果页的局部视场图中" in script
 

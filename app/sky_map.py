@@ -333,15 +333,16 @@ def _marker(source: Source, coordinate: Optional[SkyCoord], p: _Projection, zoom
     tracked = "trajectory-highlight" in classes
     attrs = f'data-source-index="{source.index}" data-source-key="{_esc(key)}" data-source-name="{_esc(source.display_name)}"'
     pieces = [f'<g class="source-marker source-type-{kind}{candidate}{extra}" {attrs} data-x="{x:.9f}" data-y="{y:.9f}" data-below-horizon="{str(below).lower()}" role="button" tabindex="0" aria-label="{_esc(title)}"><title>{_esc(title)}</title>']
-    if source.ext > 0 and getattr(source, "footprint_known", True) and not below and kind != "gaia":
-        # ext is an angular radius, not a marker or a hit-test radius.
-        pieces.append(f'<path class="extension-ring" data-angular-radius-deg="{source.ext:.9f}" d="{p.path(_boundary(source_coord(source), source.ext))}" />')
+    display_extension = source.display_extension_deg
+    if display_extension is not None and not below and kind != "gaia":
+        # Display-only catalogue extent; planning geometry still uses ext and footprint_known.
+        pieces.append(f'<path class="extension-ring" data-angular-radius-deg="{display_extension:.9f}" d="{p.path(_boundary(source_coord(source), display_extension))}" />')
     if selected or kind != "gaia":
         outer, inner = ((9.5 / zoom, 4.2 / zoom) if selected else (7 / zoom, 3 / zoom))
         selected_symbol = (" selected-symbol" if selected else "") + (" tracked-symbol" if tracked else "")
         pieces.append(_symbol_markup(_catalogue_icon(source, icon_map), x, y, 1 / zoom, selected_symbol))
     else:
-        arm = 5.2 / zoom
+        arm = 7.0 / zoom
         pieces.append(
             f'<path class="source-symbol gaia-cross" '
             f'd="M {x - arm:.9f} {y:.9f} H {x + arm:.9f} M {x:.9f} {y - arm:.9f} V {y + arm:.9f}" '

@@ -8,7 +8,7 @@ import pytest
 from astropy.coordinates import SkyCoord
 
 from app.astronomy import J2000_FRAME, source_coord
-from app.catalog import Source
+from app.catalog import Source, catalog
 from app.config import LACT_TELESCOPE
 from app.schemas import ConstraintSet
 from app import sky_map as sm
@@ -48,7 +48,18 @@ def test_local_projection_and_grid_share_each_display_frame(frame):
     assert float(fov_ring.get("r")) / 235 == pytest.approx(4.15 / 5.0)
 
 
-def test_shared_marker_contract_gaia_cross_catalogue_star_extension_tracking_and_target():
+def test_1lhaaso_measured_r39_is_displayed_but_not_used_as_planning_footprint():
+    target = next(item for item in catalog.sources if item.name == "J2005+3050")
+    assert target.extension_classification == "extended"
+    assert target.display_extension_deg == pytest.approx(0.27)
+    assert target.planning_radius_deg is None
+    root = ET.fromstring(sm.render_local_fov_svg(target, [target], AT, display_frame="j2000", zoom=1000))
+    rings = members(root, "extension-ring")
+    assert len(rings) == 1
+    assert float(rings[0].get("data-angular-radius-deg")) == pytest.approx(0.27)
+
+
+
     normal = source(0, ext=.25)
     gaia = source(1, ra=.01, dec=25.01, kind="gaia")
     root = ET.fromstring(sm.render_local_fov_svg(normal, [normal, gaia], AT, display_frame="j2000"))

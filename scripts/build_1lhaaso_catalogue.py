@@ -109,6 +109,11 @@ def component(row: dict, ordinal: int) -> dict:
             else "1_sigma_statistical_uncertainty" if r39["value"] is not None and r39["error"] is not None
             else None
         ),
+        "extension_classification": (
+            "extended" if r39["kind"] == "measurement"
+            else "pointlike" if r39["kind"] == "upper_limit"
+            else "not_reported"
+        ),
         "ts": optional_float(row["TS"]),
         "n0_value": n0["value"],
         "n0_error": n0["error"],
@@ -161,6 +166,20 @@ def build(table: Path) -> dict:
         skycoord = SkyCoord(ra * u.deg, dec * u.deg, frame=FRAME).galactic
         source_name = re.sub(r"^1LHAASO\s+", "", published_name)
         source_id = source_name
+        extension_kinds = {row["extension_classification"] for row in components}
+        extension_summary = (
+            "extended" if extension_kinds == {"extended"}
+            else "pointlike" if extension_kinds == {"pointlike"}
+            else "mixed_component_types" if extension_kinds.intersection({"extended", "pointlike"})
+            else "not_reported"
+        )
+        extended_components = [
+            row for row in components
+            if row["extension_classification"] == "extended"
+            and row["r39_kind"] == "measurement"
+            and row["r39_deg"] is not None
+        ]
+        display_extension = max(extended_components, key=lambda row: row["r39_deg"]) if extended_components else None
         sources.append({
             "original_id": source_id,
             "original_row": ordinal,
@@ -177,14 +196,22 @@ def build(table: Path) -> dict:
                 "published_name": published_name,
                 "representative_component": representative["component"],
                 "representative_rule": "component with the highest TS among components with published coordinates",
+                "display_extension_deg": display_extension["r39_deg"] if display_extension else None,
+                "display_extension_error_deg": display_extension["r39_error_deg"] if display_extension else None,
+                "display_extension_component": display_extension["component"] if display_extension else None,
+                "display_extension_rule": "Use the largest measured r39 among extended KM2A/WCDA components. Pointlike 95% upper limits are excluded even when numerically larger than the measured extended-component r39.",
+                "display_extension_source": "The First LHAASO Catalog of Gamma-Ray Sources, Table 2, column 6; DOI 10.3847/1538-4355/acfd29.",
                 "components": components,
                 "scientific_boundary": (
                     "Table 2 r39 is a 39% containment radius of a fitted 2D Gaussian; "
-                    "measured-extension errors are 1-sigma statistical uncertainties and pointlike-source "
-                    "upper limits are at 95% confidence. It is retained as provenance and is not used as "
-                    "a hard planning footprint. Table 2 associations are preliminary positional counterparts, "
+                    "a value ± error in column six identifies an extended component with a 1-sigma statistical error, "
+                    "while <value> identifies a pointlike component and its 95% statistical upper limit. "
+                    "The displayed extension uses the largest measured r39 among extended KM2A/WCDA components; pointlike 95% upper limits are excluded even when numerically larger. "
+                    "This display value is contextual extent only and is not used as a hard planning footprint. Table 2 associations are preliminary positional counterparts, "
                     "not Skyward-verified source identities."
                 ),
+                "extension_summary": extension_summary,
+                "extension_semantics": "Table 2 r39 value ± error identifies an extended component; <value> identifies a pointlike component and the value is its 95% statistical upper limit.",
             },
         })
     return {
@@ -192,8 +219,8 @@ def build(table: Path) -> dict:
         "catalogue_id": CATALOGUE_ID,
         "label": LABEL,
         "display": {
-            "zh": "1LHAASO（论文 Table 2）",
-            "en": "1LHAASO (paper Table 2)",
+            "zh": "1LHAASO",
+            "en": "1LHAASO",
         },
         "units": {
             "ra_deg": "deg", "dec_deg": "deg", "l_deg": "deg", "b_deg": "deg",
@@ -213,7 +240,7 @@ def build(table: Path) -> dict:
             "source_count": 90,
             "retrieval_note": "Public machine-readable Table 2 mirror audited against the supplied paper. Blank fields remain null.",
             "coordinate_policy": "For sources with two components, use the position of the component with higher TS, following the Table 2 note.",
-            "r39_policy": "r39 is a 39% containment radius of a fitted two-dimensional Gaussian. Measured-extension errors are 1-sigma statistical uncertainties; pointlike-source upper limits are at 95% confidence. r39 is not used as a hard planning boundary.",
+            "r39_policy": "The Table 2 sixth column uses value ± error for extended source components (the error is a 1-sigma statistical uncertainty) and <value> for pointlike components (the value is a 95% statistical upper limit). Skyward displays the largest measured r39 among extended KM2A/WCDA components and excludes pointlike upper limits from that selection even when numerically larger.",
             "association_policy": "Table 2 association entries are preliminary closest known-TeV counterparts found by a positional search; they are not treated as verified source identities.",
             "n0_policy": "N0 units are detector-specific: WCDA 10^-13 and KM2A 10^-16 cm^-2 s^-1 TeV^-1, with reference energies 3 and 50 TeV. Zero-coded non-detections are stored as upper limits, not scientific zeroes.",
             "redistribution_policy": "Normalized fields derived from the public paper Table 2; no unpublished second-catalogue source file is included.",

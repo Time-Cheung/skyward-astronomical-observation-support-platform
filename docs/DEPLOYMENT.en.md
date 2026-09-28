@@ -2,6 +2,8 @@
 
 [中文](DEPLOYMENT.zh-CN.md) · [User guide](README.en.md) · [Development](DEVELOPMENT.en.md)
 
+**Date and time-zone convention:** dates embedded in full version numbers use the Beijing calendar date (UTC+8). Deployment logs, API timestamps, and ISO timestamps ending in `Z` use UTC.
+
 ## 1. Security boundary and release contents
 
 The current V2.2 (2.2.20260924) has no login, tenant isolation, or authorization and must never be exposed publicly. Prefer loopback-only binding. LAN access requires administrator-approved source-CIDR restrictions and a negative test from an unapproved network. Only the server installs Python dependencies; clients need a browser.
@@ -12,7 +14,7 @@ A formal archive is created only after the user explicitly publishes a new versi
 
 ## 2. Install and release gate
 
-The current V2.2 (2.2.20260924) includes per-catalogue icons, batch target-list calculations, tracked-FoV curves, sorted windows, and plan-preview sorting. CSV formats remain documented on the Data notes page: source catalogues require at least `name,ra,dec`, while batch target lists require `name,ra,dec,ext`; all are UTF-8.
+The current V2.2 (2.2.20260924) includes per-catalogue icons, batch target-list calculations, tracked-FoV curves, sorted windows, and plan-preview sorting. All three user uploads use `.xlsx` workbooks and read the first worksheet: source and alternative catalogues require at least `name,ra,dec`, while batch target lists require `name,ra,dec,ext`. The deployment must install the openpyxl version pinned in requirements.txt.
 
 ~~~bash
 cd /opt/skyward
@@ -88,7 +90,7 @@ IERS startup selects a fresh cache or bundled table and attempts a bounded backg
 - Home and result all-sky views have no Gaia choice, layer, legend, or current-map request.
 - The result local view shows a 10° region and separate 8.3° LACT dashed FoV. All-sky and local maps share Real-time / Observation window / Specified time plus purple tracked-source outlines. No current-FoV constraint is applied because authoritative live pointing is unavailable.
 - Enabling Gaia sends a local-fov request with the UI filters (default 1°, G≤10, 10 sources, selecting the nearest sources by angular distance when needed), draws Gaia candidates as thicker red/green crosses under the shared state, reports red/green counts, and preserves catalogue markers; disabling removes only Gaia.
-- Calculate a short range with multiple full-footprint windows. Each valid window must have a checked-by-default selector, and the list must expose exactly one Add, Preview, and Download action group. Clear one selector, add the remainder, and confirm Preview shows one plan entry with the remaining windows; alternative-screening status must identify each window. The ZIP must contain an office-readable XLSX with a solid black header, one yellow target row per selected window followed by green alternative rows, and, when plots are selected, paired local-FoV and observing-window SVGs for every plan entry.
+- Calculate a short range with multiple full-footprint windows. Each valid window must have a checked-by-default selector, and the list must expose exactly one Add, Preview, and Download action group. Clear one selector, add the remainder, and confirm Preview shows one plan entry with the remaining windows; alternative-screening status must identify each window. When plots are selected, confirm that each plan entry retains its local-FoV and observing-window plot.
 - After changing mode, zoom, Gaia, or comparison curves, open Data notes/API and click “Sky map & planner”; the current DOM should restore directly without a window calculation or either map request. The current target's details should not show “Use for planning”; other ordinary-source details should retain it.
 - In LAN mode test approved and unapproved networks and confirm no public forwarding.
 

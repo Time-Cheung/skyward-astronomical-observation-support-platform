@@ -70,6 +70,24 @@ def test_detail_notes_resolved_from_original_table_even_when_overlay_excludes_ta
     assert numeric["source_key"] == catalog.get(0).source_key
 
 
+def test_source_detail_exposes_catalogue_units_for_frontend_rendering():
+    tevcat = installed_catalogue("tevcat")
+    tev_detail = client.get(
+        "/api/v1/sources/" + quote(tevcat.sources[0].source_key, safe=""),
+        params={"at_time": MOMENT.isoformat()},
+    )
+    assert tev_detail.status_code == 200
+    assert tev_detail.json()["catalogue_units"]["reported_flux"] == "Crab"
+    assert tev_detail.json()["catalogue_units"]["distance_mode_kpc"] == "kpc"
+    fermi = installed_catalogue("fermi-3fhl")
+    fermi_detail = client.get(
+        "/api/v1/sources/" + quote(fermi.sources[0].source_key, safe=""),
+        params={"at_time": MOMENT.isoformat()},
+    )
+    assert fermi_detail.status_code == 200
+    assert fermi_detail.json()["catalogue_units"] == fermi.units
+
+
 def test_target_local_comparison_and_windows_do_not_follow_overlay_selection():
     target = installed_catalogue("fermi-3fhl").sources[0]
     comparison = installed_catalogue("fermi-fl16y").sources[0]
@@ -123,8 +141,11 @@ def test_basic_sky_never_queries_gaia(monkeypatch):
     assert client.get("/api/v1/sky/current", params={"at_time": MOMENT.isoformat(), "catalog_tokens": "", "bounds": "0,0,-1,2"}).status_code == 422
 
 
-def test_legacy_single_upload_numeric_identity_is_preserved_across_routes():
-    upload = client.post("/api/v1/catalogues/upload", files={"file": ("legacy.csv", b"name,ra,dec\nOnlyRow,83.633,22.014\nSecondRow,84,22\n", "text/csv")}).json()
+def test_single_xlsx_upload_numeric_identity_is_preserved_across_routes(xlsx_bytes):
+    upload = client.post(
+        "/api/v1/catalogues/upload",
+        files={"file": ("legacy.xlsx", xlsx_bytes(["name", "ra", "dec"], [["OnlyRow", 83.633, 22.014], ["SecondRow", 84, 22]]), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+    ).json()
     token = upload["token"]
     first, second = upload["sources"]
     detail = client.get("/api/v1/sources/0", params={"catalog_token": token, "at_time": MOMENT.isoformat()})
@@ -210,27 +231,70 @@ def test_windows_provenance_hash_follows_target_or_bulk_selection():
     assert custom["catalogue_sha256"] is None
 
 
-def test_unpublished_2lhaaso_name_is_reserved_for_temporary_uploads():
-    payload = b"name,ra,dec\nJTEST,10,20\n"
-    for filename in ("2LHAASO.csv", "2-LHAASO private.csv", "2_lhaaso-copy.csv"):
+def test_unpublished_2lhaaso_name_is_reserved_for_temporary_uploads(xlsx_bytes):
+    payload = xlsx_bytes(["name", "ra", "dec"], [["JTEST", 10, 20]])
+    for filename in ("2LHAASO.xlsx", "2-LHAASO private.xlsx", "2_lhaaso-copy.xlsx"):
         response = client.post(
             "/api/v1/catalogues/upload",
-            files={"file": (filename, payload, "text/csv")},
+            files={"file": (filename, payload, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
         )
         assert response.status_code == 422
         assert "reserved unpublished 2LHAASO name" in response.json()["detail"]
 
 
-def test_uploaded_slash_identity_details_and_name_length_validation():
-    response = client.post("/api/v1/catalogues/upload", files={"file": ("slash.csv", b"name,ra,dec\nA/B,10,20\n", "text/csv")})
+def test_uploaded_slash_identity_details_and_name_length_validation(xlsx_bytes):
+    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    response = client.post(
+        "/api/v1/catalogues/upload",
+        files={"file": ("slash.xlsx", xlsx_bytes(["name", "ra", "dec"], [["A/B", 10, 20]]), mime)},
+    )
     assert response.status_code == 200
     key = response.json()["sources"][0]["source_key"]
     detail = client.get("/api/v1/sources/" + quote(key, safe=""), params={"at_time": MOMENT.isoformat()})
     assert detail.status_code == 200 and detail.json()["source_key"] == key
     for length, expected in ((80, 200), (81, 422)):
-        csv = f"name,ra,dec\n{'N' * length},10,20\n".encode()
-        upload = client.post("/api/v1/catalogues/upload", files={"file": ("length.csv", csv, "text/csv")})
+        upload = client.post(
+            "/api/v1/catalogues/upload",
+            files={"file": ("length.xlsx", xlsx_bytes(["name", "ra", "dec"], [["N" * length, 10, 20]]), mime)},
+        )
         assert upload.status_code == expected
+
+
+def test_upload_rejects_non_xlsx_and_invalid_workbook():
+    not_xlsx = client.post(
+        "/api/v1/catalogues/upload",
+        files={"file": ("legacy.csv", b"name,ra,dec\nA,10,20\n", "text/csv")},
+    )
+    assert not_xlsx.status_code == 422
+    assert ".xlsx" in not_xlsx.json()["detail"]
+    invalid = client.post(
+        "/api/v1/catalogues/upload",
+        files={"file": ("broken.xlsx", b"not-a-workbook", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+    )
+    assert invalid.status_code == 422
+    assert "valid .xlsx workbook" in invalid.json()["detail"]
+
+
+def test_target_list_xlsx_requires_extension_and_preserves_row_constraints(xlsx_bytes):
+    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    missing = client.post(
+        "/api/v1/target-lists/upload",
+        files={"file": ("missing.xlsx", xlsx_bytes(["name", "ra", "dec", "ext"], [["No radius", 10, 20, None]]), mime)},
+    )
+    assert missing.status_code == 422
+    assert "provide ext" in missing.json()["detail"]
+    valid = client.post(
+        "/api/v1/target-lists/upload",
+        files={"file": ("targets.xlsx", xlsx_bytes(
+            ["name", "ra", "dec", "ext", "target_max_zenith_deg", "minimum_window_seconds"],
+            [["Target A", 10, 20, 0.3, 55, 1200], ["Target B", 11, 21, 0.0, None, None]],
+        ), mime)},
+    )
+    assert valid.status_code == 200
+    payload = valid.json()
+    assert payload["target_list"] is True and payload["count"] == 2
+    assert payload["sources"][0]["planner_constraints"] == {"target_max_zenith_deg": 55.0, "minimum_window_seconds": 1200.0}
+    assert payload["sources"][1]["planner_constraints"] is None
 
 
 def test_gaia_api_error_is_not_zero(monkeypatch):

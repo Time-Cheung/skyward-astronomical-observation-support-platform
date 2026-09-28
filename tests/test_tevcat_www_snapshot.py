@@ -15,6 +15,8 @@ def test_tevcat_www_snapshot_is_public_and_minimized():
     serialized = json.dumps(catalogue, ensure_ascii=False).lower()
     assert catalogue["schema_version"] == 2
     assert catalogue["provenance"]["catalogue_url"] == "https://www.tevcat.org/"
+    assert catalogue["provenance"]["snapshot_date_timezone"] == "Asia/Shanghai (UTC+08:00)"
+    assert catalogue["provenance"]["retrieved_timestamp_timezone"] == "UTC"
     assert len(catalogue["sources"]) == 363
     assert catalogue["provenance"]["catalogue_group_counts"] == {"1": 304, "2": 33, "3": 10, "4": 16}
     assert "private_notes" not in serialized
@@ -40,5 +42,5 @@ def test_tevcat_metadata_exposes_localized_picker_labels():
     client = TestClient(app)
     row = next(item for item in client.get("/api/v1/catalogues").json()["catalogues"] if item["identifier"] == "tevcat")
     assert row["count"] == 363
-    assert row["display"]["zh"].startswith("TeVCat（截止到")
-    assert row["display"]["en"] == "TeVCat (as of 2026-09-19)"
+    assert row["display"]["zh"] == "TeVCat（截止到2026年09月25日，北京时间 UTC+8）"
+    assert row["display"]["en"] == "TeVCat (as of 2026-09-25 Beijing time, UTC+8)"

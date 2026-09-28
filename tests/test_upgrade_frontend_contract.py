@@ -65,7 +65,8 @@ def test_submission_feedback_and_safe_notes_contract():
     assert 'requestAnimationFrame(()=>requestAnimationFrame(resolve))' in JS
     assert "window.addEventListener('pageshow',restore)" in JS
     assert 'form.reportValidity()' in JS
-    assert 'JSON.stringify(data, null, 2)' in JS
+    assert 'JSON.stringify(payload, null, 2)' in JS
+    assert 'const payload = { ...data };' in JS
     assert 'safeExternalUrl' in JS
     assert "gaiaCandidateWarning" in JS
     assert "sessionStorage.setItem(key, window.location.href)" in JS
@@ -278,6 +279,36 @@ def test_browser_plot_latest_response_wins_and_override_is_preserved(browser_pag
     assert page.locator('.scientific-plot [data-test-result=stale]').count() == 0
 
 
+def test_browser_zenith_manager_uses_catalogue_name_without_opening_source_dialog(browser_page):
+    page = browser_page
+    source_key = '1lhaaso:J0634+1741u'
+    source_index = 18
+    display_name = '1LHAASO J0634+1741u'
+    page.route('**/api/v1/windows/plot-overlay?*', lambda route: route.fulfill(
+        content_type='application/json',
+        body=json.dumps({
+            'svg': f'<svg xmlns="http://www.w3.org/2000/svg"><g id="zenith-overlay-{source_index}"><path d="M 0 0 L 1 1"/></g></svg>',
+            'comparison_sources': [{'index': source_index, 'source_key': source_key, 'display_name': display_name}],
+            'comparison_windows': [],
+        }),
+    ))
+    assert _post_result(page).status == 200
+    page.evaluate('''key=>{const button=document.createElement('button');button.dataset.openSource=key;document.body.append(button);button.click();button.remove();}''', source_key)
+    page.wait_for_function("!document.querySelector('#dialog-add-zenith').hidden")
+    page.locator('#dialog-add-zenith').click()
+    page.wait_for_function("document.querySelector('#zenith-curve-list .zenith-legend-source')?.textContent.includes('J0634+1741u')")
+    assert page.locator('#zenith-curve-list .zenith-legend-source').inner_text() == display_name
+    page.locator('[data-close-dialog]').click()
+    assert not page.locator('#source-dialog').is_visible()
+    colour = page.locator('#zenith-curve-list input[type=color]')
+    colour.click(force=True)
+    colour.evaluate("element => { element.value = '#123456'; element.dispatchEvent(new Event('input', {bubbles:true})); element.dispatchEvent(new Event('change', {bubbles:true})); }")
+    page.locator('#zenith-curve-list select').select_option('dotted')
+    assert not page.locator('#source-dialog').is_visible()
+    assert colour.input_value() == '#123456'
+    assert page.locator('#zenith-curve-list select').input_value() == 'dotted'
+
+
 def test_browser_nominal_override_is_scoped_to_result_target(browser_page):
     from urllib.parse import parse_qs, unquote, urlsplit
     page = browser_page
@@ -299,6 +330,68 @@ def test_browser_nominal_override_is_scoped_to_result_target(browser_page):
         page.locator('#dialog-use-source').click()
         assert page.locator('#replace-source-form [name=nominal_radius_deg]').input_value() == expected
         page.locator('[data-close-dialog]').click()
+
+
+def test_browser_saved_observing_plot_includes_sorted_overlay_window_summary(browser_page):
+    page = browser_page
+    assert _post_result(page).status == 200
+    page.evaluate('''() => {
+      const panel = document.querySelector('.plot-panel');
+      const summary = document.createElement('section');
+      summary.id = 'overlay-window-summary';
+      summary.innerHTML = '<strong>Observation windows (sorted by start time)</strong><ol><li><span>Target Alpha</span> <time>2026-09-28 20:00 Beijing time (UTC+8) to 2026-09-28 21:00 Beijing time (UTC+8)</time></li><li><span>Curve Source Beta</span> <time>2026-09-28 22:00 Beijing time (UTC+8) to 2026-09-28 23:00 Beijing time (UTC+8)</time></li></ol>';
+      panel.insertBefore(summary, panel.querySelector('.scientific-plot'));
+      const choice = document.createElement('input');
+      choice.type = 'checkbox'; choice.checked = true; choice.setAttribute('data-plan-window-select', '');
+      choice.dataset.windowStart = '2026-09-28T12:00:00Z'; choice.dataset.windowEnd = '2026-09-28T13:00:00Z';
+      choice.dataset.planStart = choice.dataset.windowStart; choice.dataset.planEnd = choice.dataset.windowEnd;
+      panel.appendChild(choice);
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.planWindow = ''; button.textContent = 'Add plan'; panel.appendChild(button);
+    }''')
+    page.locator('[data-plan-window]').click()
+    page.locator('#plan-save-plot').check()
+    page.locator('#plan-confirm').click()
+    page.wait_for_function("!document.querySelector('#observation-plan-dialog').open")
+    entry = page.evaluate("JSON.parse(sessionStorage.getItem('skyward.observation-plan.v3')).entries.slice(-1)[0]")
+    assert entry['plotSvg']
+    assert 'Observation windows (sorted by start time)' in entry['plotSvg']
+    assert 'Curve Source Beta' in entry['plotSvg']
+    assert '2026-09-28 22:00 Beijing time (UTC+8)' in entry['plotSvg']
+    assert entry['localFovSvg']
+    from xml.etree import ElementTree
+    ElementTree.fromstring(entry['plotSvg'])
+
+
+def test_browser_timezone_labels_follow_beijing_utc_and_custom_offsets(browser_page):
+    page = browser_page
+    page.wait_for_function("document.querySelector('#sky-clock').textContent.includes('UTC+8')")
+    labels = page.locator('[data-timezone-label]')
+    assert labels.count() >= 3
+    assert all('UTC+8' in text for text in labels.all_text_contents())
+    assert 'UTC+8 UTC+8' not in page.locator('#sky-clock').inner_text()
+
+    page.locator('#timezone-select').select_option('utc')
+    page.wait_for_function("Array.from(document.querySelectorAll('[data-timezone-label]')).every(e => e.textContent.trim() === 'UTC')")
+    assert page.locator('#sky-clock').inner_text().endswith(' UTC')
+    assert not page.locator('#sky-clock').inner_text().endswith(' UTC UTC')
+
+    page.locator('#timezone-select').select_option('local')
+    page.locator('#telescope_mode').select_option('custom')
+    offset = page.locator('#custom_timezone_offset_hours')
+    offset.fill('5.5')
+    offset.press('Tab')
+    page.wait_for_function("Array.from(document.querySelectorAll('[data-timezone-label]')).every(e => e.textContent.trim() === 'UTC+05:30')")
+    assert page.locator('#sky-clock').inner_text().endswith(' UTC+05:30')
+
+    page.locator('#telescope_mode').select_option('lact')
+    page.wait_for_function("Array.from(document.querySelectorAll('[data-timezone-label]')).every(e => e.textContent.includes('UTC+8'))")
+    response = _post_result(page)
+    assert response.status == 200
+    page.wait_for_function("document.querySelector('[data-time-display=range]').textContent.includes('UTC+8')")
+    assert all('UTC+8' in text for text in page.locator('[data-timezone-label]').all_text_contents())
+    page.locator('#timezone-select').select_option('utc')
+    page.wait_for_function("document.querySelector('[data-time-display=range]').textContent.includes('UTC') && !document.querySelector('[data-time-display=range]').textContent.includes('UTC+8')")
+    assert all(text.strip() == 'UTC' for text in page.locator('[data-timezone-label]').all_text_contents())
 
 
 @pytest.mark.parametrize('language,theme', [('en', 'dark'), ('zh', 'light')])

@@ -1230,7 +1230,7 @@
     }
   ],
   "provenance": {
-    "target_sha256": "ae1712c892af21d33ed4b75a8d513a28070add4109c2a06b2c2f8d9df7acff25",
+    "target_sha256": "7ebd4bbbbeaf48abbe3bb619c540f3c316093f8da27928e1e95b18c2432e48fe",
     "candidate_radius_deg": 0.5,
     "method": "all pairs within fixed angular separation; no one-to-one assignment",
     "policy": "Position proximity alone is not source identity evidence. Public 1LHAASO Table 2 coordinates are the target catalogue; no unpublished 2LHAASO data are used."

@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime, timezone
+import json
 
 import pytest
 from fastapi.testclient import TestClient
@@ -431,12 +432,34 @@ def test_planner_validation_rerender_preserves_canonical_utc_and_custom_name():
     assert 'value="TMP operator chosen name"' in response.text
 
 
+def test_visible_dates_and_times_have_explicit_timezone_contracts():
+    root = Path(__file__).resolve().parents[1]
+    templates = {name: (root / "app" / "templates" / name).read_text(encoding="utf-8") for name in ("base.html", "index.html", "result.html", "bulk_result.html", "api.html")}
+    joined = "\n".join(templates.values())
+    assert "CST" not in joined
+    assert "Beijing time (UTC+8)" in templates["base.html"]
+    assert templates["index.html"].count("data-timezone-label") >= 3
+    assert templates["result.html"].count("data-timezone-label") >= 2
+    assert "timezone_display_name" in templates["bulk_result.html"]
+    assert 'data-i18n="apiTimeZoneNote"' in templates["api.html"]
+    script = (root / "app" / "static" / "app.js").read_text(encoding="utf-8")
+    assert "北京时间（UTC+8）" in script and "Beijing time (UTC+8)" in script
+    assert "所有以 Z 结尾的 ISO 8601 时间戳均为 UTC" in script
+    tevcat = json.loads((root / "data" / "catalogues" / "tevcat.json").read_text(encoding="utf-8"))
+    assert tevcat["provenance"]["snapshot_date_timezone"] == "Asia/Shanghai (UTC+08:00)"
+    assert tevcat["provenance"]["retrieved_timestamp_timezone"] == "UTC"
+    assert "UTC+8" in tevcat["display"]["zh"] and "UTC+8" in tevcat["display"]["en"]
+    assert "版本号日期使用北京时间（UTC+8）日历日期" in (root / "README.md").read_text(encoding="utf-8")
+
+
 def test_frontend_timezone_and_observation_plan_regressions_are_guarded():
     script = (Path(__file__).resolve().parents[1] / "app" / "static" / "app.js").read_text(encoding="utf-8")
     base = (Path(__file__).resolve().parents[1] / "app" / "templates" / "base.html").read_text(encoding="utf-8")
     assert "skyward:timezone-will-change" in script
     assert "planner-start-utc" in script and "planner-end-utc" in script
     assert "localDatetimeValue(new Date(iso), displayTimezone(), true)" in script
+    assert 'return `${formatted} ${timezoneLabel()}`' in script
+    assert 'data-zoned-label' in script and 'updateTimezoneText()' in script
     assert 'id="plan-window-editor"' in base
     assert 'start.step = "1"' in script and 'endInput.step = "1"' in script
     theme_block = script[script.index("const initialiseResultThemePlot"):script.index("const initialiseSourceDialog")]
@@ -559,10 +582,10 @@ def test_result_keeps_custom_telescope_context_and_human_reason_markup():
     assert "formatReason" in script
 
 
-def test_uploaded_catalogue_is_request_scoped_and_supports_map_display_routes():
+def test_uploaded_catalogue_is_request_scoped_and_supports_map_display_routes(xlsx_bytes):
     upload = client.post(
         "/api/v1/catalogues/upload",
-        files={"file": ("operator.csv", b"name,ra,dec,ext\nDemoA,83.633,22.014,0.4\nDemoB,84.0,22.3,0\n", "text/csv")},
+        files={"file": ("operator.xlsx", xlsx_bytes(["name", "ra", "dec", "ext"], [["DemoA", 83.633, 22.014, 0.4], ["DemoB", 84.0, 22.3, 0]]), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
     )
     assert upload.status_code == 200
     payload = upload.json()
@@ -710,10 +733,10 @@ def test_source_detail_ignores_legacy_current_pointing_flag():
     assert payload["status"]["current_pointing_enforced"] is False
 
 
-def test_minimal_uploaded_catalogue_derives_coordinates_without_fake_uncertainties():
+def test_minimal_uploaded_catalogue_derives_coordinates_without_fake_uncertainties(xlsx_bytes):
     upload = client.post(
         "/api/v1/catalogues/upload",
-        files={"file": ("minimal.csv", b"name,ra,dec\nOnlyRow,83.633,22.014\n", "text/csv")},
+        files={"file": ("minimal.xlsx", xlsx_bytes(["name", "ra", "dec"], [["OnlyRow", 83.633, 22.014]]), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
     )
     assert upload.status_code == 200
     token = upload.json()["token"]

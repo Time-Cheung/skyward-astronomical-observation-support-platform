@@ -65,12 +65,12 @@ def test_alternative_endpoint_returns_real_ranked_catalogue_sources_without_poin
     assert data["search_summary"]["returned_count"] == 3
 
 
-def test_uploaded_alternative_catalogue_is_exclusive_candidate_pool(monkeypatch):
+def test_uploaded_alternative_catalogue_is_exclusive_candidate_pool(monkeypatch, xlsx_bytes):
     import app.main as main
 
     upload = CLIENT.post(
         "/api/v1/catalogues/upload",
-        files={"file": ("dedicated.csv", b"name,ra,dec\nOnlyAlt,84,22\n", "text/csv")},
+        files={"file": ("dedicated.xlsx", xlsx_bytes(["name", "ra", "dec"], [["OnlyAlt", 84, 22]]), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
     )
     assert upload.status_code == 200, upload.text
     token = upload.json()["token"]
@@ -175,7 +175,7 @@ def test_frontend_persists_all_entries_previews_and_exports_xlsx_plus_both_saved
     full_windows = result[result.index('class="windows-panel emphasized"'):result.index("{% if source_detail %}")]
     assert full_windows.index('class="full-windows-heading-actions"') < full_windows.index('class="window-list"')
     assert full_windows.count('class="plan-window-actions"') == 1
-    assert "class=\"local-gaia-filter-controls compact-gaia-filter-controls\"" in result
+    assert "local-gaia-filter-controls compact-gaia-filter-controls result-map-toolbar" in result
     assert ".compact-gaia-filter-controls input, .compact-gaia-filter-controls .secondary-button { min-height: 34px; height: 34px; }" in css
     assert ".full-windows-heading-actions .plan-window-actions .plan-action-button { flex: 0 1 108px; width: 108px;" in css
     assert "data-plan-window-select" in result and "checked" in result

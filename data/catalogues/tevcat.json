@@ -3,21 +3,30 @@
   "catalogue_id": "tevcat",
   "label": "TeVCat",
   "display": {
-    "zh": "TeVCat（截止到2026年09月19日）",
-    "en": "TeVCat (as of 2026-09-19)"
+    "zh": "TeVCat（截止到2026年09月25日，北京时间 UTC+8）",
+    "en": "TeVCat (as of 2026-09-25 Beijing time, UTC+8)"
   },
   "units": {
     "ra_deg": "deg",
     "dec_deg": "deg",
     "l_deg": "deg",
     "b_deg": "deg",
-    "planning_radius_deg": "deg"
+    "planning_radius_deg": "deg",
+    "reported_size_x": "deg",
+    "reported_size_y": "deg",
+    "reported_flux": "Crab",
+    "energy_threshold": "GeV",
+    "spectral_index": "dimensionless",
+    "distance_mode_kpc": "kpc",
+    "distance_mode_z": "dimensionless redshift z"
   },
   "provenance": {
     "catalogue_url": "https://www.tevcat.org/",
-    "snapshot_date": "2026-09-19",
-    "retrieved_at_start": "2026-09-19T09:21:55.619269+00:00",
-    "retrieved_at_finish": "2026-09-19T09:21:55.619282+00:00",
+    "snapshot_date": "2026-09-25",
+    "snapshot_date_timezone": "Asia/Shanghai (UTC+08:00)",
+    "retrieved_at_start": "2026-09-25T15:15:31.463728+00:00",
+    "retrieved_at_finish": "2026-09-25T15:15:31.463741+00:00",
+    "retrieved_timestamp_timezone": "UTC",
     "source_count": 363,
     "catalogue_group_counts": {
       "1": 304,
@@ -26,9 +35,9 @@
       "4": 16
     },
     "source_ids_sha256": "3ecdfeee8e8fd223b65aa86ece8f0ae651b283756bddc09aace393f0ffb6248a",
-    "public_payload_sha256": "05f409ef479d34dc2729eb1bd93a32c6d1266b83515599355fb09680a8887b67",
-    "response_sha256": "bb41fb58b1cbb05fd1b45db258d08d847ab301bc24822822d6a68c2fd272b24c",
-    "final_response_sha256": "52990803ccf65f3e9e97a7a62f18d638baa40ffa77432f2d5e0f803826ba4f15",
+    "public_payload_sha256": "9f2771d6e0ec50becbf6d226ad28f33eec50ed86f09695c9b55be0f589ef7304",
+    "response_sha256": "cd41745b62e6e323039163953848ce181aa9d82cc8b6c33d7ee375ddf5a5eacb",
+    "final_response_sha256": "65410e1fedad282c345ab1191ed051fa9220cacb6f46e92455ad5d9f2a89998c",
     "public_field_policy": "Private and operator-only fields are excluded before normalization.",
     "astropy_version": "6.0.1",
     "redistribution_policy": "Normalized public structured fields only; raw notes HTML and private fields are excluded.",
@@ -11013,7 +11022,7 @@
         "public_notes": {
           "available": true,
           "summary": "Source position and its uncertainty: - no information available - the source position provided by NED is used From Mariotti et al. (2010): - NGC 1275 is the central radio galaxy of the Perseus cluster of galaxies - No signal is detected above 400 GeV - The VHE detection happened during a period of increased high gamma-ray activity of NGC 1275, as reported in July 2010 by the Fermi/LAT collaboration, ATel 2737 , and continuing until October, according to an analysis of publ...",
-          "sha256": "c227c288ede50a429dab2013b729c0a244f387f914a3b93559f1dd137d3d6875",
+          "sha256": "04555707e8e3695cdc87a7fbac0d52337f2fe3443b39e4fbde0c66c9f70618de",
           "rendering": "short sanitized public summary; raw HTML not redistributed"
         },
         "source_url": "https://www.tevcat.org/?id=212",
@@ -23437,11 +23446,11 @@
         "aliases": [],
         "classification": {
           "source_type": {
-            "value": 25,
+            "value": 24,
             "state": "reported"
           },
           "source_type_name": {
-            "value": "IBL",
+            "value": "FSRQ",
             "state": "reported"
           }
         },
@@ -23492,7 +23501,7 @@
             "state": "missing"
           },
           "distance_or_redshift": {
-            "value": 0.695,
+            "value": 0.2621,
             "state": "reported"
           },
           "distance_mode": {
@@ -23507,7 +23516,7 @@
         "public_notes": {
           "available": true,
           "summary": "This detection was announced by Wagner et al. on behalf of the H.E.S.S. Colaboration in an ATel on 13 April 2020. PKS 0903-57 had been reported to be in a flaring state in the high-energy regime by AGILE ( Lucarelli et al. 2020) and by Fermi-LAT ( Buson et al. 2020) on 01 April 2020. The H.E.S.S. obwervations took place on 13 April 2020 and the source was detected with a significance of more than 25 sigma after 49 minutes of exposure. Source Position: The position reported...",
-          "sha256": "045dafccb8a7c3e8d3dd8ce16fd500b196c0ff89d7f9be850bf0621786d9cd2b",
+          "sha256": "32a24281ecf1c65de450e9a8cdef4083410b365247de9469f6453f031a77bb1d",
           "rendering": "short sanitized public summary; raw HTML not redistributed"
         },
         "source_url": "https://www.tevcat.org/?id=339",

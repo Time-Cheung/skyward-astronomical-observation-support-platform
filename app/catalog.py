@@ -8,6 +8,7 @@ import math
 import secrets
 import time
 import unicodedata
+import zipfile
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
@@ -15,6 +16,8 @@ from typing import Dict, List, Optional, Sequence
 import astropy.units as u
 from astropy.coordinates import FK5, SkyCoord
 from astropy.time import Time
+from openpyxl import load_workbook
+from openpyxl.utils.exceptions import InvalidFileException
 
 from .config import (
     CATALOG_ACCEPTED_COLUMNS,
@@ -56,6 +59,43 @@ class Source:
     footprint_kind: str = "catalogue_radius"
     notes: Optional[dict] = None
     planner_constraints: Optional[dict] = None
+
+    @property
+    def display_extension_deg(self) -> Optional[float]:
+        """Nominal radius shown on maps without changing planning semantics."""
+        if self.footprint_known:
+            return self.ext if self.ext > 0 else None
+        if self.catalogue_id != "1lhaaso" or not isinstance(self.notes, dict):
+            return None
+        components = self.notes.get("components")
+        if not isinstance(components, list):
+            return None
+        candidates = [
+            item for item in components
+            if isinstance(item, dict)
+            and item.get("extension_classification") == "extended"
+            and item.get("r39_kind") == "measurement"
+            and item.get("r39_deg") is not None
+        ]
+        if not candidates:
+            return None
+        selected = max(candidates, key=lambda item: float(item["r39_deg"]))
+        radius = selected.get("r39_deg")
+        try:
+            radius = float(radius)
+        except (TypeError, ValueError):
+            return None
+        return radius if math.isfinite(radius) and radius > 0 else None
+
+    @property
+    def extension_classification(self) -> str:
+        if self.footprint_known:
+            return "extended" if self.ext > 0 else "pointlike"
+        if isinstance(self.notes, dict):
+            summary = self.notes.get("extension_summary")
+            if summary in {"extended", "pointlike", "mixed_component_types", "not_reported"}:
+                return str(summary)
+        return "unknown"
 
     @property
     def planning_radius_deg(self) -> Optional[float]:
@@ -106,6 +146,8 @@ class Source:
         payload["source_key"] = self.source_key
         payload["original_id"] = self.original_id or self.name
         payload["planning_radius_deg"] = self.planning_radius_deg
+        payload["display_extension_deg"] = self.display_extension_deg
+        payload["extension_classification"] = self.extension_classification
         if self.source_type == "gaia":
             payload["source_id"] = self.original_id or self.name
         payload["ext"] = self.planning_radius_deg
@@ -178,6 +220,8 @@ def _validate_sources(
                 original_id=str(row.get("original_id", row["name"])).strip(),
                 original_row=int(row["index"]),
                 planner_constraints=planner_constraints or None,
+                footprint_known=True,
+                footprint_kind="uploaded_nominal_radius" if float(row.get("ext", 0.0) or 0.0) > 0 else "uploaded_point_source",
             )
         except (TypeError, ValueError, KeyError) as exc:
             raise CatalogError(f"Invalid row at line {line_number}: {exc}") from exc
@@ -239,6 +283,7 @@ class CatalogCollection:
         self.sha256 = _hash_bytes("|".join(getattr(item, "sha256", "") for item in self.catalogues).encode("utf-8"))
         self.provenance = getattr(self.catalogues[0], "provenance", {}) if len(self.catalogues) == 1 else {}
         self.display = getattr(self.catalogues[0], "display", {}) if len(self.catalogues) == 1 else {}
+        self.units = getattr(self.catalogues[0], "units", {}) if len(self.catalogues) == 1 else {}
 
     def get(self, index: int | str) -> Source:
         try:
@@ -323,7 +368,7 @@ class TemporaryCatalog:
 
 
 class TemporaryCatalogStore:
-    """Process-memory CSV upload store; it never writes user data to disk."""
+    """Process-memory XLSX upload store; it never writes user data to disk."""
 
     MAX_BYTES = 512 * 1024
     MAX_ROWS = 1000
@@ -375,28 +420,48 @@ class TemporaryCatalogStore:
         self._catalogues[temporary.token] = temporary
         return temporary
 
-    def create_from_csv(self, raw: bytes, filename: str = "uploaded catalogue", *, require_extension: bool = False) -> TemporaryCatalog:
-        """Parse an in-memory UTF-8 CSV with name, ra, dec and optional fields."""
+    def create_from_xlsx(self, raw: bytes, filename: str = "uploaded catalogue", *, require_extension: bool = False) -> TemporaryCatalog:
+        """Parse the first worksheet of an in-memory XLSX source table."""
         self._purge()
+        if Path(filename or "").suffix.casefold() != ".xlsx":
+            raise CatalogError("Uploaded catalogue must be an .xlsx workbook")
         if not raw:
             raise CatalogError("Uploaded catalogue is empty")
         if len(raw) > self.MAX_BYTES:
             raise CatalogError(f"Uploaded catalogue exceeds {self.MAX_BYTES // 1024} KiB")
         try:
-            text = raw.decode("utf-8-sig")
-        except UnicodeDecodeError as exc:
-            raise CatalogError("Uploaded catalogue must be UTF-8 CSV") from exc
-        reader = csv.DictReader(io.StringIO(text))
-        aliases = {"ra_deg": "ra", "dec_deg": "dec", "extension_deg": "ext", "source_name": "name"}
-        rows = []
-        for row in reader:
-            rows.append({aliases.get(str(key).strip().casefold(), str(key).strip().casefold()): value for key, value in row.items()})
+            with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                if sum(item.file_size for item in archive.infolist()) > 8 * 1024 * 1024:
+                    raise CatalogError("Uploaded XLSX expands beyond the 8 MiB safety limit")
+            workbook = load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
+        except CatalogError:
+            raise
+        except (InvalidFileException, OSError, ValueError, zipfile.BadZipFile, KeyError) as exc:
+            raise CatalogError("Uploaded catalogue must be a valid .xlsx workbook") from exc
+        try:
+            sheet = workbook.active
+            iterator = sheet.iter_rows(values_only=True)
+            raw_headers = next(iterator, None)
+            if raw_headers is None:
+                raise CatalogError("XLSX workbook must contain a header row")
+            aliases = {"ra_deg": "ra", "dec_deg": "dec", "extension_deg": "ext", "source_name": "name"}
+            headers = [aliases.get(str(value).strip().casefold(), str(value).strip().casefold()) if value is not None else "" for value in raw_headers]
+            if not headers or any(not value for value in headers) or len(set(headers)) != len(headers):
+                raise CatalogError("XLSX header cells must be non-empty and unique")
+            rows = []
+            for values in iterator:
+                if all(value is None or str(value).strip() == "" for value in values):
+                    continue
+                row = {header: (values[index] if index < len(values) else None) for index, header in enumerate(headers)}
+                rows.append(row)
+                if len(rows) > self.MAX_ROWS:
+                    raise CatalogError(f"Uploaded catalogue exceeds {self.MAX_ROWS} source rows")
+        finally:
+            workbook.close()
         if not rows or not {"name", "ra", "dec"}.issubset(rows[0]):
-            raise CatalogError("CSV must contain name, ra and dec columns (degrees, J2000)")
-        if require_extension and any(str(row.get("ext", "")).strip() == "" for row in rows):
-            raise CatalogError("Target-list CSV must provide ext/extension_deg for every row")
-        if len(rows) > self.MAX_ROWS:
-            raise CatalogError(f"Uploaded catalogue exceeds {self.MAX_ROWS} source rows")
+            raise CatalogError("XLSX must contain name, ra and dec columns (degrees, J2000)")
+        if require_extension and any(row.get("ext") is None or str(row.get("ext")).strip() == "" for row in rows):
+            raise CatalogError("Target-list XLSX must provide ext/extension_deg for every row")
         for index, row in enumerate(rows):
             row["index"] = index
         label = self._label(Path(filename or "Uploaded catalogue").stem)
@@ -467,6 +532,7 @@ class JSONCatalog:
             raise CatalogError(f"Invalid catalogue envelope: {path}")
         self.identifier, self.label = identifier, payload["label"]
         self.display = payload.get("display", {}) if isinstance(payload.get("display", {}), dict) else {}
+        self.units = payload.get("units", {}) if isinstance(payload.get("units", {}), dict) else {}
         self.sha256, self.provenance = _hash_bytes(raw), payload.get("provenance", {})
         rows = payload["sources"]
         if expected is not None and len(rows) != expected:

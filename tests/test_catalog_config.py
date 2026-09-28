@@ -12,7 +12,7 @@ from app.config import (
     SITE_LONGITUDE_DEG,
 )
 
-EXPECTED_SHA256 = "7ebd4bbbbeaf48abbe3bb619c540f3c316093f8da27928e1e95b18c2432e48fe"
+EXPECTED_SHA256 = "066ea0ecc86bbd9244877af60f603c45c8c5d025da3cc7cd4aefc218a597ce44"
 
 
 def test_confirmed_site_and_fov_constants():
@@ -34,6 +34,9 @@ def test_public_1lhaaso_catalogue_loads_all_sources_and_components():
     assert catalog.provenance["source_count"] == 90
     assert catalog.provenance["component_rows"] == 180
     assert sum(len(source.notes["components"]) for source in catalog.sources) == 180
+    assert catalog.provenance["r39_policy"].startswith("The Table 2 sixth column")
+    assert all(component.get("extension_classification") in {"extended", "pointlike", "not_reported"} for source in catalog.sources for component in source.notes["components"])
+    assert any(source.notes.get("tevcat_associations") for source in catalog.sources)
 
     crab = catalog.get(13)
     assert crab.display_name == "1LHAASO J0534+2200u"
@@ -72,6 +75,20 @@ def test_table2_upper_limits_units_and_r39_boundary_are_preserved():
     )
     assert associated["association_scope"] == "preliminary_positional_counterpart_from_table2"
     assert all(source.planning_radius_deg is None for source in catalog.sources)
+
+
+def test_display_extension_uses_larger_measured_component_and_ignores_point_upper_limit():
+    both_extended = next(source for source in catalog.sources if source.name == "J0056+6346u")
+    assert both_extended.display_extension_deg == pytest.approx(0.33)
+    assert both_extended.notes["display_extension_component"] == "WCDA"
+    assert both_extended.notes["display_extension_rule"].startswith("Use the largest measured r39")
+    assert "10.3847/1538-4355/acfd29" in both_extended.notes["display_extension_source"]
+    mixed = next(source for source in catalog.sources if source.name == "J0007+7303u")
+    assert mixed.display_extension_deg == pytest.approx(0.17)
+    assert mixed.notes["display_extension_component"] == "KM2A"
+    pointlike = next(component for component in mixed.notes["components"] if component["extension_classification"] == "pointlike")
+    assert pointlike["r39_upper_limit_deg"] == pytest.approx(0.22)
+    assert pointlike["r39_upper_limit_deg"] > mixed.display_extension_deg
 
 
 def test_unpublished_2lhaaso_is_not_installed_or_served():

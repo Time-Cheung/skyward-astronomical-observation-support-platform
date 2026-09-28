@@ -117,8 +117,28 @@ def test_result_navigation_uses_snapshot_restore_and_read_only_source_dialog():
     assert "apply(1,false);" not in js
     assert "!resultPage && document.getElementById('planner-form')" in js
     assert "const isResultTarget = isResultTargetIdentity(sourceKey) || isResultTargetIdentity(data.index)" in js
-    assert "dialogUseSource.hidden = isResultTarget ||" in js
+    assert "const pendingReplacementDiffers = Boolean(replacementForm" in js
+    assert "dialogUseSource.hidden = (isResultTarget && !pendingReplacementDiffers) ||" in js
     assert "dialogAddZenith.dataset.overlayAdded" in js
     assert "removeZenithOverlay" in js
     assert "local-map-heading-actions" in result
     assert 'class="local-fov-time-controls"' not in result
+
+
+def test_result_map_toolbars_and_zenith_controls_keep_frontend_contracts():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    js = (root / "app/static/app.js").read_text(encoding="utf-8")
+    result = (root / "app/templates/result.html").read_text(encoding="utf-8")
+    css = (root / "app/static/styles.css").read_text(encoding="utf-8")
+    assert result.count("result-map-toolbar") == 2
+    assert ".result-map-grid .result-map-toolbar { min-height: 58px;" in css
+    assert ".result-map-grid .sky-panel > .panel-heading { min-height: 82px;" in css
+    assert "style.label = source.display_name;" in js
+    label_update = js.index("style.label = source.display_name;")
+    assert label_update < js.index("renderZenithCurveControls();", label_update)
+    assert "event.target.closest('.source-marker[data-gaia-source-id], .source-marker[data-source-index]')" in js
+    assert "event.target.closest('[data-source-index]')" not in js
+    assert "colour.addEventListener('input', update)" in js
+    assert "line.addEventListener('change', update)" in js

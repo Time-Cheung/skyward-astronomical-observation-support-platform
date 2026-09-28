@@ -2,6 +2,8 @@
 
 **当前版本：V2.2（2.2.20260924）。** 当前代码树包含浏览器共享的源表图标、批量目标列表、跟踪视场曲线、观测窗口排序和计划预览排序。
 
+**日期与时区约定：** 完整版本号日期使用北京时间（UTC+8）日历日期；目录 `snapshot_date` 必须同时记录其时区，ISO 时间戳必须保留偏移或 `Z`。网页展示的具体时刻必须附加当前显示时区，内部/API/计划表的 `_utc` 字段均使用 UTC。
+
 [English](DEVELOPMENT.en.md) · [用户手册](README.zh-CN.md) · [部署手册](DEPLOYMENT.zh-CN.md)
 
 ## 1. 架构与目录
@@ -13,9 +15,9 @@
 - app/static、app/templates：无外部 CDN 的双语前端。
 - data：源表、provenance 和 bundled IERS；scripts：采集/规范化；tests：单元、API、契约及浏览器测试。
 
-## CSV 用户上传契约与示例
+## XLSX 用户上传契约与示例
 
-用户 CSV 源表和专用备选源目录均为带表头的 UTF-8 CSV，必需列 `name,ra,dec`（接受别名 `source_name,ra_deg,dec_deg`），坐标为 J2000 度；可选列 `ext,ext_err,p_err(95%),l,b`，其中 `extension_deg` 可作 `ext` 别名。单文件最多 1,000 行、512 KiB；名称唯一且 1–80 字符；名称不得含控制字符，坐标有限且 RA∈[0,360)、Dec∈[-90,90]，扩展/不确定度非负。
+用户源表、批量目标列表和专用备选源目录均为 `.xlsx` 工作簿。后端只读取首个工作表，第 1 行必须是非空且不重复的表头；单文件最多 1,000 行、512 KiB，ZIP 解压后总大小不超过 8 MiB。源表和备选目录必需列为 `name,ra,dec`（接受别名 `source_name,ra_deg,dec_deg`），坐标为 J2000 度；可选列为 `ext,ext_err,p_err(95%),l,b`，其中 `extension_deg` 可作 `ext` 别名。批量目标列表必须逐行提供 `name,ra,dec,ext`，并可选填五个规划约束列；空缺约束由当前规划器设置补齐。名称唯一且 1–80 字符，禁止控制字符；坐标有限且 RA∈[0,360)、Dec∈[-90,90]，扩展/不确定度非负。
 
 ## 2. 几何与显示契约
 
@@ -23,7 +25,9 @@
 
 所有局部图固定显示目标中心半径 5°（直径 10°），SVG 根暴露 data-display-radius-deg=5。望远镜硬 FoV 是独立几何，暴露 data-fov-radius-deg；LACT 默认半径 4.15°，蓝色虚线框相对图半径的比例为 4.15/5。自定义 FoV 超出显示边界时允许裁切。
 
-普通目录状态：红=中心失败，黄=中心通过但 footprint 边缘失败，绿=中心与 footprint 通过。如果源表声明源可能扩展、但没有有效 extension 半径，可观测性明确采用零半径点源回退计算；原始事实仍保留为 `footprint_known=false`、`planning_radius_deg=null`，API、详情和窗口结果均返回 `point_source_fallback`，不能把该假设描述为真实扩展范围已验证。Gaia 是 ext=0 已知点源，使用红/绿色十字符号，不产生黄色或 extension。
+普通目录状态：红=中心失败，黄=中心通过但 footprint 边缘失败，绿=中心与 footprint 通过。如果源表声明源可能扩展、但没有有效 extension 半径，可观测性明确采用零半径点源回退计算；原始事实仍保留为 `footprint_known=false`、`planning_radius_deg=null`，API、详情和窗口结果均返回 `point_source_fallback`，不能把该假设描述为真实扩展范围已验证。Gaia 是 ext=0 已知点源，使用红/绿色十字符号，不产生黄色或 extension。普通星形、菱形、三角形、方形、圆形和 Gaia 十字应保持近似视觉尺寸；只有当前目标放大并以蓝色轮廓突出。
+
+源详情中的数值必须结合源表单位元数据展示。TeVCat 的 flux、threshold、size 分别显示 Crab、GeV、deg；distance_mode 为距离时显示 kpc，为红移时显示无量纲 z。Fermi 原始字段按目录 `units` 映射输出，不能展示无单位的裸数值。
 
 ## 3. 30 天窗口扫描
 
@@ -35,7 +39,7 @@ minimum_window_seconds=0 只表示不按持续时间过滤。含至少一个采�
 
 源表勾选只修改草稿，确认后才改变 catalog_tokens、地图和首页目标源。取消、Esc、外部点击恢复已应用选择；结果目标始终使用稳定 source_key。
 
-结果页全天图和局部图共享一个状态选择器：实时、已计算观测窗口或指定时间。指定时间可为时间点，也可为最长 24 小时的时间段；时间段采用 trajectory-style 分类，所有位置统一绘制在区间起点。局部图不再有独立 live/fixed 状态，并与全天图使用相同的源颜色、已选目标轮廓和跟踪视场轮廓；trajectory 模式必须向两个地图端点发送同一组 highlight_indexes。结果页源详情为只读，目标选择留在首页规划器；内部保留的一次性 pending map state 只用于兼容既有结果重建流程，不应影响首页新计算。当前没有可信实时指向，sky_snapshot 和所有结果地图均使用 enforce_current_pointing=false；FoV 圆与紫色“跟踪视场内源”只表达目标中心几何，不能描述设备实时指向。
+结果页全天图和局部图共享一个状态选择器：实时、已计算观测窗口或指定时间。指定时间可为时间点，也可为最长 24 小时的时间段；时间段采用 trajectory-style 分类，所有位置统一绘制在区间起点。两图标题行和设置栏在桌面布局中平行等高；窄屏允许按媒体查询换行。局部图不再有独立 live/fixed 状态，并与全天图使用相同的源颜色、已选目标轮廓和跟踪视场轮廓；trajectory 模式必须向两个地图端点发送同一组 highlight_indexes。Zenith-Time 管理列表必须显示源表中的正式名称，而不是 `Source N` 占位符；颜色和线型控件不属于地图 marker，点击时不得触发源详情弹窗。结果页源详情为只读，目标选择留在首页规划器；内部保留的一次性 pending map state 只用于兼容既有结果重建流程，不应影响首页新计算。当前没有可信实时指向，sky_snapshot 和所有结果地图均使用 enforce_current_pointing=false；FoV 圆与紫色“跟踪视场内源”只表达目标中心几何，不能描述设备实时指向。
 
 结果页导航状态契约：离开结果页前由 `snapshotResultPage()` 保存当前完整 DOM（包括已渲染 SVG、模式/指定时间控件、Gaia overlay、相机缩放、Zenith-Time overlay 和状态文本）到版本化 `skyward.result-page-cache.v1` sessionStorage。数据说明/API 页的规划链接先验证同源 /result URL，再通过 `restoreCachedResultPage()` 写回快照并跳过 `initialiseResultMaps()` 的首次 refresh/refreshLocal；因此返回不触发窗口计算或地图请求。快照写入失败时不阻断导航，回退到原有 GET /result 重建；直接刷新和跨标签页不承诺无计算。结果页 source dialog 只对当前目标源隐藏 `dialog-use-source`；其他普通源仍可通过保留的结果表单替换目标，Gaia 源不提供该操作。局部图缩放控件位于局部标题行，窄屏通过媒体查询恢复换行。
 
@@ -45,7 +49,7 @@ minimum_window_seconds=0 只表示不按持续时间过滤。含至少一个采�
 
 计划生命周期契约如下：刷新标签页、同一标签页从结果页进入数据说明/API再返回、浏览器前进和后退均必须保留计划；点击“清空当前观测计划”必须清空；关闭标签页或整个浏览器后重新打开按新会话处理并清空；清理网站数据和隐私模式会话结束时清空。实现不得使用 `beforeunload` 或 `pagehide` 主动清理，因为这些事件也会在刷新时触发。应用存储容器从 `skyward.observation-plan.v2` 升级到 `v3` 时不迁移旧计划。浏览器恢复上次会话或重新打开已关闭标签页可能恢复 sessionStorage，这是浏览器相关例外，不能由纯前端逻辑在所有浏览器中强制区分。
 
-每个计划窗口分别异步调用 alternatives 接口；候选源先粗筛排序（窗口重叠降序、间隔升序、时长差升序、候选时长降序、稳定源键升序），再对 shortlist 精确验证，最多返回 3 个。用户上传的临时 CSV 仅作为候选源池，不改变目标源目录；未上传时使用当前已加载普通源表。当前页“完整源窗口”区域仅在请求期间显示“源 + 窗口序号”的筛选状态。计划条目以 `windows[]` 保存全部勾选窗口，每个窗口保存自己的计划起止时间、备选源、筛选状态、指标和警告。下载 ZIP 内的 `skyward-observing-plan.xlsx` 是浏览器本地生成的无宏 OOXML 工作簿：同一条计划可有多条目标行，每个所选窗口一行，随后是该窗口的绿色备选源行；表头为实心黑色、目标行为黄色。不得依赖 CDN。勾选图像时，每条计划分别捕获观测窗口 SVG 与导出增强后的局部视场 SVG，以三位计划序号命名，防止同名目标覆盖；局部图导出副本强制亮背景、目标编号 1 并附源名图例，窗口图由 Matplotlib 直接写入曲线图例。
+每个计划窗口分别异步调用 alternatives 接口；候选源先粗筛排序，再对 shortlist 精确验证，最多返回 3 个。用户上传的临时 XLSX 仅作为候选源池，不改变目标源目录；未上传时使用当前已加载普通源表。计划条目以 `windows[]` 保存全部选中窗口，每个窗口保存自己的计划起止时间、备选源、筛选状态、指标和警告。下载和图像导出均在浏览器本地完成；勾选图像时，每条计划分别保存观测窗口图与局部视场图。
 
 ## 5. 数据维护与 TeVCat
 
@@ -57,7 +61,7 @@ minimum_window_seconds=0 只表示不按持续时间过滤。含至少一个采�
   --output data/catalogues/1lhaaso.json
 ~~~
 
-构建器要求审计过的输入 SHA-256，验证 90 个唯一源、180 个组件和字段模式，并记录论文 DOI、论文 PDF/机器表哈希、单位与 Astropy 版本。双组件源按有坐标组件中 TS 最高者选代表坐标；每个组件的原始字段、缺失值和上限都保存在 `notes.components`。`r39` 仅是二维高斯 39% containment radius：测得扩展的误差是 1σ 统计误差，点源上限为 95% 置信上限；不得写入 `planning_radius_deg` 或用作硬边界。Table 2 关联项只表示论文按位置搜索得到的初步已知 TeV 对应体，不是 Skyward 核验身份。机器表中 `N0=0` 且误差列有值的未探测分量按论文定义规范化为 upper limit。`1lhaaso` 是默认且唯一的 LHAASO 运行目录；`2lhaaso` 不得出现在 `BUILTIN_CATALOGUES`、页面选择器、API 示例、发布树或源码包中，临时上传也必须拒绝 2LHAASO 保留名。TeVCat 重建审计同时保留 1LHAASO 文本关联检查，并把任何 2LHAASO 文本列为发布失败。关于 2LHAASO 的文档文字只能用于解释“尚未公开、未随包提供”的发布边界。
+构建器要求审计过的输入 SHA-256，验证 90 个唯一源、180 个组件和字段模式，并记录论文 DOI、论文 PDF/机器表哈希、单位与 Astropy 版本。双组件源按有坐标组件中 TS 最高者选代表坐标；每个组件的原始字段、缺失值和上限都保存在 `notes.components`。Table 2 第六列为“数值 ± 误差”时将组件分类为扩展源，误差为 1σ 统计误差；为“<数值”时将组件分类为点源，该数值为 95% 统计上限。显示 extension 时只比较分类为扩展且具有实测 r39 的 KM2A/WCDA 组件并取较大者；点源上限不参与比较，即使其数值更大。所选组件、误差、选择规则和 DOI/Table 2 来源写入源记录，但不得写入 `planning_radius_deg` 或用作硬边界。Table 2 关联项只表示论文按位置搜索得到的初步已知 TeV 对应体，不是 Skyward 核验身份。机器表中 `N0=0` 且误差列有值的未探测分量按论文定义规范化为 upper limit。`1lhaaso` 是默认且唯一的 LHAASO 运行目录；`2lhaaso` 不得出现在 `BUILTIN_CATALOGUES`、页面选择器、API 示例、发布树或源码包中，临时上传也必须拒绝 2LHAASO 保留名。TeVCat 重建审计保留公开名称/别名/备注中的明确文字关联及 2026-09-25（北京时间，UTC+8） 快照来源；位置候选绝不升级为身份匹配。关于 2LHAASO 的文档文字只能用于解释“尚未公开、未随包提供”的发布边界。
 
 Fermi 构建使用 scripts/build_fermi_catalogues.py，保留 FITS 字段、单位和版本；位置误差不是物理 extension；显示名去掉重复目录前缀。
 

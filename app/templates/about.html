@@ -11,7 +11,7 @@
 
 <section class="method-section skyward-overview" aria-labelledby="skyward-overview-title">
   <h2 id="skyward-overview-title" data-about-i18n="skywardOverviewTitle">What Skyward is</h2>
-  <p data-about-i18n="skywardScopeStatement">V2.2 (full version 2.2.20260924) uses a geometry-only boundary and provides browser-local planning enhancements. It reports explainable geometric-feasibility candidates only; it does not determine operational readiness or approve an observation.</p>
+  <p class="scope-statement" data-about-i18n="skywardScopeStatement">V2.2 (full version 2.2.20260924) uses a geometry-only boundary and provides browser-local planning enhancements; the 20260924 date component is the Beijing calendar date (UTC+8). It reports explainable geometric-feasibility candidates only; it does not determine operational readiness or approve an observation.</p>
   <div class="skyward-stage-grid">
     <div class="scope-card">
       <p class="section-label" data-about-i18n="currentStageLabel">AVAILABLE NOW</p>
@@ -49,35 +49,32 @@
 
 <section class="method-section plan-notes-section" aria-labelledby="plan-notes-title">
   <h2 id="plan-notes-title" data-about-i18n="observingPlanTitle">Observing plans</h2>
-  <p data-about-i18n="observingPlanBody">The full-footprint section has one shared set of plan actions. Each valid window is listed on its own row with a checkbox selected by default. Add to the plan creates one target entry containing all checked windows; the preview edits each planned interval separately, while the XLSX records one target row per selected window and keeps alternatives attached to the corresponding window. A user-uploaded CSV can be selected as the exclusive alternative-source directory for that plan; without it, the selected ordinary catalogues remain the candidate pool.</p>
-  <p data-about-i18n="observingPlanFormat">The downloaded workbook uses a solid black header, yellow target rows, and green alternative rows. It is generated locally in the browser; no plan is uploaded to the server. Saved observing-window SVGs include comparison-curve legends; saved local-FoV SVGs use a light background, assign the target ID 1, and include a source-name legend.</p>
+  <p data-about-i18n="observingPlanBody">The full-footprint section has one shared set of plan actions. Each valid window is listed on its own row with a checkbox selected by default. Add to the plan creates one target entry containing all checked windows; the preview edits each planned interval separately, while the XLSX records one target row per selected window and keeps alternatives attached to the corresponding window. A user-uploaded XLSX can be selected as the exclusive alternative-source directory for that plan; without it, the selected ordinary catalogues remain the candidate pool.</p>
+  <p data-about-i18n="observingPlanFormat">The observing plan is generated locally in the browser and is not uploaded. Saved observing-window and local-FoV plots can be exported with the plan.</p>
 </section>
 
 <section class="method-section csv-upload-guide" aria-labelledby="csv-upload-guide-title">
-  <h2 id="csv-upload-guide-title" data-about-i18n="csvUploadTitle">CSV upload formats and examples</h2>
-  <p data-about-i18n="csvUploadIntro">Both uploads use UTF-8 CSV with a header row. Column names are case-insensitive; coordinates are degrees in J2000. Save example files as UTF-8 CSV.</p>
-  <p data-about-i18n="csvUploadName">The source-catalogue filename becomes its display label. Upload an alternative-source directory using the dedicated control in the full-footprint section of a result page.</p>
+  <h2 id="csv-upload-guide-title" data-about-i18n="csvUploadTitle">XLSX upload formats and examples</h2>
+  <p data-about-i18n="csvUploadIntro">All three uploads use .xlsx workbooks. Skyward reads the first worksheet and requires headers in row 1. Column names are case-insensitive; coordinates are degrees in J2000.</p>
+  <p data-about-i18n="csvUploadName">The source-catalogue XLSX filename becomes its display label. Upload an alternative-source directory using the dedicated control in the full-footprint section of a result page.</p>
   <article class="csv-upload-card">
     <h3 data-about-i18n="sourceCsvTitle">User-uploaded source catalogue</h3>
-    <p data-about-i18n="sourceCsvBody">Required columns: name, ra, dec. Optional columns: ext, ext_err, p_err(95%), l, b. You may also use source_name, ra_deg, dec_deg, or extension_deg as aliases. Missing optional values can be left blank; ext defaults to 0. One unique name per row is required.</p>
-    <p data-about-i18n="targetListCsvBody">The home planner also accepts a batch target-list CSV. Required columns are name, ra, dec, ext; the five optional planning columns are sun_max_altitude_deg, moon_min_separation_deg, target_min_zenith_deg, target_max_zenith_deg, and minimum_window_seconds. Missing optional values inherit the current planner settings. Each valid target is calculated separately and its valid windows are added to the browser observing plan with local-FoV and observing-window SVGs saved by default; edit them later in Preview current observing plan.</p>
-    <p><a href="../static/examples/user-source-catalogue.csv" download data-about-i18n="sourceCsvDownload">Download source-catalogue CSV example</a></p>
-    <pre><code>name,ra,dec,ext,ext_err,p_err(95%)
-Crab,83.6331,22.0145,0.10,0.02,0.01
-Example source,120.5,-30.2,,,
-</code></pre>
+    <p data-about-i18n="sourceCsvBody">Required columns in the first worksheet: name, ra, dec. Optional columns: ext, ext_err, p_err(95%), l, b. You may also use source_name, ra_deg, dec_deg, or extension_deg as aliases. Missing optional values can be left blank; ext defaults to 0. One unique name per row is required.</p>
+    <p><a href="{{ url_for('static', path='/examples/user-source-catalogue.xlsx') }}" download="user-source-catalogue.xlsx" data-about-i18n="sourceCsvDownload">Download source-catalogue XLSX example</a></p>
+  </article>
+  <article class="csv-upload-card">
+    <h3 data-about-i18n="targetListCsvTitle">User-uploaded target-source list</h3>
+    <p data-about-i18n="targetListCsvBody">The home planner accepts a batch target-source-list XLSX. Required columns are name, ra, dec, ext; the five optional planning columns are sun_max_altitude_deg, moon_min_separation_deg, target_min_zenith_deg, target_max_zenith_deg, and minimum_window_seconds. Missing optional values inherit the current planner settings. Each target is calculated separately; valid windows are added to the browser observing plan and local-FoV and observing-window SVGs are saved by default for later editing in Preview current observing plan.</p>
+    <p data-about-i18n="targetListCsvExample">Target-list worksheet columns: name, ra, dec, ext, sun_max_altitude_deg, moon_min_separation_deg, target_min_zenith_deg, target_max_zenith_deg, and minimum_window_seconds. Use one target per row; coordinates are J2000 degrees and ext is the nominal extension radius in degrees.</p>
+    <p><a href="{{ url_for('static', path='/examples/target-source-list.xlsx') }}" download="target-source-list.xlsx" data-about-i18n="targetListCsvDownload">Download target-list XLSX example</a></p>
   </article>
   <article class="csv-upload-card">
     <h3 data-about-i18n="alternativeCsvTitle">Dedicated alternative-source catalogue</h3>
-    <p data-about-i18n="alternativeCsvBody">Use the same CSV format. Required columns: name, ra, dec; optional columns are the same as above. Upload it in the alternative-source controls on a result page. It is used exclusively to search alternatives for that plan and does not replace the selected target or displayed catalogues.</p>
-    <p><a href="../static/examples/alternative-source-catalogue.csv" download data-about-i18n="alternativeCsvDownload">Download alternative-catalogue CSV example</a></p>
-    <pre><code>name,ra,dec,ext
-Alternative A,84.0,22.3,0.15
-Alternative B,75.25,12.8,0
-</code></pre>
+    <p data-about-i18n="alternativeCsvBody">Use the same XLSX format. Required columns: name, ra, dec; optional columns are the same as above. Upload it in the alternative-source controls on a result page. It is used exclusively to search alternatives for that plan and does not replace the selected target or displayed catalogues.</p>
+    <p><a href="{{ url_for('static', path='/examples/alternative-source-catalogue.xlsx') }}" download="alternative-source-catalogue.xlsx" data-about-i18n="alternativeCsvDownload">Download alternative-catalogue XLSX example</a></p>
   </article>
-  <p class="csv-upload-limits" data-about-i18n="csvUploadLimits">Limits: up to 1,000 rows and 512 KiB per file. Names must be unique (case-insensitive) and 1–80 characters; coordinates must be finite, with 0 ≤ RA &lt; 360 and −90 ≤ Dec ≤ 90. Negative extension or uncertainty values are rejected. The reserved unpublished 2LHAASO name cannot be used.</p>
-  <p class="csv-upload-alias-note" data-about-i18n="csvUploadAliases">Column-name aliases: source_name for name, ra_deg for ra, dec_deg for dec, and extension_deg for ext.</p>
+  <p class="csv-upload-limits" data-about-i18n="csvUploadLimits">Limits: up to 1,000 rows and 512 KiB per .xlsx file, with at most 8 MiB after decompression. Names must be unique (case-insensitive) and 1–80 characters; coordinates must be finite, with 0 ≤ RA &lt; 360 and −90 ≤ Dec ≤ 90. Negative extension or uncertainty values are rejected. The reserved unpublished 2LHAASO name cannot be used.</p>
+  <p class="csv-upload-alias-note" data-about-i18n="csvUploadAliases">Column-name aliases: source_name for name, ra_deg for ra, dec_deg for dec, and extension_deg for ext. Header comments in the example workbooks also state field units.</p>
 </section>
 
 <section class="about-grid">
@@ -92,7 +89,7 @@ Alternative B,75.25,12.8,0
     </dl>
   </article>
   <article>
-    <h2>LACT FoV</h2>
+    <h2 data-about-i18n="lactFovHeading">LACT FoV</h2>
     <dl class="definition-list">
       <div><dt data-i18n="diameter">Diameter</dt><dd>{{ fov_diameter }}°</dd></div>
       <div><dt data-i18n="radius">Radius</dt><dd>{{ fov_radius }}°</dd></div>
@@ -119,10 +116,10 @@ Alternative B,75.25,12.8,0
   <article>
     <h2 data-i18n="iersOffline">IERS online-first data</h2>
     <dl class="definition-list">
-      <div><dt data-i18n="currentCoverage">Current coverage</dt><dd>{{ 'Yes' if iers.covers_current_time else 'No' }}</dd></div>
-      <div><dt>MJD range</dt><dd>{{ iers.first_mjd }} - {{ iers.last_mjd }}</dd></div>
+      <div><dt data-i18n="currentCoverage">Current coverage</dt><dd>{% if iers.covers_current_time %}<span data-i18n="yes">Yes</span>{% else %}<span data-i18n="no">No</span>{% endif %}</dd></div>
+      <div><dt data-about-i18n="mjdRange">MJD range</dt><dd>{{ iers.first_mjd }} - {{ iers.last_mjd }}</dd></div>
       <div><dt data-i18n="iersSourceKind">Active source</dt><dd>{{ iers.source_kind }}</dd></div>
-      <div><dt data-i18n="iersUpdate">Update policy</dt><dd>{{ iers.update_interval_days|round(0)|int }} days; {{ 'due' if iers.update_due else 'fresh' }}</dd></div>
+      <div><dt data-i18n="iersUpdate">Update policy</dt><dd>{{ iers.update_interval_days|round(0)|int }} days; <span data-about-i18n="{{ 'iersDue' if iers.update_due else 'iersFresh' }}">{{ 'due' if iers.update_due else 'fresh' }}</span></dd></div>
       <div><dt data-i18n="file">File</dt><dd class="path-value">{{ iers.source }}</dd></div>
       {% if iers.last_error %}<div><dt data-i18n="iersLastError">Last online error</dt><dd>{{ iers.last_error }}</dd></div>{% endif %}
     </dl>
@@ -144,9 +141,19 @@ Alternative B,75.25,12.8,0
 
 <section class="method-section">
   <h2 data-i18n="notEvaluated">Not evaluated</h2>
+  {% set capability_labels = {
+    'geometry': 'capabilityGeometry',
+    'catalogue': 'capabilityCatalogue',
+    'interactive_sky_map': 'capabilityInteractiveSkyMap',
+    'custom_telescope': 'capabilityCustomTelescope',
+    'joint_observation': 'capabilityJointObservation',
+    'weather': 'capabilityWeather',
+    'telemetry': 'capabilityTelemetry',
+    'authentication': 'capabilityAuthentication'
+  } %}
   <div class="capability-grid">
     {% for name, enabled in capabilities.items() %}
-    <div><span>{{ name }}</span><strong data-i18n="{{ 'implemented' if enabled else 'notImplemented' }}">{{ 'Implemented' if enabled else 'Not implemented' }}</strong></div>
+    <div><span data-about-i18n="{{ capability_labels.get(name, name) }}">{{ name }}</span><strong data-i18n="{{ 'implemented' if enabled else 'notImplemented' }}">{{ 'Implemented' if enabled else 'Not implemented' }}</strong></div>
     {% endfor %}
   </div>
   <p class="disclaimer" data-i18n="aboutDisclaimer">This is not a formal observing approval. Weather, device state, mechanical limits, tracking error and joint-observation conditions are excluded.</p>

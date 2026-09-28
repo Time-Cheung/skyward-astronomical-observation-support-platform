@@ -43,6 +43,7 @@
          data-result-start="{{ result_dict.start }}"
          data-result-end="{{ result_dict.end }}"
          data-full-window-ranges='{{ full_window_ranges_json }}'
+         data-center-window-ranges='{{ center_window_ranges_json }}'
          data-window-display-time="{{ window_display_time }}"
          data-highlight-indexes="{{ highlighted_indexes|join(',') }}"></div>
     <p class="section-label" data-i18n="windowResult">WINDOW RESULT</p>
@@ -59,7 +60,7 @@
 </section>
 
 <section class="result-context" data-result-time-context data-start-utc="{{ result_dict.start }}" data-end-utc="{{ result_dict.end }}">
-  <div><span data-i18n="displayTime">Display time</span><strong data-time-display="range" data-start-utc="{{ result_dict.start }}" data-end-utc="{{ result_dict.end }}">{{ start_local.strftime('%Y-%m-%d %H:%M') }} <i data-i18n="to">to</i> {{ end_local.strftime('%Y-%m-%d %H:%M') }}</strong></div>
+  <div><span data-i18n="displayTime">Display time</span><strong data-time-display="range" data-start-utc="{{ result_dict.start }}" data-end-utc="{{ result_dict.end }}">{{ start_local.strftime('%Y-%m-%d %H:%M') }} <i data-i18n="to">to</i> {{ end_local.strftime('%Y-%m-%d %H:%M') }} {{ timezone_display_name }}</strong></div>
   <div><span data-i18n="centreWindows">Centre windows</span><strong>{{ result.center_windows|length }}</strong></div>
   <div><span data-i18n="fullWindows">Full-footprint windows</span><strong>{{ result.full_footprint_windows|length }}</strong></div>
   <div><span data-i18n="enabledConstraints">Enabled constraints</span><strong>{{ constraints.enabled_labels()|length }}</strong></div>
@@ -68,11 +69,11 @@
 <div class="result-map-grid">
   <section class="sky-panel compact-panel">
     <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="startTime">START TIME</p><h2 data-i18n="allSky">All-sky map</h2></div><div class="result-map-heading-actions"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div></div>
-    <div class="result-map-controls"><div class="result-map-selector-control">{% include "_catalogue_panel.html" %}</div><label class="heading-mode-control"><span data-i18n="resultStatusMode">Map status</span><select id="result-status-mode"><option value="instant" data-live-option data-i18n="statusInstant">Real-time</option><option value="trajectory" data-i18n="statusTrajectory">Observation window</option><option value="specified" data-i18n="statusSpecified">Specified time</option></select></label><button id="add-tracked-zenith-curves" class="secondary-button" type="button" hidden data-i18n="addTrackedCurves">Add tracked-FoV source curves</button></div>
+    <div class="result-map-controls result-map-toolbar"><div class="result-map-selector-control">{% include "_catalogue_panel.html" %}</div><label class="heading-mode-control"><span data-i18n="resultStatusMode">Map status</span><select id="result-status-mode"><option value="instant" data-live-option data-i18n="statusInstant">Real-time</option><option value="trajectory" data-i18n="statusTrajectory">Observation window</option><option value="specified" data-i18n="statusSpecified">Specified time</option></select></label><button id="add-tracked-zenith-curves" class="secondary-button" type="button" hidden data-i18n="addTrackedCurves">Add tracked-FoV source curves</button></div>
     <div class="specified-time-controls" id="specified-time-controls" hidden>
       <label><span data-i18n="specifiedTimeKind">Specified time type</span><select id="specified-time-kind"><option value="point" data-i18n="specifiedPoint">Time point</option><option value="range" data-i18n="specifiedRange">Time range</option></select></label>
-      <label><span data-i18n="specifiedStart">Start / point</span><input id="specified-time-start" type="datetime-local"></label>
-      <label id="specified-time-end-control" hidden><span data-i18n="specifiedEnd">End</span><input id="specified-time-end" type="datetime-local"></label>
+      <label><span data-i18n="specifiedStart">Start / point</span><input id="specified-time-start" type="datetime-local"><small data-timezone-label>{{ timezone_display_name }}</small></label>
+      <label id="specified-time-end-control" hidden><span data-i18n="specifiedEnd">End</span><input id="specified-time-end" type="datetime-local"><small data-timezone-label>{{ timezone_display_name }}</small></label>
       <button id="specified-time-apply" class="secondary-button" type="button" data-i18n="applySpecifiedTime">Apply</button>
       <p id="specified-time-error" class="form-error" role="alert" hidden></p>
     </div>
@@ -83,7 +84,7 @@
   </section>
   <section class="sky-panel compact-panel">
     <div class="panel-heading map-heading"><div><p class="section-label" data-i18n="pointingCentre">POINTING CENTRE</p><h2>10° <span data-i18n="localFovTitle">local view</span> · {{ telescope.name }} FoV {{ '%.2f'|format(telescope.fov_diameter_deg) }}°</h2></div><div class="result-map-heading-actions local-map-heading-actions"><div class="sky-zoom-controls" data-map-zoom-controls data-zoom-max="1000"><button class="secondary-button" data-zoom-out type="button">−</button><button class="secondary-button" data-zoom-reset type="button" data-i18n="zoomReset">100%</button><button class="secondary-button" data-zoom-in type="button">+</button><button class="secondary-button" data-zoom-centre type="button" data-i18n="chooseZoomCentre">Choose centre</button></div></div></div>
-    <div class="local-gaia-filter-controls compact-gaia-filter-controls" id="local-gaia-filter-controls">
+    <div class="local-gaia-filter-controls compact-gaia-filter-controls result-map-toolbar" id="local-gaia-filter-controls">
       <div class="local-gaia-filter-field"><label for="local-gaia-radius" data-i18n="gaiaRadiusFilter">Search radius</label><span class="unit-input"><input id="local-gaia-radius" type="number" min="0.1" max="5" step="0.1" value="1" inputmode="decimal"><span>°</span></span></div>
       <label class="local-gaia-filter-field"><span data-i18n="gaiaFaintestMagnitude">Faintest G magnitude</span><input id="local-gaia-max-mag" type="number" min="5" max="22" step="0.1" value="10" inputmode="decimal"></label>
       <label class="local-gaia-filter-field"><span data-i18n="gaiaMaximumSources">Maximum sources</span><input id="local-gaia-limit" type="number" min="1" max="500" step="1" value="10" inputmode="numeric"></label>
@@ -112,7 +113,7 @@
     <div class="window-list">
       {% for window in result.center_windows %}
       <article class="window-row">
-        <div class="window-time"><strong data-time-display="single" data-utc="{{ window.start.isoformat() }}">{{ window.start.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }}</strong><span data-i18n="to">to</span><strong data-time-display="single" data-utc="{{ window.end.isoformat() }}">{{ window.end.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }}</strong></div>
+        <div class="window-time"><strong data-time-display="single" data-utc="{{ window.start.isoformat() }}">{{ window.start.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }} {{ timezone_display_name }}</strong><span data-i18n="to">to</span><strong data-time-display="single" data-utc="{{ window.end.isoformat() }}">{{ window.end.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }} {{ timezone_display_name }}</strong></div>
         <dl><div><dt data-i18n="duration">Duration</dt><dd>{{ '%.0f'|format(window.duration_seconds) }} s</dd></div><div><dt data-i18n="minimumZenith">Minimum zenith</dt><dd>{{ '%.2f'|format(window.minimum_target_zenith_deg) }}°</dd></div><div><dt data-i18n="minimumMoonSeparation">Minimum Moon separation</dt><dd>{{ '%.2f'|format(window.minimum_moon_separation_deg) }}°</dd></div></dl>
         <p data-reason-codes="{{ window.start_reason }}|{{ window.end_reason }}">{{ human_reason_text([window.start_reason, window.end_reason]) }}</p>
       </article>
@@ -128,7 +129,7 @@
     <div class="window-list">
       {% for window in result.full_footprint_windows %}
       <article class="window-row">
-        <div class="window-time"><strong data-time-display="single" data-utc="{{ window.start.isoformat() }}">{{ window.start.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }}</strong><span data-i18n="to">to</span><strong data-time-display="single" data-utc="{{ window.end.isoformat() }}">{{ window.end.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }}</strong></div>
+        <div class="window-time"><strong data-time-display="single" data-utc="{{ window.start.isoformat() }}">{{ window.start.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }} {{ timezone_display_name }}</strong><span data-i18n="to">to</span><strong data-time-display="single" data-utc="{{ window.end.isoformat() }}">{{ window.end.astimezone(start_local.tzinfo).strftime('%m-%d %H:%M:%S') }} {{ timezone_display_name }}</strong></div>
         {% if window.plan_start and window.plan_end %}
         <label class="plan-window-choice"><input type="checkbox" data-plan-window-select data-window-start="{{ window.start.isoformat() }}" data-window-end="{{ window.end.isoformat() }}" data-plan-start="{{ window.plan_start.isoformat() }}" data-plan-end="{{ window.plan_end.isoformat() }}" data-window-kind="full" checked> <span data-i18n="includePlanWindow">Include this window in the observing plan</span></label>
         {% else %}
@@ -141,8 +142,8 @@
     </div>
     {% if planable_windows %}
     <div class="alternative-catalogue-controls" id="alternative-catalogue-controls">
-      <div><strong data-i18n="alternativeCatalogue">专用备选源目录</strong><small data-i18n="alternativeCatalogueHelp">上传后只从该 CSV 选择备选源；未上传时使用当前已加载源表。</small></div>
-      <input id="alternative-catalogue-upload" class="sr-only" type="file" accept=".csv,text/csv" tabindex="-1">
+      <div><strong data-i18n="alternativeCatalogue">专用备选源目录</strong><small data-i18n="alternativeCatalogueHelp">上传后只从该 XLSX 选择备选源；未上传时使用当前已加载源表。</small></div>
+      <input id="alternative-catalogue-upload" class="sr-only" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" tabindex="-1">
       <button id="alternative-catalogue-upload-trigger" class="secondary-button" type="button" data-i18n="chooseAlternativeCatalogue">上传备选源目录</button>
       <span id="alternative-catalogue-name" aria-live="polite"></span>
       <span id="alternative-catalogue-status" role="status" aria-live="polite"></span>

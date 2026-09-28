@@ -252,7 +252,7 @@ def test_gaia_async_invalid_result_preserves_lifecycle_metadata(monkeypatch):
     gaia._CACHE.clear()
 
 
-def test_gaia_endpoint_defaults_and_bounds(monkeypatch):
+def test_gaia_endpoint_defaults_and_bounds(monkeypatch, xlsx_bytes):
     import app.main as main
 
     captured = {}
@@ -300,7 +300,7 @@ def test_gaia_endpoint_defaults_and_bounds(monkeypatch):
     gaia._CACHE.clear()
     upload = client.post(
         "/api/v1/catalogues/upload",
-        files={"file": ("extra.csv", b"name,ra,dec,ext\nExtra,10,20,0.2\n", "text/csv")},
+        files={"file": ("extra.xlsx", xlsx_bytes(["name", "ra", "dec", "ext"], [["Extra", 10, 20, 0.2]]), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
     )
     assert upload.status_code == 200
     token = upload.json()["token"]
